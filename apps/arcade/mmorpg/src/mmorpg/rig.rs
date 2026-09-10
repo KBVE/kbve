@@ -319,6 +319,12 @@ pub struct PoseSet {
     pub clips: Vec<PoseClip>,
 }
 
+/// Longest run of missing contact frames closed at load, in frames of the bake.
+const CONTACT_GAP: usize = 3;
+
+/// Quaternion component difference under which two baked frames count as the same pose.
+const SEAM_EPSILON: f32 = 1e-3;
+
 #[derive(Deserialize, Debug, Clone)]
 pub struct PoseClip {
     pub name: String,
@@ -352,48 +358,181 @@ impl PoseClip {
 
     /// One stride as a frame window starting at a left-foot landing, or the whole clip if it has no second landing.
     pub fn stride(&self) -> (usize, usize) {
-        let onsets = self.left_onsets();
-        match onsets.as_slice() {
-            [a, b, ..] => (*a, *b),
-            [a] => (*a, *a + self.frames.len()),
-            [] => (0, self.frames.len()),
+        self.strides()[0]
+    }
+
+    /// Drops trailing frames that repeat the frame before them or the first frame: an exported loop ends on a copy of its start, which would stall the pose for those frames every time round.
+    pub fn trim_seam(&mut self) {
+        let same = |a: &PoseFrame, b: &PoseFrame| {
+            a.rotations.len() == b.rotations.len()
+                && a.rotations.iter().zip(&b.rotations).all(|(p, q)| {
+                    (p.0 - q.0).abs() < SEAM_EPSILON
+                        && (p.1 - q.1).abs() < SEAM_EPSILON
+                        && (p.2 - q.2).abs() < SEAM_EPSILON
+                        && (p.3 - q.3).abs() < SEAM_EPSILON
+                })
+        };
+        while self.frames.len() > 2 {
+            let n = self.frames.len();
+            if same(&self.frames[n - 1], &self.frames[n - 2])
+                || same(&self.frames[n - 1], &self.frames[0])
+            {
+                self.frames.pop();
+            } else {
+                break;
+            }
         }
     }
 
-    /// Ground the root covers over the first full stride, metres.
-    pub fn stride_length(&self) -> f32 {
-        let (start, end) = self.stride();
+    /// Closes contact gaps of a few frames, which the bake leaves at the loop seam and where a foot rolls.
+    pub fn mend_contacts(&mut self) {
         let n = self.frames.len();
-        if n == 0 {
+        for foot in 0..2 {
+            let down = |f: &PoseFrame| if foot == 0 { f.contact.0 } else { f.contact.1 };
+            let mut fixes = Vec::new();
+            for i in 0..n {
+                if down(&self.frames[i]) || !down(&self.frames[(i + n - 1) % n]) {
+                    continue;
+                }
+                let gap = (1..=CONTACT_GAP)
+                    .find(|k| down(&self.frames[(i + k) % n]))
+                    .unwrap_or(0);
+                for k in 0..gap {
+                    fixes.push((i + k) % n);
+                }
+            }
+            for i in fixes {
+                if foot == 0 {
+                    self.frames[i].contact.0 = true;
+                } else {
+                    self.frames[i].contact.1 = true;
+                }
+            }
+        }
+    }
+
+    /// Every stride of the loop as a frame window, landing to landing; the last one wraps round to the first.
+    ///
+    /// Played in turn they reproduce the whole capture, so no stride ever cuts from its own end back to its start. A landing that starts a window under half the usual length is the previous landing seen again across the seam, and is dropped.
+    pub fn strides(&self) -> Vec<(usize, usize)> {
+        let n = self.frames.len();
+        let mut onsets = self.left_onsets();
+        loop {
+            let m = onsets.len();
+            if m < 2 {
+                break;
+            }
+            let spans: Vec<usize> = (0..m)
+                .map(|k| (onsets[(k + 1) % m] + if k + 1 == m { n } else { 0 }) - onsets[k])
+                .collect();
+            let mut sorted = spans.clone();
+            sorted.sort_unstable();
+            let median = sorted[m / 2];
+            match spans.iter().position(|&span| span * 2 < median) {
+                Some(k) => {
+                    onsets.remove((k + 1) % m);
+                }
+                None => break,
+            }
+        }
+        match onsets.as_slice() {
+            [] => vec![(0, n)],
+            [a] => vec![(*a, *a + n)],
+            all => {
+                let mut out: Vec<(usize, usize)> = all.windows(2).map(|w| (w[0], w[1])).collect();
+                out.push((all[all.len() - 1], all[0] + n));
+                out
+            }
+        }
+    }
+
+    /// Where the root lands one loop later: the last frame's offset from the first plus the one frame step the seam hides.
+    fn loop_shift(&self) -> Vec2 {
+        let n = self.frames.len();
+        if n < 2 {
+            return Vec2::ZERO;
+        }
+        let first = self.frames[0].root;
+        let last = self.frames[n - 1].root;
+        Vec2::new(last.0 - first.0, last.1 - first.1) * (n as f32 / (n - 1) as f32)
+    }
+
+    /// Root position at frame index `i`, which may run past the end for a window that wraps the loop.
+    fn root_at(&self, i: usize) -> Vec2 {
+        let n = self.frames.len();
+        let r = self.frames[i % n].root;
+        let mut out = Vec2::new(r.0, r.1);
+        if i >= n {
+            out += self.loop_shift();
+        }
+        out
+    }
+
+    /// The fractional frame where the root has covered `phase` of the window's ground travel, so the pose is played by distance and a planted foot stays where the capture put it; none when the window barely moves.
+    fn frame_at_distance(&self, start: usize, end: usize, phase: f32) -> Option<f32> {
+        let mut dist = Vec::with_capacity(end - start + 1);
+        let mut total = 0.0;
+        dist.push(0.0);
+        for i in start..end {
+            total += self.root_at(i + 1).distance(self.root_at(i));
+            dist.push(total);
+        }
+        if total < 0.05 {
+            return None;
+        }
+        let want = phase * total;
+        let k = dist
+            .partition_point(|&d| d <= want)
+            .clamp(1, dist.len() - 1);
+        let (a, b) = (dist[k - 1], dist[k]);
+        let f = if b > a { (want - a) / (b - a) } else { 0.0 };
+        Some(start as f32 + (k - 1) as f32 + f)
+    }
+
+    /// Ground the root covers over one window, metres.
+    fn travel(&self, (start, end): (usize, usize)) -> f32 {
+        if self.frames.is_empty() {
             return 0.0;
         }
-        let a = self.frames[start % n].root;
-        let b = self.frames[end % n].root;
-        let wrap = if end >= n {
-            let first = self.frames[0].root;
-            let last = self.frames[n - 1].root;
-            Vec2::new(last.0 - first.0, last.1 - first.1)
-        } else {
-            Vec2::ZERO
-        };
-        (Vec2::new(b.0 - a.0, b.1 - a.1) + wrap).length()
+        self.root_at(end).distance(self.root_at(start))
     }
 
-    /// Seconds one stride of this clip takes at its own baked speed.
-    pub fn stride_seconds(&self) -> f32 {
-        let (start, end) = self.stride();
+    /// Ground the root covers over one stride, metres, averaged over the loop.
+    pub fn stride_length(&self) -> f32 {
+        let windows = self.strides();
+        windows.iter().map(|&w| self.travel(w)).sum::<f32>() / windows.len().max(1) as f32
+    }
+
+    /// Ground the root covers over the loop's `stride`-th window, metres, so the clock matches the frames it plays.
+    pub fn stride_travel(&self, stride: u32) -> f32 {
+        let windows = self.strides();
+        self.travel(windows[stride as usize % windows.len()])
+    }
+
+    /// Seconds the loop's `stride`-th window takes at its own baked speed.
+    pub fn stride_seconds(&self, stride: u32) -> f32 {
+        let windows = self.strides();
+        let (start, end) = windows[stride as usize % windows.len()];
         (end - start).max(1) as f32 / self.fps.max(1.0)
     }
 
-    /// The pose at stride `phase` in 0..1, interpolated between frames of the first full stride.
-    pub fn sample(&self, phase: f32) -> Option<(Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool))> {
+    /// The pose at `phase` in 0..1 of the loop's `stride`-th window, interpolated between frames.
+    pub fn sample(
+        &self,
+        phase: f32,
+        stride: u32,
+    ) -> Option<(Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool))> {
         let n = self.frames.len();
         if n == 0 {
             return None;
         }
-        let (start, end) = self.stride();
+        let windows = self.strides();
+        let (start, end) = windows[stride as usize % windows.len()];
         let span = (end - start).max(1) as f32;
-        let x = start as f32 + phase.rem_euclid(1.0) * span;
+        let phase = phase.rem_euclid(1.0);
+        let x = self
+            .frame_at_distance(start, end, phase)
+            .unwrap_or(start as f32 + phase * span);
         let i = x.floor() as usize % n;
         let j = (i + 1) % n;
         let f = x - x.floor();
@@ -435,7 +574,12 @@ impl AssetLoader for PoseLoader {
     ) -> Result<PoseSet, RigError> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
-        Ok(ron::de::from_bytes(&bytes)?)
+        let mut set: PoseSet = ron::de::from_bytes(&bytes)?;
+        for clip in &mut set.clips {
+            clip.trim_seam();
+            clip.mend_contacts();
+        }
+        Ok(set)
     }
 
     fn extensions(&self) -> &[&str] {

@@ -157,9 +157,18 @@ const REACH_RISE_RATE: f32 = 5.0;
 /// Below this ground speed a character is standing, and its feet follow the clip.
 const STEP_SPEED: f32 = 0.15;
 
+/// Seconds over which a released foot sheds what the lock was holding it away from the pose.
+const CARRY_FADE: f32 = 0.08;
+
+/// Ball height over the ground under which the ball, not the heel, is what the foot stands on.
+const BALL_CLEAR: f32 = 0.02;
+
+/// Fraction of the leg a held foot may be pulled out to, unless the pose itself reaches further, before the pin slides instead; past it the knee locks straight.
+const HOLD_REACH: f32 = 0.985;
+
 impl Default for FootIkEnabled {
     fn default() -> Self {
-        Self(true)
+        Self(std::env::var("MMORPG_IK").as_deref() != Ok("0"))
     }
 }
 
@@ -192,6 +201,14 @@ pub struct FootGoal {
     strained: bool,
     /// Why, as bits: 1 drift, 2 twist, 4 out of reach.
     strain_why: u8,
+    /// Lowest ankle height above the ground during the current stance.
+    low: f32,
+    /// How far the pose's stance ankle sat below the bind ankle height last stance, for the floor fix.
+    pub sample: Option<f32>,
+    /// What the lock still held the foot away from the pose when it released, faded out over the swing's first frames.
+    carry: Vec3,
+    /// Whether the pin is under the ball; until the ball comes down after a heel strike it is under the ankle.
+    pin_ball: bool,
 }
 
 impl FootGoal {
@@ -212,6 +229,10 @@ impl FootGoal {
             normal: Vec3::Y,
             strained: false,
             strain_why: 0,
+            low: f32::MAX,
+            sample: None,
+            carry: Vec3::ZERO,
+            pin_ball: false,
         }
     }
 }
@@ -336,7 +357,7 @@ impl Trace {
             .map(|mut file| {
                 let _ = writeln!(
                     file,
-                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz"
+                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,stride,period"
                 );
                 Mutex::new(file)
             });
@@ -433,7 +454,7 @@ fn trace_pose(
             / lower.legs.len().max(1) as f32;
         let _ = writeln!(
             file,
-            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{}",
+            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{},{},{:.4}",
             time.elapsed_secs(),
             entity,
             cadence.phase,
@@ -448,9 +469,11 @@ fn trace_pose(
             wish.z,
             u8::from(intent.is_some_and(|i| i.run)),
             hip_y,
-            cadence.reach_drop,
+            cadence.floor_fix,
             feet[0],
-            feet[1]
+            feet[1],
+            cadence.stride_count,
+            cadence.clip_period.unwrap_or(0.0)
         );
     }
 }
@@ -560,6 +583,7 @@ fn advance_stride(
             stride.velocity = stride.forward * stride.speed;
         }
         let moving = grounded.0 && stride.speed > STEP_SPEED;
+        stride.grounded = grounded.0;
         let chase = PACE_RATE * dt;
         stride.pace = if moving {
             stride.pace + (stride.speed - stride.pace).clamp(-chase, chase)
@@ -577,7 +601,11 @@ fn advance_stride(
             stride.blend = fresh;
             stride.settle = None;
         } else if stride.weight > 0.001 {
-            if stride.settle.is_none() && grounded.0 && *mode == FootIkMode::Procedural {
+            if stride.settle.is_none()
+                && grounded.0
+                && !playback.on
+                && *mode == FootIkMode::Procedural
+            {
                 stride.settle = stride.blend.map(|b| {
                     b.feet
                         .iter()
@@ -605,7 +633,11 @@ fn advance_stride(
                 advance = advance.min(*left);
                 *left -= advance;
             }
-            stride.phase = (stride.phase + advance).rem_euclid(1.0);
+            let next = stride.phase + advance;
+            if next >= 1.0 {
+                stride.stride_count = stride.stride_count.wrapping_add(1);
+            }
+            stride.phase = next.rem_euclid(1.0);
         }
     }
 }
@@ -860,7 +892,7 @@ fn aim_feet(
             let cadence = pose.cadences.get(goal.character).ok();
             if playback.on
                 && let Some(cadence) = cadence
-                && cadence.stepping
+                && cadence.grounded
             {
                 let ball = pose
                     .lowers
@@ -872,7 +904,12 @@ fn aim_feet(
                     })
                     .and_then(|bone| bone_world_transform(bone, &pose.transforms, &pose.parents))
                     .map(|t| t.translation);
-                hold_foot(&mut limb, &mut goal, cadence, ankle, ball, &ground, step);
+                let hip = bone_world_transform(bones.root, &pose.transforms, &pose.parents)
+                    .map(|t| t.translation)
+                    .unwrap_or(ankle + Vec3::Y * cadence.leg_length);
+                hold_foot(
+                    &mut limb, &mut goal, cadence, hip, ankle, ball, &ground, step,
+                );
                 return;
             }
             if let Some(cadence) = cadence
@@ -1081,20 +1118,23 @@ fn step_foot(
 }
 
 /// Contact correction over a played-back pose: the pose owns the motion, this only keeps a foot the data calls planted where it first touched, and keeps any foot out of the ground.
+#[allow(clippy::too_many_arguments)]
 fn hold_foot(
     limb: &mut IkLimb,
     goal: &mut FootGoal,
     cadence: &Cadence,
+    hip: Vec3,
     ankle: Vec3,
     ball: Option<Vec3>,
     ground: &dyn Fn(Vec3) -> Option<(Vec3, Vec3)>,
     step: f32,
 ) {
+    let full = cadence.weight >= 0.99;
     let down = if goal.right {
         cadence.contact.1
     } else {
         cadence.contact.0
-    };
+    } && full;
     let ball = ball.unwrap_or(ankle);
     let Some((hit, normal)) = ground(ankle) else {
         goal.grounded -= goal.grounded * step;
@@ -1106,31 +1146,70 @@ fn hold_foot(
     goal.grounded += (1.0 - goal.grounded) * step;
     let floor = hit + goal.normal * goal.ankle_height;
     if down {
+        let ball_down = ball.y - hit.y <= BALL_CLEAR;
         if goal.plant.is_none() {
-            goal.plant = Some(Vec3::new(ball.x, hit.y, ball.z));
+            goal.pin_ball = ball_down;
+            let under = if ball_down { ball } else { ankle };
+            goal.plant = Some(Vec3::new(under.x, hit.y, under.z));
             goal.from = ball;
             goal.plant_yaw = cadence.yaw;
+            goal.low = f32::MAX;
+        } else if !goal.pin_ball && ball_down {
+            goal.pin_ball = true;
+            goal.plant = Some(Vec3::new(ball.x, hit.y, ball.z));
         }
+        goal.low = goal.low.min(ankle.y - hit.y);
         let pin = goal.plant.unwrap_or(ball);
-        goal.offset = ball - pin;
+        let under = if goal.pin_ball { ball } else { ankle };
+        goal.offset = under - pin;
         let slip = Vec3::new(goal.offset.x, 0.0, goal.offset.z);
         let over = slip.length() - LOCK_SLACK;
         let held = if over > 0.0 {
-            Vec3::new(ball.x, 0.0, ball.z) - slip.normalize_or_zero() * over
+            Vec3::new(under.x, 0.0, under.z) - slip.normalize_or_zero() * over
         } else {
-            Vec3::new(ball.x, 0.0, ball.z)
+            Vec3::new(under.x, 0.0, under.z)
         };
-        let foot = Quat::from_rotation_y(goal.plant_yaw - cadence.yaw) * (ankle - ball);
-        limb.goal = Vec3::new(held.x, ball.y.max(pin.y), held.z) + foot;
+        limb.goal = if goal.pin_ball {
+            let foot = Quat::from_rotation_y(goal.plant_yaw - cadence.yaw) * (ankle - ball);
+            Vec3::new(held.x, ball.y.max(pin.y), held.z) + foot
+        } else {
+            let lift = (pin.y + goal.ankle_height - ankle.y).max(0.0);
+            Vec3::new(held.x, ankle.y + lift, held.z)
+        };
+        let reach = (ankle - hip).length().max(cadence.leg_length * HOLD_REACH);
+        let span = limb.goal - hip;
+        if span.length() > reach {
+            let pull = limb.goal - ankle;
+            let mut lo = 0.0;
+            let mut hi = 1.0;
+            for _ in 0..8 {
+                let mid = (lo + hi) * 0.5;
+                if (ankle + pull * mid - hip).length() > reach {
+                    hi = mid;
+                } else {
+                    lo = mid;
+                }
+            }
+            limb.goal = ankle + pull * lo;
+        }
+        goal.carry = limb.goal - ankle;
 
         limb.weight = goal.grounded * cadence.weight;
         goal.stepping = true;
     } else {
+        if goal.plant.is_some() && full && goal.low < f32::MAX {
+            goal.sample = Some(goal.ankle_height - goal.low);
+        }
         goal.plant = None;
         goal.stepping = false;
-        let sink = floor.y - ankle.y;
+        goal.carry *= (-cadence.frame_dt / CARRY_FADE).exp();
+        let carried = ankle + goal.carry;
+        let sink = floor.y - carried.y;
         if sink > 0.0 {
-            limb.goal = Vec3::new(ankle.x, floor.y, ankle.z);
+            limb.goal = Vec3::new(carried.x, floor.y, carried.z);
+            limb.weight = goal.grounded * cadence.weight;
+        } else if goal.carry.length_squared() > 1e-6 {
+            limb.goal = carried;
             limb.weight = goal.grounded * cadence.weight;
         } else {
             limb.goal = ankle;

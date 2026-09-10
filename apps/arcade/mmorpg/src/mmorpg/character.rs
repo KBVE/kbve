@@ -339,6 +339,16 @@ pub struct Cadence {
     pub contact: (bool, bool),
     /// Stride seconds of the pose clip being played, already scaled to the body's speed; the clock uses it over the gait curves when set.
     pub clip_period: Option<f32>,
+    /// How much higher the played pose must sit so its planted ankle rests at the rig's bind ankle height; learned from each stance.
+    pub floor_fix: f32,
+    /// Strides completed since the walk began, so a loop with several baked strides plays them all in turn.
+    pub stride_count: u32,
+    /// How many stances have fed the floor fix, so early ones weigh more.
+    pub floor_samples: u32,
+    /// Whether the body stands on ground this frame, so the played pose may own the legs.
+    pub grounded: bool,
+    /// Where the baked idle loop is, in turns.
+    pub idle_phase: f32,
 }
 
 impl Cadence {
@@ -363,6 +373,11 @@ impl Cadence {
             rate: 1.0,
             contact: (false, false),
             clip_period: None,
+            floor_fix: 0.0,
+            stride_count: 0,
+            floor_samples: 0,
+            grounded: false,
+            idle_phase: 0.0,
         }
     }
 }
@@ -410,6 +425,21 @@ fn role_name(bone: kinetree::Bone) -> Option<&'static str> {
         Bone::Foot(Side::Right) => "foot_r",
         Bone::Ball(Side::Left) => "ball_l",
         Bone::Ball(Side::Right) => "ball_r",
+        Bone::Spine(0) => "spine_0",
+        Bone::Spine(1) => "spine_1",
+        Bone::Spine(2) => "spine_2",
+        Bone::Spine(3) => "spine_3",
+        Bone::Spine(4) => "spine_4",
+        Bone::Neck => "neck",
+        Bone::Head => "head",
+        Bone::Clavicle(Side::Left) => "clavicle_l",
+        Bone::Clavicle(Side::Right) => "clavicle_r",
+        Bone::UpperArm(Side::Left) => "upperarm_l",
+        Bone::UpperArm(Side::Right) => "upperarm_r",
+        Bone::LowerArm(Side::Left) => "lowerarm_l",
+        Bone::LowerArm(Side::Right) => "lowerarm_r",
+        Bone::Hand(Side::Left) => "hand_l",
+        Bone::Hand(Side::Right) => "hand_r",
         _ => return None,
     })
 }
@@ -816,6 +846,10 @@ fn wire_skeleton(
             "thigh_r" => "calf_r",
             "calf_r" => "foot_r",
             "foot_r" => "ball_r",
+            "upperarm_l" => "lowerarm_l",
+            "lowerarm_l" => "hand_l",
+            "upperarm_r" => "lowerarm_r",
+            "lowerarm_r" => "hand_r",
             _ => return None,
         })
     };
@@ -1281,6 +1315,7 @@ type Stride = (
 
 fn drive_gait(
     locomotion: Option<Res<Locomotion>>,
+    playback: Res<super::pose::PosePlayback>,
     clips: Res<Assets<AnimationClip>>,
     characters: Query<Stride, Without<super::action::Frozen>>,
     mut players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
@@ -1299,7 +1334,7 @@ fn drive_gait(
         // The same eight clips either way. The only difference is which branch
         // of the graph they are on, and therefore which bones they are allowed
         // to touch.
-        let stepping = cadence.is_some_and(|c| c.weight >= 0.99);
+        let stepping = cadence.is_some_and(|c| c.weight >= 0.99 || (playback.on && c.grounded));
         let gaits = if stepping {
             &locomotion.torso
         } else if acting {
