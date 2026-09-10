@@ -219,8 +219,12 @@ pub struct FootGoal {
     carry: Vec3,
     /// Whether the pin is under the ball; until the ball comes down after a heel strike it is under the ankle.
     pin_ball: bool,
-    /// Where the foot was when the body came to rest, held through the idle so the stance it arrived in is the stance it stands in.
+    /// Where the foot was when the body came to rest, held through the idle so the stance it arrived in is the stance it stands in; world point, and the same in the body's frame so a creeping or turning body carries it.
     rest: Option<Vec3>,
+    rest_local: Vec3,
+    /// Frames the pose's ankle has sat still, so a body that has never walked only captures a settled stance.
+    still: u8,
+    last_ankle: Vec3,
     /// Where the pose's foot sat relative to the pin when the pin was set, so the lock's slack measures the pose's own creep since then.
     base: Vec3,
 }
@@ -248,6 +252,9 @@ impl FootGoal {
             carry: Vec3::ZERO,
             pin_ball: false,
             rest: None,
+            rest_local: Vec3::ZERO,
+            still: 0,
+            last_ankle: Vec3::ZERO,
             base: Vec3::ZERO,
         }
     }
@@ -996,15 +1003,17 @@ fn aim_feet(
                 let hip = bone_world_transform(bones.root, &pose.transforms, &pose.parents)
                     .map(|t| t.translation)
                     .unwrap_or(ankle + Vec3::Y * cadence.leg_length);
-                let body_floor = pose
+                let body = pose
                     .globals
                     .get(goal.character)
                     .ok()
-                    .map(|body| body.translation())
+                    .map(|body| body.translation());
+                let body_floor = body
                     .and_then(|body| ground(Vec3::new(body.x, ankle.y, body.z)))
                     .map(|(hit, _)| hit.y);
                 hold_foot(
-                    &mut limb, &mut goal, cadence, hip, ankle, ball, &ground, body_floor, step,
+                    &mut limb, &mut goal, cadence, hip, ankle, ball, &ground, body, body_floor,
+                    step,
                 );
                 return;
             }
@@ -1223,6 +1232,7 @@ fn hold_foot(
     ankle: Vec3,
     ball: Option<Vec3>,
     ground: &dyn Fn(Vec3) -> Option<(Vec3, Vec3)>,
+    body: Option<Vec3>,
     body_floor: Option<f32>,
     step: f32,
 ) {
@@ -1317,13 +1327,28 @@ fn hold_foot(
         }
         goal.plant = None;
         goal.stepping = false;
-        let resting = !full && !cadence.hold && cadence.speed <= REST_SPEED;
-        if resting {
-            let held = *goal.rest.get_or_insert(ankle + goal.carry);
-            if held.distance(ankle) > cadence.leg_length * REST_REACH {
-                goal.rest = Some(ankle);
-            }
-            let held = goal.rest.unwrap_or(ankle);
+        goal.still = if ankle.distance(goal.last_ankle) < 0.002 {
+            goal.still.saturating_add(1)
+        } else {
+            0
+        };
+        goal.last_ankle = ankle;
+        let settled = cadence.stride_count > 0 || goal.still >= 3;
+        let resting = !full && !cadence.hold && cadence.speed <= REST_SPEED && goal.grounded > 0.9;
+        if resting && (goal.rest.is_some() || settled) {
+            let origin = body.unwrap_or(Vec3::ZERO);
+            let turn = Quat::from_rotation_y(cadence.yaw);
+            let held = match goal.rest {
+                Some(_) => origin + turn * goal.rest_local,
+                None => ankle + goal.carry,
+            };
+            let held = if held.distance(ankle) > cadence.leg_length * REST_REACH {
+                ankle
+            } else {
+                held
+            };
+            goal.rest_local = turn.inverse() * (held - origin);
+            goal.rest = Some(held);
             goal.carry = Vec3::ZERO;
             limb.goal = Vec3::new(held.x, held.y.max(floor.y), held.z);
             limb.weight = goal.grounded;
