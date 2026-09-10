@@ -52,6 +52,9 @@ fn spawn_cast(mut commands: Commands) {
         super::combat::player_stats(),
     );
 
+    if std::env::var("MMORPG_NPCS").as_deref() == Ok("0") {
+        return;
+    }
     for index in 0..COMPANIONS {
         let angle = index as f32 / COMPANIONS as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 4.0, angle.sin() * 4.0);
@@ -106,6 +109,11 @@ impl Autowalk {
                 run: false,
                 turn_rate: -3.0,
             },
+            Ok("gear") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -4.0,
+            },
             _ => Self::default(),
         }
     }
@@ -119,8 +127,16 @@ fn read_input(
     mut controlled: Query<&mut MoveIntent, With<Player>>,
 ) {
     if auto.enabled {
-        let angle = if auto.turn_rate < 0.0 {
-            let flip = (time.elapsed_secs() / 1.5).floor() as i32 % 2 == 1;
+        let leg = if auto.turn_rate < -1.5 && auto.turn_rate > -2.5 {
+            6.0
+        } else {
+            1.5
+        };
+        let flip = (time.elapsed_secs() / leg).floor() as i32 % 2 == 1;
+        let gear = auto.turn_rate < -3.5;
+        let angle = if gear {
+            0.0
+        } else if auto.turn_rate < 0.0 {
             match (flip, auto.turn_rate < -1.5) {
                 (false, _) => 0.0,
                 (true, false) => core::f32::consts::FRAC_PI_2,
@@ -129,7 +145,7 @@ fn read_input(
         } else {
             time.elapsed_secs() * auto.turn_rate
         };
-        let halted = auto.turn_rate < -2.5 && (time.elapsed_secs() / 1.5).floor() as i32 % 2 == 1;
+        let halted = !gear && auto.turn_rate < -2.5 && flip;
         let wish = if halted {
             Vec3::ZERO
         } else {
@@ -137,7 +153,7 @@ fn read_input(
         };
         for mut intent in &mut controlled {
             intent.wish = wish;
-            intent.run = auto.run;
+            intent.run = auto.run || (gear && flip);
             intent.jump = false;
         }
         return;

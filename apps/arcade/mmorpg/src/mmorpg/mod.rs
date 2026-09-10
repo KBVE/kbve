@@ -6,6 +6,7 @@ pub mod character;
 pub mod combat;
 pub mod foot_ik;
 pub mod player;
+pub mod pose;
 pub mod rig;
 pub mod river;
 pub mod target_ring;
@@ -28,9 +29,21 @@ impl Plugin for MmorpgPlugin {
             combat::GameCombatPlugin,
             player::PlayerPlugin,
             foot_ik::FootIkPlugin,
+            pose::PosePlugin,
             camera::CameraPlugin,
             target_ring::TargetRingPlugin,
             ui::UiPlugin,
-        ));
+        ))
+        .add_systems(Startup, slow_motion);
+    }
+}
+
+/// `MMORPG_SLOW=0.2` runs the whole game at that fraction of real time for frame-by-frame capture.
+fn slow_motion(mut time: ResMut<Time<Virtual>>) {
+    if let Some(factor) = std::env::var("MMORPG_SLOW")
+        .ok()
+        .and_then(|v| v.parse::<f32>().ok())
+    {
+        time.set_relative_speed(factor.clamp(0.01, 1.0));
     }
 }

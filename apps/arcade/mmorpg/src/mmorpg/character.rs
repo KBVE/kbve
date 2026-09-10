@@ -28,6 +28,18 @@ pub const CHARACTER_HEIGHT: f32 = 1.16;
 const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
 const JUMP_SPEED: f32 = 8.0;
+
+/// Ground acceleration in metres per second squared, for speeding up and turning; braking stays instant.
+const GROUND_ACCEL: f32 = 14.0;
+
+/// How fast ground travel may swing its heading, radians per second.
+const TURN_RATE: f32 = 4.0;
+
+/// How fast the model may turn to face its travel, radians per second; a little ahead of the travel arc so it leads the turn.
+const FACE_RATE: f32 = 6.0;
+
+/// Heading changes sharper than this are a reversal, and reverse outright rather than arcing.
+const REVERSAL_ARC: f32 = 2.1;
 const GROUND_PROBE: f32 = 0.25;
 
 /// How much speed is left when retreating.
@@ -297,6 +309,8 @@ pub struct Dressed;
 pub struct Cadence {
     pub phase: f32,
     pub speed: f32,
+    /// Ground speed eased toward the real one, so the gait mix does not jump with the velocity.
+    pub pace: f32,
     /// Body facing, which the stride frame hangs off.
     pub forward: Vec3,
     /// Planar travel used to predict where the body will be: along facing unless a heading holds it elsewhere.
@@ -306,6 +320,8 @@ pub struct Cadence {
     /// Facing yaw in radians, and how fast it is changing.
     pub yaw: f32,
     pub turn_rate: f32,
+    /// Smoothed signed facing turn, radians per second, left positive.
+    pub turn: f32,
     pub leg_length: f32,
     pub blend: Option<GaitBlend>,
     /// Whether the legs are being generated this frame rather than played.
@@ -314,6 +330,25 @@ pub struct Cadence {
     pub weight: f32,
     /// Phase left to run after a stop so the airborne foot lands before the legs fade.
     pub settle: Option<f32>,
+    /// Extra model drop so both feet stay reachable, smoothed.
+    pub reach_drop: f32,
+    /// Seconds the last stride advance covered, and the clock multiplier it ran at.
+    pub frame_dt: f32,
+    pub rate: f32,
+    /// Foot contacts the baked pose says are down this frame, left then right.
+    pub contact: (bool, bool),
+    /// Stride seconds of the pose clip being played, already scaled to the body's speed; the clock uses it over the gait curves when set.
+    pub clip_period: Option<f32>,
+    /// How much higher the played pose must sit so its planted ankle rests at the rig's bind ankle height; learned from each stance.
+    pub floor_fix: f32,
+    /// Strides completed since the walk began, so a loop with several baked strides plays them all in turn.
+    pub stride_count: u32,
+    /// How many stances have fed the floor fix, so early ones weigh more.
+    pub floor_samples: u32,
+    /// Whether the body stands on ground this frame, so the played pose may own the legs.
+    pub grounded: bool,
+    /// Where the baked idle loop is, in turns.
+    pub idle_phase: f32,
 }
 
 impl Cadence {
@@ -321,16 +356,28 @@ impl Cadence {
         Self {
             phase: 0.0,
             speed: 0.0,
+            pace: 0.0,
             forward: Vec3::NEG_Z,
             velocity: Vec3::ZERO,
             direction: 0.0,
             yaw: 0.0,
             turn_rate: 0.0,
+            turn: 0.0,
             leg_length,
             blend: None,
             stepping: false,
             weight: 0.0,
             settle: None,
+            reach_drop: 0.0,
+            frame_dt: 0.0,
+            rate: 1.0,
+            contact: (false, false),
+            clip_period: None,
+            floor_fix: 0.0,
+            stride_count: 0,
+            floor_samples: 0,
+            grounded: false,
+            idle_phase: 0.0,
         }
     }
 }
@@ -343,6 +390,58 @@ pub struct LowerBody {
     pub bones: Vec<(Entity, Transform)>,
     pub legs: Vec<LegRig>,
     pub pelvis: Option<PelvisRig>,
+    /// Spine segments from the hips up, for the lean into a turn.
+    pub spine: Vec<Entity>,
+    /// Bind-pose height of the hip joints above the ankle bones, in world metres, so the data's hip height can be set absolutely.
+    pub hip_rest: f32,
+    /// Lower-body bones by canonical role, with what a baked pose needs to land on them.
+    pub roles: Vec<RoleBone>,
+    /// Ankle-bone height above the sole in the rest pose, from the rig profile.
+    pub ankle_height: f32,
+}
+
+/// One bone a pose database drives: its rest orientation in model space, and its parent's rest so a model-space target can be turned back into a local rotation.
+#[derive(Debug, Clone, Copy)]
+pub struct RoleBone {
+    pub role: &'static str,
+    pub bone: Entity,
+    pub parent: Option<Entity>,
+    pub rest: Transform,
+    pub parent_rest: Transform,
+    /// Unit direction from this joint to its child joint at rest, in model space; zero for leaves.
+    pub rest_dir: Vec3,
+}
+
+/// Canonical name of a lower-body role as the pose bake writes it.
+fn role_name(bone: kinetree::Bone) -> Option<&'static str> {
+    use kinetree::{Bone, Side};
+    Some(match bone {
+        Bone::Pelvis => "pelvis",
+        Bone::Thigh(Side::Left) => "thigh_l",
+        Bone::Thigh(Side::Right) => "thigh_r",
+        Bone::Calf(Side::Left) => "calf_l",
+        Bone::Calf(Side::Right) => "calf_r",
+        Bone::Foot(Side::Left) => "foot_l",
+        Bone::Foot(Side::Right) => "foot_r",
+        Bone::Ball(Side::Left) => "ball_l",
+        Bone::Ball(Side::Right) => "ball_r",
+        Bone::Spine(0) => "spine_0",
+        Bone::Spine(1) => "spine_1",
+        Bone::Spine(2) => "spine_2",
+        Bone::Spine(3) => "spine_3",
+        Bone::Spine(4) => "spine_4",
+        Bone::Neck => "neck",
+        Bone::Head => "head",
+        Bone::Clavicle(Side::Left) => "clavicle_l",
+        Bone::Clavicle(Side::Right) => "clavicle_r",
+        Bone::UpperArm(Side::Left) => "upperarm_l",
+        Bone::UpperArm(Side::Right) => "upperarm_r",
+        Bone::LowerArm(Side::Left) => "lowerarm_l",
+        Bone::LowerArm(Side::Right) => "lowerarm_r",
+        Bone::Hand(Side::Left) => "hand_l",
+        Bone::Hand(Side::Right) => "hand_r",
+        _ => return None,
+    })
 }
 
 /// The pelvis bone with its bind orientation in model space and its parent's, so a data yaw and roll can be composed onto it.
@@ -356,6 +455,7 @@ pub struct PelvisRig {
 /// One leg's procedural fixings: the calf pre-bend that picks the knee side, and the foot's bind orientation in model space.
 #[derive(Debug, Clone, Copy)]
 pub struct LegRig {
+    pub thigh: Entity,
     pub calf: Entity,
     pub foot: Entity,
     pub right: bool,
@@ -559,6 +659,11 @@ fn dress(
     if rig.gaits.is_none() {
         rig.gaits = Some(assets.load(profile.gait_set.clone()));
     }
+    if rig.poses.is_none()
+        && let Some(path) = profile.pose_set.as_ref()
+    {
+        rig.poses = Some(assets.load(path.clone()));
+    }
     for character in &bare {
         commands
             .spawn((
@@ -705,6 +810,7 @@ fn wire_skeleton(
     }
 
     let mut leg_length = 0.0;
+    let mut hip_rest = 0.0;
     let mut legs = Vec::new();
     for limb in &profile.legs {
         if let Some((length, rig)) = spawn_leg(
@@ -716,7 +822,8 @@ fn wire_skeleton(
             &transforms,
             &parents,
         ) {
-            leg_length = length;
+            leg_length = length.0;
+            hip_rest = length.1;
             legs.push(rig);
         }
     }
@@ -726,6 +833,62 @@ fn wire_skeleton(
         .filter_map(|(bone, _, _)| transforms.get(*bone).ok().map(|t| (*bone, *t)))
         .collect();
     let model_rest = transforms.get(model).copied().unwrap_or_default();
+    let named: Vec<(Entity, &'static str)> = bones
+        .iter()
+        .filter_map(|(bone, _, _)| names.get(*bone).ok().map(|name| (*bone, name)))
+        .filter_map(|(bone, name)| Some((bone, role_name(kinetree::role_of(name.as_str())?)?)))
+        .collect();
+    let child_of = |role: &str| -> Option<&'static str> {
+        Some(match role {
+            "thigh_l" => "calf_l",
+            "calf_l" => "foot_l",
+            "foot_l" => "ball_l",
+            "thigh_r" => "calf_r",
+            "calf_r" => "foot_r",
+            "foot_r" => "ball_r",
+            "upperarm_l" => "lowerarm_l",
+            "lowerarm_l" => "hand_l",
+            "upperarm_r" => "lowerarm_r",
+            "lowerarm_r" => "hand_r",
+            _ => return None,
+        })
+    };
+    let roles: Vec<RoleBone> = named
+        .iter()
+        .map(|(bone, role)| {
+            let parent = parents.get(*bone).map(ChildOf::parent).ok();
+            let rest = rest_in_model(*bone, model, &transforms, &parents);
+            let rest_dir = child_of(role)
+                .and_then(|c| named.iter().find(|(_, r)| *r == c))
+                .map(|(child, _)| {
+                    (rest_in_model(*child, model, &transforms, &parents).translation
+                        - rest.translation)
+                        .normalize_or_zero()
+                })
+                .unwrap_or(Vec3::ZERO);
+            RoleBone {
+                role,
+                bone: *bone,
+                parent,
+                rest,
+                parent_rest: parent
+                    .map(|p| rest_in_model(p, model, &transforms, &parents))
+                    .unwrap_or_default(),
+                rest_dir,
+            }
+        })
+        .collect();
+    let spine: Vec<Entity> = bones
+        .iter()
+        .filter_map(|(bone, _, _)| names.get(*bone).ok().map(|name| (*bone, name)))
+        .filter(|(_, name)| {
+            matches!(
+                kinetree::role_of(name.as_str()),
+                Some(kinetree::Bone::Spine(_))
+            )
+        })
+        .map(|(bone, _)| bone)
+        .collect();
     let pelvis = wanted
         .get(profile.pelvis.as_str())
         .copied()
@@ -748,6 +911,10 @@ fn wire_skeleton(
             bones: lower,
             legs,
             pelvis,
+            spine,
+            hip_rest,
+            roles,
+            ankle_height: profile.ankle_height,
         },
     ));
 }
@@ -781,7 +948,7 @@ fn spawn_leg(
     wanted: &HashMap<&str, Entity>,
     transforms: &Query<&Transform>,
     parents: &Query<&ChildOf>,
-) -> Option<(f32, LegRig)> {
+) -> Option<((f32, f32), LegRig)> {
     let (character, model) = owner;
     let found = |name: &str| {
         wanted
@@ -798,13 +965,23 @@ fn spawn_leg(
         );
         return None;
     };
-    let length = |bone: Entity| {
-        transforms
-            .get(bone)
-            .map(|t| t.translation.length())
-            .unwrap_or(0.0)
+    let joint = |bone: Entity| rest_in_model(bone, model, transforms, parents).translation;
+    let model_scale = transforms
+        .get(model)
+        .map(|t| t.scale.max_element())
+        .unwrap_or(1.0);
+    let leg_length =
+        (joint(root).distance(joint(mid)) + joint(mid).distance(joint(tip))) * model_scale;
+    let hip_rest = (joint(root).y - joint(tip).y) * model_scale;
+    let rest_knee = {
+        let a = joint(root) - joint(mid);
+        let b = joint(tip) - joint(mid);
+        180.0 - a.angle_between(b).to_degrees()
     };
-    let leg_length = length(mid) + length(tip);
+    info!(
+        "leg {} length {:.3} m, hip {:.3} m above ankle at bind, rest knee {:.1} deg (model scale {:.2})",
+        limb.tip, leg_length, hip_rest, rest_knee, model_scale
+    );
 
     let thigh = rest_in_model(root, model, transforms, parents);
     let calf = transforms.get(mid).copied().unwrap_or_default();
@@ -840,8 +1017,9 @@ fn spawn_leg(
         FootGoal::new(character, profile.ankle_height, limb.tip.ends_with("_r")),
     ));
     Some((
-        leg_length,
+        (leg_length, hip_rest),
         LegRig {
+            thigh: root,
             calf: mid,
             foot: tip,
             right: limb.tip.ends_with("_r"),
@@ -914,6 +1092,7 @@ pub fn find_bone(
 }
 
 fn apply_movement(
+    time: Res<Time>,
     mut characters: Query<
         (
             &MoveIntent,
@@ -949,14 +1128,47 @@ fn apply_movement(
         let speed = if retreating { base * BACKPEDAL } else { base };
         let wish = intent.wish * speed;
 
-        let blend = if grounded.0 { 1.0 } else { 0.12 };
-        velocity.x += (wish.x - velocity.x) * blend;
-        velocity.z += (wish.z - velocity.z) * blend;
+        let planar = Vec3::new(velocity.x, 0.0, velocity.z);
+        let dt = time.delta_secs();
+        let next = if !grounded.0 {
+            planar.lerp(wish, 0.12)
+        } else {
+            steer(planar, wish, dt)
+        };
+        velocity.x = next.x;
+        velocity.z = next.z;
 
         if grounded.0 && intent.jump {
             velocity.y = JUMP_SPEED;
         }
     }
+}
+
+/// Moves ground velocity toward `wish`: speed climbs at [`GROUND_ACCEL`], braking is instant, and heading swings round at [`TURN_RATE`] so a turn is an arc the feet can walk rather than a sideways jump. A near reversal skips the arc and reverses outright.
+fn steer(planar: Vec3, wish: Vec3, dt: f32) -> Vec3 {
+    let speed = planar.length();
+    let want = wish.length();
+    let target = if want <= speed {
+        want
+    } else {
+        (speed + GROUND_ACCEL * dt).min(want)
+    };
+    if target <= f32::EPSILON {
+        return Vec3::ZERO;
+    }
+    let from = if speed > f32::EPSILON {
+        planar / speed
+    } else {
+        wish / want
+    };
+    let to = wish / want;
+    let angle = from.dot(to).clamp(-1.0, 1.0).acos();
+    if angle <= f32::EPSILON || angle > REVERSAL_ARC {
+        return to * target;
+    }
+    let step = (TURN_RATE * dt).min(angle);
+    let axis = from.cross(to).normalize_or(Vec3::Y);
+    Quat::from_axis_angle(axis, step) * from * target
 }
 
 /// Picks a gait from ground speed, keeping the one already running until the
@@ -1054,7 +1266,7 @@ fn face_travel_direction(
     velocities: Query<(&LinearVelocity, &Heading), With<Character>>,
     mut models: Query<(&mut Transform, &ChildOf), With<CharacterModel>>,
 ) {
-    let step = (14.0 * time.delta_secs()).min(1.0);
+    let dt = time.delta_secs();
     for (mut transform, parent) in &mut models {
         let Ok((velocity, heading)) = velocities.get(parent.parent()) else {
             continue;
@@ -1080,6 +1292,12 @@ fn face_travel_direction(
         // for a rig that was authored looking down +Z.
         let target =
             Quat::from_rotation_arc(Vec3::NEG_Z, facing) * Quat::from_rotation_y(MODEL_FACING);
+        let angle = transform.rotation.angle_between(target);
+        let step = if angle > f32::EPSILON {
+            ((FACE_RATE * dt) / angle).min(1.0)
+        } else {
+            1.0
+        };
         transform.rotation = transform.rotation.slerp(target, step);
     }
 }
@@ -1097,6 +1315,7 @@ type Stride = (
 
 fn drive_gait(
     locomotion: Option<Res<Locomotion>>,
+    playback: Res<super::pose::PosePlayback>,
     clips: Res<Assets<AnimationClip>>,
     characters: Query<Stride, Without<super::action::Frozen>>,
     mut players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
@@ -1115,7 +1334,7 @@ fn drive_gait(
         // The same eight clips either way. The only difference is which branch
         // of the graph they are on, and therefore which bones they are allowed
         // to touch.
-        let stepping = cadence.is_some_and(|c| c.weight >= 0.99);
+        let stepping = cadence.is_some_and(|c| c.weight >= 0.99 || (playback.on && c.grounded));
         let gaits = if stepping {
             &locomotion.torso
         } else if acting {

@@ -17,6 +17,9 @@ pub struct RigProfile {
     pub pelvis: String,
     pub ankle_height: f32,
     pub gait_set: String,
+    /// Baked lower-body joint rotations, played back in place of the procedural stride when present.
+    #[serde(default)]
+    pub pose_set: Option<String>,
     pub legs: Vec<LimbSpec>,
     pub gaits: GaitClips,
     pub attacks: AttackClips,
@@ -240,10 +243,10 @@ impl GaitSet {
         lane.sort_by(|a, b| a.normalised_speed().total_cmp(&b.normalised_speed()));
         let (first, last) = (*lane.first()?, *lane.last()?);
         if speed_per_leg <= first.normalised_speed() {
-            return Some(Self::mixed(first, first, 0.0));
+            return Some(Self::mixed(first, first, 0.0, speed_per_leg));
         }
         if speed_per_leg >= last.normalised_speed() {
-            return Some(Self::mixed(last, last, 0.0));
+            return Some(Self::mixed(last, last, 0.0, speed_per_leg));
         }
         let upper = lane
             .iter()
@@ -255,15 +258,24 @@ impl GaitSet {
         } else {
             1.0
         };
-        Some(Self::mixed(lo, hi, t))
+        Some(Self::mixed(lo, hi, t, speed_per_leg))
     }
 
-    fn mixed(lo: &GaitCurve, hi: &GaitCurve, t: f32) -> GaitBlend {
-        let period = if lo.stride_period <= f32::EPSILON {
+    /// Mixes two curves of one lane, then runs the clock at the speed actually walked over the baked speed, so one stride covers exactly the ground the body does and a planted foot never skates.
+    fn mixed(lo: &GaitCurve, hi: &GaitCurve, t: f32, speed_per_leg: f32) -> GaitBlend {
+        let mut period = if lo.stride_period <= f32::EPSILON {
             hi.stride_period
         } else {
             lo.stride_period + (hi.stride_period - lo.stride_period) * t
         };
+        let baked = lo.normalised_speed() + (hi.normalised_speed() - lo.normalised_speed()) * t;
+        let ratio = if baked > 0.05 && speed_per_leg > 0.05 {
+            (speed_per_leg / baked).clamp(0.5, 2.0)
+        } else {
+            1.0
+        };
+        period /= ratio;
+        let stretch = 1.0;
         let feet = if lo.stride_period <= f32::EPSILON {
             [
                 mix_foot(&hi.feet[0], &hi.feet[0], 0.0),
@@ -275,6 +287,12 @@ impl GaitSet {
                 mix_foot(&lo.feet[1], &hi.feet[1], t),
             ]
         };
+        let feet = feet.map(|mut f| {
+            for v in f.fwd.iter_mut() {
+                *v *= stretch;
+            }
+            f
+        });
         GaitBlend {
             hip_height: lo.hip_height + (hi.hip_height - lo.hip_height) * t,
             stride_period: period,
@@ -292,6 +310,281 @@ pub fn at(curve: &[f32; SAMPLES], phase: f32) -> f32 {
     let i = x.floor() as usize % SAMPLES;
     let f = x - x.floor();
     curve[i] * (1.0 - f) + curve[(i + 1) % SAMPLES] * f
+}
+
+/// Rig-independent lower-body pose database: per clip, per frame, each role bone's rotation as a delta from its rest in a canonical frame (Y up, facing +Z), the pelvis relative to the root in leg lengths, root motion, and foot contacts.
+#[derive(Asset, TypePath, Deserialize, Debug, Clone)]
+pub struct PoseSet {
+    pub bones: Vec<String>,
+    pub clips: Vec<PoseClip>,
+}
+
+/// Longest run of missing contact frames closed at load, in frames of the bake.
+const CONTACT_GAP: usize = 3;
+
+/// Quaternion component difference under which two baked frames count as the same pose.
+const SEAM_EPSILON: f32 = 1e-3;
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PoseClip {
+    pub name: String,
+    pub source: String,
+    pub fps: f32,
+    pub leg_length: f32,
+    pub speed: f32,
+    pub direction: f32,
+    pub frames: Vec<PoseFrame>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PoseFrame {
+    pub root: (f32, f32, f32),
+    pub pelvis: (f32, f32, f32),
+    pub rotations: Vec<(f32, f32, f32, f32)>,
+    /// Unit direction from each bone to its child in the canonical frame, zero for leaves.
+    #[serde(default)]
+    pub directions: Vec<(f32, f32, f32)>,
+    pub contact: (bool, bool),
+}
+
+impl PoseClip {
+    /// Frame indices at which the left foot lands, in order.
+    pub fn left_onsets(&self) -> Vec<usize> {
+        let n = self.frames.len();
+        (0..n)
+            .filter(|&i| self.frames[i].contact.0 && !self.frames[(i + n - 1) % n].contact.0)
+            .collect()
+    }
+
+    /// One stride as a frame window starting at a left-foot landing, or the whole clip if it has no second landing.
+    pub fn stride(&self) -> (usize, usize) {
+        self.strides()[0]
+    }
+
+    /// Drops trailing frames that repeat the frame before them or the first frame: an exported loop ends on a copy of its start, which would stall the pose for those frames every time round.
+    pub fn trim_seam(&mut self) {
+        let same = |a: &PoseFrame, b: &PoseFrame| {
+            a.rotations.len() == b.rotations.len()
+                && a.rotations.iter().zip(&b.rotations).all(|(p, q)| {
+                    (p.0 - q.0).abs() < SEAM_EPSILON
+                        && (p.1 - q.1).abs() < SEAM_EPSILON
+                        && (p.2 - q.2).abs() < SEAM_EPSILON
+                        && (p.3 - q.3).abs() < SEAM_EPSILON
+                })
+        };
+        while self.frames.len() > 2 {
+            let n = self.frames.len();
+            if same(&self.frames[n - 1], &self.frames[n - 2])
+                || same(&self.frames[n - 1], &self.frames[0])
+            {
+                self.frames.pop();
+            } else {
+                break;
+            }
+        }
+    }
+
+    /// Closes contact gaps of a few frames, which the bake leaves at the loop seam and where a foot rolls.
+    pub fn mend_contacts(&mut self) {
+        let n = self.frames.len();
+        for foot in 0..2 {
+            let down = |f: &PoseFrame| if foot == 0 { f.contact.0 } else { f.contact.1 };
+            let mut fixes = Vec::new();
+            for i in 0..n {
+                if down(&self.frames[i]) || !down(&self.frames[(i + n - 1) % n]) {
+                    continue;
+                }
+                let gap = (1..=CONTACT_GAP)
+                    .find(|k| down(&self.frames[(i + k) % n]))
+                    .unwrap_or(0);
+                for k in 0..gap {
+                    fixes.push((i + k) % n);
+                }
+            }
+            for i in fixes {
+                if foot == 0 {
+                    self.frames[i].contact.0 = true;
+                } else {
+                    self.frames[i].contact.1 = true;
+                }
+            }
+        }
+    }
+
+    /// Every stride of the loop as a frame window, landing to landing; the last one wraps round to the first.
+    ///
+    /// Played in turn they reproduce the whole capture, so no stride ever cuts from its own end back to its start. A landing that starts a window under half the usual length is the previous landing seen again across the seam, and is dropped.
+    pub fn strides(&self) -> Vec<(usize, usize)> {
+        let n = self.frames.len();
+        let mut onsets = self.left_onsets();
+        loop {
+            let m = onsets.len();
+            if m < 2 {
+                break;
+            }
+            let spans: Vec<usize> = (0..m)
+                .map(|k| (onsets[(k + 1) % m] + if k + 1 == m { n } else { 0 }) - onsets[k])
+                .collect();
+            let mut sorted = spans.clone();
+            sorted.sort_unstable();
+            let median = sorted[m / 2];
+            match spans.iter().position(|&span| span * 2 < median) {
+                Some(k) => {
+                    onsets.remove((k + 1) % m);
+                }
+                None => break,
+            }
+        }
+        match onsets.as_slice() {
+            [] => vec![(0, n)],
+            [a] => vec![(*a, *a + n)],
+            all => {
+                let mut out: Vec<(usize, usize)> = all.windows(2).map(|w| (w[0], w[1])).collect();
+                out.push((all[all.len() - 1], all[0] + n));
+                out
+            }
+        }
+    }
+
+    /// Where the root lands one loop later: the last frame's offset from the first plus the one frame step the seam hides.
+    fn loop_shift(&self) -> Vec2 {
+        let n = self.frames.len();
+        if n < 2 {
+            return Vec2::ZERO;
+        }
+        let first = self.frames[0].root;
+        let last = self.frames[n - 1].root;
+        Vec2::new(last.0 - first.0, last.1 - first.1) * (n as f32 / (n - 1) as f32)
+    }
+
+    /// Root position at frame index `i`, which may run past the end for a window that wraps the loop.
+    fn root_at(&self, i: usize) -> Vec2 {
+        let n = self.frames.len();
+        let r = self.frames[i % n].root;
+        let mut out = Vec2::new(r.0, r.1);
+        if i >= n {
+            out += self.loop_shift();
+        }
+        out
+    }
+
+    /// The fractional frame where the root has covered `phase` of the window's ground travel, so the pose is played by distance and a planted foot stays where the capture put it; none when the window barely moves.
+    fn frame_at_distance(&self, start: usize, end: usize, phase: f32) -> Option<f32> {
+        let mut dist = Vec::with_capacity(end - start + 1);
+        let mut total = 0.0;
+        dist.push(0.0);
+        for i in start..end {
+            total += self.root_at(i + 1).distance(self.root_at(i));
+            dist.push(total);
+        }
+        if total < 0.05 {
+            return None;
+        }
+        let want = phase * total;
+        let k = dist
+            .partition_point(|&d| d <= want)
+            .clamp(1, dist.len() - 1);
+        let (a, b) = (dist[k - 1], dist[k]);
+        let f = if b > a { (want - a) / (b - a) } else { 0.0 };
+        Some(start as f32 + (k - 1) as f32 + f)
+    }
+
+    /// Ground the root covers over one window, metres.
+    fn travel(&self, (start, end): (usize, usize)) -> f32 {
+        if self.frames.is_empty() {
+            return 0.0;
+        }
+        self.root_at(end).distance(self.root_at(start))
+    }
+
+    /// Ground the root covers over one stride, metres, averaged over the loop.
+    pub fn stride_length(&self) -> f32 {
+        let windows = self.strides();
+        windows.iter().map(|&w| self.travel(w)).sum::<f32>() / windows.len().max(1) as f32
+    }
+
+    /// Ground the root covers over the loop's `stride`-th window, metres, so the clock matches the frames it plays.
+    pub fn stride_travel(&self, stride: u32) -> f32 {
+        let windows = self.strides();
+        self.travel(windows[stride as usize % windows.len()])
+    }
+
+    /// Seconds the loop's `stride`-th window takes at its own baked speed.
+    pub fn stride_seconds(&self, stride: u32) -> f32 {
+        let windows = self.strides();
+        let (start, end) = windows[stride as usize % windows.len()];
+        (end - start).max(1) as f32 / self.fps.max(1.0)
+    }
+
+    /// The pose at `phase` in 0..1 of the loop's `stride`-th window, interpolated between frames.
+    pub fn sample(
+        &self,
+        phase: f32,
+        stride: u32,
+    ) -> Option<(Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool))> {
+        let n = self.frames.len();
+        if n == 0 {
+            return None;
+        }
+        let windows = self.strides();
+        let (start, end) = windows[stride as usize % windows.len()];
+        let span = (end - start).max(1) as f32;
+        let phase = phase.rem_euclid(1.0);
+        let x = self
+            .frame_at_distance(start, end, phase)
+            .unwrap_or(start as f32 + phase * span);
+        let i = x.floor() as usize % n;
+        let j = (i + 1) % n;
+        let f = x - x.floor();
+        let a = &self.frames[i];
+        let b = &self.frames[j];
+        let pelvis = Vec3::new(a.pelvis.0, a.pelvis.1, a.pelvis.2)
+            .lerp(Vec3::new(b.pelvis.0, b.pelvis.1, b.pelvis.2), f);
+        let rotations = a
+            .rotations
+            .iter()
+            .zip(&b.rotations)
+            .map(|(p, q)| {
+                Quat::from_xyzw(p.1, p.2, p.3, p.0).slerp(Quat::from_xyzw(q.1, q.2, q.3, q.0), f)
+            })
+            .collect();
+        let directions = a
+            .directions
+            .iter()
+            .zip(&b.directions)
+            .map(|(p, q)| Vec3::new(p.0, p.1, p.2).lerp(Vec3::new(q.0, q.1, q.2), f))
+            .collect();
+        Some((pelvis, rotations, directions, a.contact))
+    }
+}
+
+#[derive(Default, TypePath)]
+pub struct PoseLoader;
+
+impl AssetLoader for PoseLoader {
+    type Asset = PoseSet;
+    type Settings = ();
+    type Error = RigError;
+
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        _context: &mut LoadContext<'_>,
+    ) -> Result<PoseSet, RigError> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        let mut set: PoseSet = ron::de::from_bytes(&bytes)?;
+        for clip in &mut set.clips {
+            clip.trim_seam();
+            clip.mend_contacts();
+        }
+        Ok(set)
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["pose.ron"]
+    }
 }
 
 #[derive(Default, TypePath)]
@@ -356,6 +649,7 @@ pub struct Rig {
     pub profile: Handle<RigProfile>,
     pub library: Option<Handle<Gltf>>,
     pub gaits: Option<Handle<GaitSet>>,
+    pub poses: Option<Handle<PoseSet>>,
 }
 
 pub struct RigPlugin;
@@ -366,6 +660,8 @@ impl Plugin for RigPlugin {
             .init_asset_loader::<RigLoader>()
             .init_asset::<GaitSet>()
             .init_asset_loader::<GaitLoader>()
+            .init_asset::<PoseSet>()
+            .init_asset_loader::<PoseLoader>()
             .add_systems(Startup, load_rig)
             .add_systems(Update, announce_gaits);
     }
@@ -376,6 +672,7 @@ fn load_rig(mut commands: Commands, assets: Res<AssetServer>) {
         profile: assets.load(PROFILE),
         library: None,
         gaits: None,
+        poses: None,
     });
 }
 
