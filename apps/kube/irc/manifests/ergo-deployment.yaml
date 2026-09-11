@@ -24,7 +24,14 @@ spec:
         spec:
             containers:
                 - name: ergo
-                  image: ghcr.io/ergochat/ergo:stable
+                  # Pinned, not `:stable`. A floating tag plus the default
+                  # IfNotPresent pull means the running version is whatever was
+                  # cached on the node that happened to schedule the pod: the
+                  # bridge doc recorded ergo-2.18.0 live while `:stable` upstream
+                  # had already moved to 2.19.1, so any reschedule was an
+                  # unannounced two-minor jump. Upgrades belong in a commit.
+                  image: ghcr.io/ergochat/ergo:v2.19.1@sha256:ef885e44f7fa19101bbbc41baef11dc280dc8107465dccaf6f0860f41b48a682
+                  imagePullPolicy: IfNotPresent
                   ports:
                       - containerPort: 6667
                         name: irc
