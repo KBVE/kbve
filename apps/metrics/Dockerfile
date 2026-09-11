@@ -67,6 +67,7 @@ COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
 COPY crates/jedi/ crates/jedi/
 COPY crates/holy/ crates/holy/
 COPY crates/kbve-proto/ crates/kbve-proto/
+COPY packages/proto packages/proto
 COPY crates/holy-derive/ crates/holy-derive/
 COPY crates/kbve/ crates/kbve/
 COPY crates/bevy_supa/ crates/bevy_supa/
