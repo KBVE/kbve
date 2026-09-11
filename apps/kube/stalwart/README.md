@@ -60,13 +60,23 @@ they persist in postgres, not on the PVC.
    credentials Stalwart is supposed to print on first boot never reached
    stdout here, so this is the login path. Admin UI via
    `kubectl port-forward -n stalwart svc/stalwart 8080:8080`, then `/login`.
-4. **Registry config** (web-admin): local domain `herbmail.com`; MTA hook
-   url `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
-   stages `data`, auth Bearer = value from
-   `apps/kube/herbmail/seal-stalwart-hook-secret.sh` (same sealed secret feeds
-   `STALWART_HOOK_SECRET` in the herbmail deployment); submission listener on
-   587 if wanted.
-5. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
+4. **Hook secret** — `./seal-stalwart-hook-secret.sh` seals the bearer token
+   as `stalwart-hook-secret` here; the deployment injects it as
+   `STALWART_HOOK_SECRET`. Seal the same value into `herbmail` with
+   `apps/kube/herbmail/seal-stalwart-hook-secret.sh`.
+5. **Registry config** (web-admin, or `x:*/set` over `/jmap` with the
+   recovery admin as basic auth): local domain `herbmail.com` with a
+   catch-all address (Stalwart validates RCPT against its own directory;
+   the hook is what maps `$username@herbmail.com` to a profile, so unknown
+   local recipients must get past RCPT); MTA hook url
+   `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
+   stages `data`, auth Bearer of type *Environment variable* named
+   `STALWART_HOOK_SECRET` (never paste the token — a wrong literal here
+   fails every settings reload with `Failed to read secret from file`, and
+   the hook silently never runs); submission listener on 587; a `Stdout`
+   tracer, since the default `Log` tracer writes to `/var/log/stalwart`,
+   which does not exist in the pod, so nothing is logged anywhere.
+6. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
    `/opt/stalwart-tls`; point the TLS cert/key paths there in admin.
 
 ## Local lab (dry-run the whole thing)
