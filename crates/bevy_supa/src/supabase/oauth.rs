@@ -99,10 +99,7 @@ where
         }
     };
 
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
+    let now = crate::supabase::session::now_unix_secs();
 
     let access = tokens.access_token.clone();
     get_user(config, &access, move |result| {

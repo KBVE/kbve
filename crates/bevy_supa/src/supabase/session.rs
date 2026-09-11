@@ -57,11 +57,27 @@ impl AuthResponse {
     }
 }
 
-fn now_unix_secs() -> u64 {
+/// Seconds since the Unix epoch, on every target this crate builds for.
+///
+/// `std::time::SystemTime::now` panics on `wasm32-unknown-unknown`, so the
+/// browser reads the clock through `Date.now` instead.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn now_unix_secs() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0)
+}
+
+/// Seconds since the Unix epoch, read from the browser's `Date.now`.
+#[cfg(target_arch = "wasm32")]
+pub fn now_unix_secs() -> u64 {
+    let millis = js_sys::Date::now();
+    if millis.is_finite() && millis > 0.0 {
+        (millis / 1000.0) as u64
+    } else {
+        0
+    }
 }
 
 #[cfg(test)]
@@ -77,6 +93,14 @@ mod tests {
             expires_at,
             user: SupabaseUser::default(),
         }
+    }
+
+    #[test]
+    fn the_clock_reads_a_plausible_epoch() {
+        assert!(
+            now_unix_secs() > 1_577_836_800,
+            "clock returned a value before 2020; the platform backend is not reading real time"
+        );
     }
 
     #[test]

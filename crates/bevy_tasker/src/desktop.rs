@@ -3,6 +3,10 @@
 //! Spawns one worker thread per CPU core. Tasks are distributed via a
 //! crossbeam unbounded channel. `spawn_local()` uses `spawn_unchecked`
 //! since the pool threads have no special thread-affinity requirements.
+//!
+//! A panicking task must not take its worker with it: unwinding out of the
+//! receive loop retires that thread for good, and once every thread has gone
+//! the pool accepts work forever without running any of it.
 
 use std::sync::OnceLock;
 use std::thread;
@@ -25,7 +29,9 @@ fn sender() -> &'static Sender<async_task::Runnable> {
                 .name(format!("bevy_tasker-{i}"))
                 .spawn(move || {
                     while let Ok(runnable) = rx.recv() {
-                        runnable.run();
+                        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                            runnable.run();
+                        }));
                     }
                 })
                 .expect("failed to spawn bevy_tasker worker thread");
