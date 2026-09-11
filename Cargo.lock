@@ -4133,6 +4133,7 @@ version = "0.2.0"
 dependencies = [
  "bevy",
  "ehttp",
+ "js-sys",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -12614,6 +12615,7 @@ dependencies = [
  "bevy",
  "bevy_egui",
  "bevy_gltf",
+ "bevy_inventory",
  "combat",
  "kinetree",
  "ron",

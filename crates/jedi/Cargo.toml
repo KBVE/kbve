@@ -31,7 +31,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net", "fs", "io-util"] }
 tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
 tracing = { workspace = true }
-ulid = { workspace = true, features = ["serde", "uuid"] }
+ulid = { workspace = true, features = ["std", "serde", "uuid"] }
 
 # Pinned here rather than in the workspace table: nothing else in this
 # repository uses them, so a shared entry would carry a version no other crate

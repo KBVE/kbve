@@ -57,6 +57,9 @@ serde = { workspace = true, features = ["derive"] }
 ron = { workspace = true }
 thiserror = { workspace = true }
 combat = { path = "../../../crates/combat", features = ["bevy"] }
+bevy_inventory = { path = "../../../crates/bevy_inventory", default-features = false, features = [
+	"bevy",
+] }
 bevy_egui = { workspace = true, features = ["render", "default_fonts"] }
 bevy_gltf = { workspace = true }
 avian3d = { workspace = true, features = [

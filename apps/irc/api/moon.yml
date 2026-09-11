@@ -20,7 +20,7 @@ tasks:
         options:
             cache: false
     deploy:
-        script: "docker rm -f irc-gateway-local 2>/dev/null || true && lsof -ti:4321 | xargs kill -9 2>/dev/null || true && moon run irc-gateway:container && VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker run --rm --name irc-gateway-local -p 4321:4321 -e JWT_SECRET=local-dev-secret kbve/irc-gateway:$VERSION"
+        script: "docker rm -f irc-gateway-local 2>/dev/null || true && lsof -ti:4321 | xargs kill -9 2>/dev/null || true && moon run irc-gateway:container && VERSION=$(grep '^version' apps/irc/api/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker run --rm --name irc-gateway-local -p 4321:4321 -e JWT_SECRET=local-dev-secret kbve/irc-gateway:$VERSION"
         options:
             runFromWorkspaceRoot: true
             cache: false
@@ -31,12 +31,12 @@ tasks:
         deps: ['protobuf:build']
         # The version tag is what the e2e and deploy tasks run; tagging only
         # :latest left them pulling a tag that a publish alone had produced.
-        script: "v=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/irc/irc-gateway/Dockerfile -t kbve/irc-gateway:latest -t kbve/irc-gateway:$v ."
+        script: "v=$(grep '^version' apps/irc/api/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/irc/api/Dockerfile -t kbve/irc-gateway:latest -t kbve/irc-gateway:$v ."
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max -f apps/irc/irc-gateway/Dockerfile -t ghcr.io/kbve/irc-gateway:latest -t kbve/irc-gateway:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max -f apps/irc/api/Dockerfile -t ghcr.io/kbve/irc-gateway:latest -t kbve/irc-gateway:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
