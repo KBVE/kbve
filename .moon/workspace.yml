@@ -99,7 +99,7 @@ projects:
         astro-cryptothrone: 'apps/cryptothrone/web'
         discordsh-web: 'apps/discordsh/web'
         herbmail-web: 'apps/herbmail/web'
-        astro-irc: 'apps/irc/astro-irc'
+        astro-irc: 'apps/irc/web'
         astro-memes: 'apps/memes/astro-memes'
         astro-rareicon: 'apps/rareicon/astro-rareicon'
 
@@ -108,7 +108,7 @@ projects:
         astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
         discordsh-web-e2e: 'apps/discordsh/web/e2e'
         herbmail-api-e2e: 'apps/herbmail/api/e2e'
-        irc-e2e: 'apps/irc/irc-e2e'
+        irc-e2e: 'apps/irc/api/e2e'
         memes-e2e: 'apps/memes/memes-e2e'
 
         # A site and its own suite in one project
@@ -164,7 +164,7 @@ projects:
         firecracker-ctl: 'apps/vm/firecracker-ctl'
         friendslop-server: 'apps/agones/friendslop/server'
         herbmail-server: 'apps/agones/herbmail/server'
-        irc-gateway: 'apps/irc/irc-gateway'
+        irc-gateway: 'apps/irc/api'
         jobboard: 'apps/jobboard'
         kbve-gate: 'apps/kbve/kbve-gate'
         kbve-kubectl: 'apps/vm/kubectl'

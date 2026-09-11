@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const workspaceRoot = resolve(__dirname, '../../..');
+const workspaceRoot = resolve(__dirname, '../../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
