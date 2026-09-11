@@ -1,0 +1,151 @@
+---
+title: combat — Deterministic Combat Resolution Crate
+description: combat is an engine-free Rust crate for deterministic combat resolution — stats, abilities, effects, cooldowns and damage in integer maths, shared by real-time and turn-based lanes, with an optional Bevy integration.
+sem: 1
+sidebar:
+    label: Combat Crate
+    order: 82
+tags:
+    - crates
+    - rust
+    - bevy
+    - gamedev
+key: combat_crate
+pipeline: crates
+package_name: combat
+version: "0.1.0"
+source_path: crates/combat
+author: h0lybyte
+license: MIT
+status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the combat crate?
+          answer: combat is a Rust library that owns the resolution maths for a fight — stats, abilities, effects, cooldowns and damage — and knows nothing about frames, turns or space. The caller owns scheduling and the world; the crate answers what a given attacker, defender, ability and seeded RNG produce.
+        - question: Why does one crate serve both real-time and turn-based combat?
+          answer: The two disagree about when a resolution happens and how time advances, not about what a resolution is. Every duration is a Millis, so a turn is not a different unit of time, only a larger step of the same one. A turn-based lane advances the clock by a turn's worth and resolves on command; a real-time lane advances it by the frame delta and resolves when a swing connects. Both call the same resolve and get the same answer.
+        - question: How is determinism guaranteed?
+          answer: Randomness is an explicit, seeded Rng passed in by the caller and never drawn from the environment, chances are per-mille integers rather than floats, and damage is computed in integers throughout. A server re-simulating a client's attack reaches the client's conclusion, and a replay replays.
+        - question: Does the crate need std or an allocator?
+          answer: No. Nothing stores a position, an entity id or a collection — range arrives as a distance the caller measured, and a cone's victims come from the caller's spatial query. It builds with --no-default-features as no_std and on wasm32-unknown-unknown.
+        - question: What does the bevy feature add?
+          answer: Components wrapping the pure types, the messages that request and report an ability, and the systems that tick cooldowns, casts and effects. It is deliberately separable — without the feature the crate is the resolution maths and nothing else, which is what lets an authoritative server or a headless balance run share it with the client.
+bento:
+    badge: crates · rust · bevy
+    title: Deterministic combat resolution for
+    accent: kbve
+    lede: >-
+        Stats, abilities, effects, cooldowns and damage in integer maths with a
+        seeded RNG — one resolution shared by a real-time client, an
+        authoritative server and a headless balance run. no_std, wasm, and an
+        optional Bevy layer that is never in the way.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/crates/combat
+          primary: true
+          external: true
+        - label: Usage
+          href: "#usage"
+        - label: Design notes
+          href: "#design-notes"
+    aside:
+        icon: shield
+        title: The damage is the damage
+        body: >-
+            Given an attacker, a defender, an ability and a source of
+            randomness, the outcome is fixed. <code>resolve</code> is a pure
+            function over integers and a seeded <code>Rng</code>, so the client
+            predicts exactly what the server confirms and a replay replays.
+        points:
+            - <strong>Crate owns</strong> — stats, abilities, effects, cooldowns, resolution maths.
+            - <strong>Caller owns</strong> — when to resolve, who is in the cone, what to do with the outcome.
+            - <strong>No world</strong> — no positions, no entity ids, no collections, no allocator.
+    stats:
+        - { label: Package, value: combat, icon: package }
+        - { label: Edition, value: "2024", icon: rust }
+        - { label: Version, value: "0.1.0", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: resolve
+          icon: sword
+          body: One function over an ability, an attacker, a defender, Modifiers and a seeded Rng. Returns an Outcome carrying the damage and how it got there — hit, crit, or miss.
+        - title: Stats and Health
+          icon: shield
+          body: Power, attack, armor, evasion, crit chance; Health with damage, heal and a deliberate revive, plus Resource for whatever an ability spends.
+        - title: Abilities and casts
+          icon: activity
+          body: Ability, Payload, Shape and Allegiance describe what a thing does; Cast, Readiness, usable and an ordered Denial say whether it may be done yet.
+        - title: Effects over time
+          icon: database
+          body: Effect and EffectKind carry a sub-point remainder, so a damage-over-time deals the same total whether it is ticked once a second or sixty times.
+        - title: One clock
+          icon: settings
+          body: Millis and Timer are the only notion of time. A frame delta and a turn ending are the same step, at different sizes.
+        - title: Optional Bevy plugin
+          icon: server
+          body: CombatPlugin, Combatant, AbilityBar, UseAbility and the AbilityStarted / AbilityLanded / AbilityDenied / Died messages, behind the bevy feature.
+    related:
+        - title: bevy_spells
+          href: /project/bevy-spells-crate/
+          copy: The spell definitions a combat payload is usually driven from.
+          icon: gears
+        - title: bevy_battle
+          href: /project/bevy-battle-crate/
+          copy: The turn-based battle scheduling that sits above a resolution.
+          icon: sword
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="usage" eyebrow="Integration" heading="Usage">
+
+```rust
+use combat::{Ability, Health, Millis, Modifiers, Rng, Stats, Timer, resolve};
+
+let sword = Ability::swing(20, 250, 90);
+let attacker = Stats { power: 5, ..Stats::default() };
+let defender = Stats { armor: 4, ..Stats::default() };
+
+let mut rng = Rng::new(7, 0);
+let outcome = resolve(&sword, &attacker, &defender, Modifiers::default(), &mut rng);
+assert_eq!(outcome.damage(), 21);
+
+let mut cooldown = Timer::new(Millis(1500));
+assert!(!cooldown.tick(Millis(500)));
+assert!(cooldown.tick(Millis(1000)));
+
+let mut health = Health::new(100);
+health.damage(outcome.damage());
+assert_eq!(health.current(), 79);
+```
+
+The default build is `std` and the maths only. `features = ["bevy"]` adds the components, messages and systems that tick cooldowns, casts and effects; `--no-default-features` gives `no_std`, which is what the crate is checked against so the claim cannot rot.
+
+</BentoProse>
+
+<BentoProse id="design-notes" eyebrow="Easy to undo by accident" heading="Design notes">
+
+- **A connected hit always deals at least 1.** Enough armour should make a character tough, never unkillable.
+- **Evasion is floored at a 5% chance to be hit.** A defender who cannot be hit cannot be fought.
+- **Stacked multipliers are multiplicative and floored.** Integer per-mille arithmetic truncates, so without a floor four stacked reductions reach zero and grant immunity.
+- **Crits multiply before armour is subtracted**, so armour scales sensibly instead of being trivialised.
+- **Effects carry a sub-point remainder**, so a damage-over-time deals the same total at any tick rate.
+- **A cooldown restart keeps whichever duration is longer.** Otherwise a shared, shorter cooldown becomes a way to skip a longer one.
+- **The dead are not healed.** Resurrection is `Health::revive`, a deliberate act; a stray area heal must not do it by accident.
+- **Denial reasons are ordered**, so an ability bar can say the most useful true thing rather than the first one it noticed.
+
+</BentoProse>
+
+</BentoDoc>
