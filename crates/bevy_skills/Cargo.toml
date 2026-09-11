@@ -22,7 +22,13 @@ default = ["bevy"]
 # and the BevySkillsPlugin. Without this feature the crate is plain
 # Rust with zero Bevy dependency, suitable for FFI cdylibs (uniti) and
 # headless consumers (Discord bot sessions).
-bevy = ["dep:bevy", "dep:bevy_items"]
+bevy = ["dep:bevy"]
+
+# Seeds the registry from a professiondb. This is the only thing in the
+# crate that needs bevy_items, and through it kbve-proto and a protobuf
+# codegen step, so it is separate from `bevy`: a game that defines its own
+# skills pays for a skill system, not for a content pipeline.
+professions = ["dep:bevy_items"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
@@ -32,5 +38,6 @@ serde_json = { workspace = true }
 bevy = { workspace = true, optional = true, features = ["bevy_state", "bevy_log"] }
 
 # professiondb source for register_professions — only pulled in under the
-# `bevy` feature since bevy_items itself has a hard (non-optional) bevy dep.
+# `professions` feature since bevy_items itself has a hard (non-optional)
+# bevy dep.
 bevy_items = { version = "0.1", path = "../bevy_items", optional = true, default-features = false }

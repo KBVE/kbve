@@ -150,7 +150,7 @@ impl SkillRegistry {
             .collect()
     }
 
-    #[cfg(feature = "bevy")]
+    #[cfg(feature = "professions")]
     pub fn register_professions(&mut self, db: &bevy_items::profession::ProfessionDb) {
         for profession in db.professions() {
             let xp_curve = profession
@@ -174,7 +174,6 @@ impl SkillRegistry {
         }
     }
 
-    #[cfg(feature = "bevy")]
     pub fn register_gathering_fallback(&mut self) {
         for (r#ref, name) in [
             ("woodcutting", "Woodcutting"),
@@ -192,7 +191,7 @@ impl SkillRegistry {
     }
 }
 
-#[cfg(all(test, feature = "bevy"))]
+#[cfg(all(test, feature = "professions"))]
 mod professiondb_tests {
     use super::*;
 

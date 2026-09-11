@@ -162,7 +162,7 @@ fn populate_recipes(
                         .item()
                         .map(|i| i.name.clone())
                         .unwrap_or_else(|| ing.item_ref.clone());
-                    format!("{}x {name}", ing.amount)
+                    format!("{}x {name}", ing.quantity)
                 })
                 .collect::<Vec<_>>()
                 .join(", ");
