@@ -16,6 +16,7 @@ use combat::{
 
 use super::camera::OrbitCamera;
 use super::character::{Character, Heading, MoveIntent, spawn_character};
+use super::npc::Post;
 use super::player::Player;
 use super::world::height_at;
 
@@ -201,6 +202,7 @@ fn spawn_training_dummies(mut commands: Commands) {
         let position = Vec3::new(x, height_at(x, z) + 4.0, z);
 
         let dummy = spawn_character(&mut commands, position);
+        commands.entity(dummy).insert(Post(position));
         make_combatant(&mut commands, dummy, Faction::Hostile, 220, dummy_stats());
     }
 }

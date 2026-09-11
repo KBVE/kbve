@@ -12613,9 +12613,11 @@ version = "0.1.0"
 dependencies = [
  "avian3d",
  "bevy",
+ "bevy_behavior",
  "bevy_egui",
  "bevy_gltf",
  "bevy_inventory",
+ "bevy_pathfinder",
  "bevy_skills",
  "combat",
  "kinetree",

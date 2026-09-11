@@ -7,6 +7,8 @@ pub mod combat;
 pub mod foot_ik;
 pub mod gaze;
 pub mod inventory;
+pub mod nav;
+pub mod npc;
 pub mod player;
 pub mod pose;
 pub mod rig;
@@ -32,6 +34,7 @@ impl Plugin for MmorpgPlugin {
             combat::GameCombatPlugin,
             inventory::GameInventoryPlugin,
             skills::GameSkillsPlugin,
+            npc::NpcPlugin,
             player::PlayerPlugin,
             foot_ik::FootIkPlugin,
             gaze::GazePlugin,
