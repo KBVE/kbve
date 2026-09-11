@@ -223,6 +223,9 @@ fn lane_top(set: &PoseSet, want_lane: &str) -> f32 {
         .fold(0.0, f32::max)
 }
 
+/// Two loop indices bracketing a pace within one lane.
+type Pair = (usize, usize);
+
 /// The loops for a travel: the speed pair in the direction's lane and, when the facing is locked, the pair one lane on so the two can be mixed by angle. Walking forward round a bend picks the arc whose curvature is nearest the body's, left positive.
 fn pick(
     set: &PoseSet,
@@ -231,7 +234,7 @@ fn pick(
     curvature: f32,
     leg_length: f32,
     locked: bool,
-) -> Option<((usize, usize), Option<(usize, usize)>)> {
+) -> Option<(Pair, Option<Pair>)> {
     let want_lane = lane(direction);
     if want_lane == "F" && curvature.abs() > ARC_MIN && speed < ARC_SPEED_MAX {
         let side = if curvature > 0.0 { "_l" } else { "_r" };
@@ -430,19 +433,27 @@ fn blend(idle: PoseSample, moving: PoseSample, mix: f32) -> PoseSample {
     }
 }
 
+/// Every character the pose player drives, with the intent and inertia that pick which clip plays.
+type PosedCharacters<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static mut Cadence,
+        &'static LowerBody,
+        Has<Action>,
+        Option<&'static MoveIntent>,
+        Option<&'static mut Inertia>,
+    ),
+>;
+
+#[allow(clippy::too_many_arguments)]
 fn play_pose(
     time: Res<Time>,
     playback: Res<PosePlayback>,
     rig: Res<Rig>,
     sets: Res<Assets<PoseSet>>,
-    mut characters: Query<(
-        Entity,
-        &mut Cadence,
-        &LowerBody,
-        Has<Action>,
-        Option<&MoveIntent>,
-        Option<&mut Inertia>,
-    )>,
+    mut characters: PosedCharacters,
     mut goals: Query<&mut FootGoal>,
     mut transforms: Query<&mut Transform>,
     mut profile: Local<(f32, f64, u32, u32)>,

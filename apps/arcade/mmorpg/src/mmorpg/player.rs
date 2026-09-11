@@ -229,7 +229,7 @@ fn read_input(
             0.15
         };
         let swap_leg = 4.0 + swap_gap;
-        let angle = if gear || hop {
+        let angle = if gear || rest || hop {
             0.0
         } else if orbit {
             time.elapsed_secs() * 0.4
@@ -242,8 +242,6 @@ fn read_input(
             } else {
                 -core::f32::consts::FRAC_PI_4
             }
-        } else if rest {
-            0.0
         } else if swap {
             ((time.elapsed_secs() / swap_leg).floor() as i32 % 2) as f32 * core::f32::consts::PI
         } else if jitter {
