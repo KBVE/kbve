@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldHeightfieldParams.h"
+#include "KBVEWorldPatch.h"
 
 #include "KBVEWorldHeightfieldActor.generated.h"
 
@@ -138,9 +139,6 @@ public:
 	UPROPERTY(Transient)
 	TArray<float> CachedPadded;
 
-	UPROPERTY(Transient)
-	int32 CachedPaddedStep = 0;
-
 	/** Milliseconds spent inside CreateMeshSection, which includes any collision cook. */
 	float GetLastSectionMs() const { return LastSectionMs; }
 
@@ -164,6 +162,28 @@ protected:
 private:
 	/** Fill one component with a patch at the given stride. */
 	void BuildSection(UProceduralMeshComponent* Target, int32 Step, bool bCollision);
+
+	/** Everything the plan for one section needs, gathered where the field lives. */
+	bool PlanSection(int32 Step, bool bCollision, FKBVEWorldPatchPlan& Out) const;
+
+	/** Hand a built patch to its component. Game thread, always. */
+	void Commit(UProceduralMeshComponent* Target, const FKBVEWorldPatchMesh& Patch, bool bCollision);
+
+	/** Build both sections off the game thread and commit them when they land. */
+	void RebuildAsync();
+
+	/**
+	 * Which rebuild the patch is on.
+	 *
+	 * A pooled patch is recycled to another coordinate while work for the old
+	 * one may still be in flight, and a mesh built for where it used to be is
+	 * worse than no mesh at all. Bumped by every rebuild; work that comes back
+	 * carrying an older number is dropped.
+	 */
+	uint32 Serial = 0;
+
+	/** Whether CachedPadded holds the heights for the stride last asked for. */
+	bool bCachedPaddedValid = false;
 
 	/** One quad at the water line, covering this patch. */
 
