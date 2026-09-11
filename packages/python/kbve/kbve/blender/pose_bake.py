@@ -16,7 +16,7 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gait_bake import Clip, argv, contacts, load, stance_level  # noqa: E402
+from gait_bake import Clip, argv, contacts, load  # noqa: E402
 
 ROLES = [
     "pelvis",
@@ -54,6 +54,7 @@ CHILD = {
 }
 TURN_DEG = 30.0
 HEADING_WINDOW = 0.5
+FLOOR_WINDOW = 0.5
 BONE_FOR = {"chest": ["spine_05", "spine_04", "spine_03"], "neck": ["neck_01"], "head": ["head", "neck_02"]}
 
 
@@ -76,6 +77,51 @@ def to_canon_vec(v: Vector) -> Vector:
 
 def to_canon_quat(q: Quaternion) -> Quaternion:
     return (CANON @ q.to_matrix() @ CANON_T).to_quaternion()
+
+
+def local_floor(tracks: list[list[Vector]], fps: float) -> list[float]:
+    """The lowest any track gets within half a second of each frame.
+
+    A clip that jumps off a ledge keeps a floor under its takeoff and another under its landing.
+    """
+    n = len(tracks[0])
+    half = int(fps * FLOOR_WINDOW)
+    lows = [min(t[i].z for t in tracks) for i in range(n)]
+    return [min(lows[max(0, i - half) : i + half + 1]) for i in range(n)]
+
+
+def floors(clip: Clip, speed: float) -> tuple[list[float], list[float], list[float]]:
+    """Per-frame ankle floor, ball floor and stance ground.
+
+    The ground is the floor under the last planted frame (or the first one ahead), raised by the planted ankle's
+    mean height, so a flight keeps the floor it left and a landing measures against the one it reaches.
+    """
+    ankle_floor = local_floor([clip.pos["foot_l"], clip.pos["foot_r"]], clip.fps)
+    ball_floor = local_floor([clip.pos["ball_l"], clip.pos["ball_r"]], clip.fps)
+    n = clip.frames
+    planted = []
+    down_at = [False] * n
+    for side in "lr":
+        ankle = clip.pos[f"foot_{side}"]
+        ball = clip.pos[f"ball_{side}"]
+        down = contacts(
+            [
+                ([p.z - f for p, f in zip(ankle, ankle_floor)], ankle),
+                ([p.z - f for p, f in zip(ball, ball_floor)], ball),
+            ],
+            clip.fps,
+            speed,
+        )
+        planted += [ankle[i].z - ankle_floor[i] for i in range(n) if down[i]]
+        down_at = [a or b for a, b in zip(down_at, down)]
+    lift = sum(planted) / len(planted) if planted else 0.0
+    stances = [i for i in range(n) if down_at[i]]
+    ground = []
+    for i in range(n):
+        before = [j for j in stances if j <= i]
+        anchor = before[-1] if before else (stances[0] if stances else i)
+        ground.append(ankle_floor[anchor] + lift)
+    return ankle_floor, ball_floor, ground
 
 
 def rest_world(arm: bpy.types.Object) -> dict[str, Quaternion]:
@@ -102,16 +148,17 @@ def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
     up = Vector((0.0, 0.0, 1.0))
     right = forward.cross(up)
     direction = math.degrees(math.atan2(travel.dot(right), travel.dot(forward))) if speed > 0.05 else 0.0
-    ground = stance_level(clip, speed)
+    ankle_floor, ball_floor, ground = floors(clip, speed)
 
     feet = {}
     for side in "lr":
         ankle = clip.pos[f"foot_{side}"]
         ball = clip.pos[f"ball_{side}"]
-        lowest = min(p.z for p in ankle)
-        ball_lowest = min(p.z for p in ball)
         feet[side] = contacts(
-            [([p.z - lowest for p in ankle], ankle), ([p.z - ball_lowest for p in ball], ball)],
+            [
+                ([p.z - f for p, f in zip(ankle, ankle_floor)], ankle),
+                ([p.z - f for p, f in zip(ball, ball_floor)], ball),
+            ],
             clip.fps,
             speed,
         )
@@ -128,7 +175,7 @@ def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
         heading = headings[i] - facing
         unturn = Matrix.Rotation(math.radians(heading if turning else facing), 3, up)
         hips = (clip.pos["thigh_l"][i] + clip.pos["thigh_r"][i]) / 2
-        rel = to_canon_vec(unturn @ Vector((hips.x - r.x, hips.y - r.y, hips.z - ground))) / leg
+        rel = to_canon_vec(unturn @ Vector((hips.x - r.x, hips.y - r.y, hips.z - ground[i]))) / leg
         rots = []
         dirs = []
         for role in ROLES:

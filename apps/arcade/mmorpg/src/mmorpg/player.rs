@@ -63,7 +63,7 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
@@ -144,6 +144,16 @@ impl Autowalk {
                 run: false,
                 turn_rate: -10.0,
             },
+            Ok("hop") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -11.0,
+            },
+            Ok("stillhop") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -12.0,
+            },
             _ => Self::default(),
         };
         Self {
@@ -169,10 +179,12 @@ fn read_input(
         let flip = (time.elapsed_secs() / leg).floor() as i32 % 2 == 1;
         let gear = auto.turn_rate < -3.5 && auto.turn_rate > -4.5;
         let jitter = auto.turn_rate < -4.5 && auto.turn_rate > -5.5;
-        let orbit = auto.turn_rate < -9.5;
-        let nudge = auto.turn_rate < -8.5 && !orbit;
-        let swap = auto.turn_rate < -5.5 && !nudge && !orbit;
-        let rest = auto.turn_rate < -7.5 && !nudge && !orbit;
+        let hop = auto.turn_rate < -10.5;
+        let still = auto.turn_rate < -11.5;
+        let orbit = auto.turn_rate < -9.5 && !hop;
+        let nudge = auto.turn_rate < -8.5 && !orbit && !hop;
+        let swap = auto.turn_rate < -5.5 && !nudge && !orbit && !hop;
+        let rest = auto.turn_rate < -7.5 && !nudge && !orbit && !hop;
         let swap_gap = if rest {
             3.0
         } else if auto.turn_rate < -6.5 {
@@ -181,7 +193,7 @@ fn read_input(
             0.15
         };
         let swap_leg = 4.0 + swap_gap;
-        let angle = if gear {
+        let angle = if gear || hop {
             0.0
         } else if orbit {
             time.elapsed_secs() * 0.4
@@ -209,20 +221,25 @@ fn read_input(
         } else {
             time.elapsed_secs() * auto.turn_rate
         };
-        let halted = if swap {
+        let halted = if still {
+            true
+        } else if swap {
             time.elapsed_secs().rem_euclid(swap_leg) < swap_gap
         } else {
-            !gear && !jitter && !nudge && !orbit && auto.turn_rate < -2.5 && flip
+            !gear && !jitter && !nudge && !orbit && !hop && auto.turn_rate < -2.5 && flip
         };
         let wish = if halted {
             Vec3::ZERO
         } else {
             Quat::from_rotation_y(angle) * Vec3::NEG_Z
         };
+        let now = time.elapsed_secs();
+        let leap =
+            hop && now > 2.0 && (now / 3.0).floor() != ((now - time.delta_secs()) / 3.0).floor();
         for mut intent in &mut controlled {
             intent.wish = wish;
             intent.run = auto.run || (gear && flip);
-            intent.jump = false;
+            intent.jump = leap;
         }
         return;
     }

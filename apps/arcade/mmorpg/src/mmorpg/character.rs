@@ -27,7 +27,7 @@ pub const CHARACTER_HEIGHT: f32 = 1.16;
 /// exactly what it used to do, so the game had no walk in it at all.
 const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
-const JUMP_SPEED: f32 = 8.0;
+const JUMP_SPEED: f32 = 5.5;
 
 /// Ground acceleration in metres per second squared, for speeding up and turning; easing off to a slower gait uses [`GROUND_DECEL`], letting go brakes instantly.
 const GROUND_ACCEL: f32 = 14.0;
@@ -366,6 +366,16 @@ pub struct Cadence {
     pub grounded: bool,
     /// Seconds since the ground probe last hit; a miss shorter than the grace keeps the pose on the ground.
     pub air: f32,
+    /// The raw ground probe, and the body's vertical speed, for the jump.
+    pub touching: bool,
+    pub rise: f32,
+    /// Where a jump is: the takeoff shot, the rise mapped to vertical speed, or the fall loop; the landing is a plain shot.
+    pub flight: Option<Flight>,
+    /// Set by the pose on the takeoff frame; the movement applies the jump impulse and clears it.
+    pub launch: bool,
+    /// Fastest the body rose and fell this flight: the rise maps the takeoff clip, the fall picks the landing.
+    pub rise_top: f32,
+    pub fall_speed: f32,
     /// Where the baked idle loop is, in turns.
     pub idle_phase: f32,
     /// A turn, start or stop clip playing once through, which owns the facing and the velocity while it runs.
@@ -379,6 +389,14 @@ pub struct Cadence {
     pub hold: bool,
     /// Seconds the stick has been released while walking, so a tap does not start a stop.
     pub release: f32,
+}
+
+/// A jump in progress: the takeoff plays as a shot, then the rise follows the vertical speed through the clip's frames from `off` to `apex`, then the fall loop runs by time.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Flight {
+    Takeoff,
+    Rise { clip: usize, off: f32, apex: f32 },
+    Fall { frame: f32 },
 }
 
 /// One pass through a one-shot clip: which clip, how far in, and the facing it started from.
@@ -436,6 +454,12 @@ impl Cadence {
             floor_samples: 0,
             grounded: false,
             air: 0.0,
+            touching: false,
+            rise: 0.0,
+            flight: None,
+            launch: false,
+            rise_top: 0.0,
+            fall_speed: 0.0,
             idle_phase: 0.0,
             shot: None,
             shot_velocity: Vec3::ZERO,
@@ -1164,13 +1188,21 @@ fn apply_movement(
             &mut LinearVelocity,
             &mut Grounded,
             &ShapeHits,
-            Option<&Cadence>,
+            Option<&mut Cadence>,
         ),
         With<Character>,
     >,
 ) {
-    for (intent, heading, mut velocity, mut grounded, hits, cadence) in &mut characters {
+    for (intent, heading, mut velocity, mut grounded, hits, mut cadence) in &mut characters {
         grounded.0 = !hits.is_empty();
+        if let Some(cadence) = cadence.as_deref_mut()
+            && cadence.launch
+        {
+            cadence.launch = false;
+            velocity.y = JUMP_SPEED;
+            grounded.0 = false;
+        }
+        let cadence = cadence.as_deref();
         if let Some(cadence) = cadence
             && (cadence.shot.is_some() || cadence.hold)
             && grounded.0
@@ -1215,7 +1247,7 @@ fn apply_movement(
         velocity.x = next.x;
         velocity.z = next.z;
 
-        if grounded.0 && intent.jump {
+        if grounded.0 && intent.jump && cadence.is_none() {
             velocity.y = JUMP_SPEED;
         }
     }

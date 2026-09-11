@@ -319,6 +319,9 @@ pub struct PoseSet {
     pub clips: Vec<PoseClip>,
 }
 
+/// Airborne frames in a row that make a jump's flight rather than a running stride's.
+const FLIGHT_FRAMES: usize = 9;
+
 /// Weight of the root speed mismatch, per (m/s)², against the squared leg joint angles in a pose match.
 const MATCH_SPEED: f32 = 0.5;
 
@@ -535,9 +538,11 @@ impl PoseClip {
 
     /// Whether the clip plays once through rather than looping: a turn, pivot, start or stop.
     pub fn one_shot(&self) -> bool {
-        ["_turn_", "_start_", "_stop_", "_pivot_", "_reface_"]
-            .iter()
-            .any(|p| self.name.contains(p))
+        [
+            "_turn_", "_start_", "_stop_", "_pivot_", "_reface_", "jump_",
+        ]
+        .iter()
+        .any(|p| self.name.contains(p))
     }
 
     /// Last frame index the clip can be sampled at.
@@ -750,6 +755,53 @@ impl PoseClip {
         let hi = end.saturating_sub(step.ceil() as usize + 1).max(1);
         let (at, cost) = self.match_frame(0, hi, now, ahead, step, speed, legs);
         (at.min(end as f32 - 1.0), end, cost)
+    }
+
+    /// Whether either foot is down on frame `i`.
+    fn touching(&self, i: usize) -> bool {
+        let c = self.frames[i].contact;
+        c.0 || c.1
+    }
+
+    /// A jump clip's takeoff, the first frame of a flight lasting at least [`FLIGHT_FRAMES`] (a run's stride flights are shorter), and the frame its hips are highest after it; none when the clip does not start on the ground.
+    pub fn flight(&self) -> Option<(usize, usize)> {
+        let n = self.frames.len();
+        let off = (1..n).find(|&i| (i..(i + FLIGHT_FRAMES).min(n)).all(|j| !self.touching(j)))?;
+        if !self.touching(0) {
+            return None;
+        }
+        let apex = (off..n)
+            .max_by(|&a, &b| self.frames[a].pelvis.1.total_cmp(&self.frames[b].pelvis.1))?;
+        Some((off, apex))
+    }
+
+    /// A landing clip's first frame with a foot down after its fall.
+    pub fn touchdown(&self) -> Option<usize> {
+        let n = self.frames.len();
+        let air = (0..n).find(|&i| !self.touching(i))?;
+        (air..n).find(|&i| self.touching(i))
+    }
+
+    /// Where a landing clip hands back: a standing landing when the hips have settled, a moving one on the first landing after the body is back near its top speed.
+    pub fn land_end(&self, touch: usize) -> usize {
+        let n = self.frames.len();
+        let last = n.saturating_sub(1);
+        if self.name.contains("_stand_") {
+            return (touch + 5..last.saturating_sub(5))
+                .find(|&i| {
+                    (i..i + 5).all(|j| {
+                        (self.frames[j + 1].pelvis.1 - self.frames[j].pelvis.1).abs() < 0.003
+                    })
+                })
+                .unwrap_or(last);
+        }
+        let top = (touch..n).map(|i| self.root_speed(i)).fold(0.0, f32::max);
+        let up = (touch..n)
+            .find(|&i| self.root_speed(i) >= 0.9 * top)
+            .unwrap_or(touch);
+        self.landing_from(up + 1, true)
+            .or_else(|| self.landing_from(up + 1, false))
+            .unwrap_or(last)
     }
 
     /// The pose at absolute fractional frame `x`, clamped to the clip's end rather than wrapped.

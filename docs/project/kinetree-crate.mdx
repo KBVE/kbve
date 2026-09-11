@@ -279,6 +279,17 @@ The user's reminder that combat (a selected target, the hybrid soft lock) plays 
 
 Measured with `MMORPG_STRAFE=1` and the `swap`, `stopgo`, `orbit` and `jitter` autowalks: no knee rate over 1500°/s on orbit or stop-go, jog start and stop clips on every stop, reversal cuts 4° or under; free-mode swap and stop-go unchanged.
 
+### Jumps from the data (2026-09-10, last)
+
+Idle, walk and run jumps were one Quaternius clip on a physics hop of 8 m/s. The GASP jump set is 145 clips; 29 are baked: `jump_start_{stand,walk,run,sprint}_{lf,rf}`, `jump_off_{walk,run}_*`, `jump_fall`, `jump_land_{stand,walk,run,sprint}_{light,heavy}_{lf,rf}`.
+
+- The captures jump off a 7 m ledge, so the bake's single floor put the takeoff stance seven metres in the air and found no contacts there. The floor is local now: the lowest any ankle gets within half a second of each frame finds the contacts, and the hip height is measured against the floor under the last planted frame (or the first one ahead), so a flight keeps the floor it left and a landing measures against the one it reaches. Flat clips bake identically.
+- A jump is three stages driven by the body, not the clock. The takeoff plays as a grounded shot from the matched frame to the clip's first sustained airborne frame (a run's stride flights are shorter than nine frames and do not count); on that frame the pose raises `launch` and the movement applies the impulse. The rise maps vertical speed onto the clip's frames between takeoff and apex, so any jump height lands on the apex pose. Past the apex the fall loop runs by time. Touchdown picks the landing by stick (stand, walk, run, sprint past 6 m/s), by fall speed (heavy past 7.5 m/s) and by which foot variant's touchdown frames match the falling pose, and plays it as a plain shot from its touchdown frame to where the hips settle or the gait resumes. A standing landing counts as a stop, so input during it chains into a start.
+- In the air the hips sit at the idle's stance height over the physics body, because the fall loop is baked thirty metres over its own landing floor; the feet release from the ground the frame the body leaves it instead of fading over 0.3 s, which had the legs locked straight on the floor while the body rose.
+- Two older faults surfaced: the pose weight faded to idle whenever the pace was zero, so every standing shot and the whole standing jump played blended toward the idle; and with the weight held, the procedural blend's zero stride period at zero pace divided the phase clock into NaN and crashed the animation curves. Shots and flights keep the weight; a zero period is ignored.
+
+Measured with the `stillhop` and `hop` autowalks (jump every 3 s, `MMORPG_AUTORUN=1` for the run): stand jump = 0.4 s takeoff crouch, 0.46 s flight, 0.72 s landing to idle; walk = matched takeoff, walk landing 1.1 s back to the loop; run = 0.55 s takeoff, run landing 0.65 s back to the jog. No knee step over 26° outside the push-off frame, which the data itself steps 28°. Jump impulse is 5.5 m/s now (0.63 m under 24 m/s² gravity); the rise plays the clip 1.7× faster than captured because the capture's hang time is longer.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

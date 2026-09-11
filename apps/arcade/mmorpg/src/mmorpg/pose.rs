@@ -7,7 +7,7 @@ use bevy::app::AnimationSystems;
 use bevy::prelude::*;
 
 use super::action::Action;
-use super::character::{Cadence, LowerBody, MoveIntent, Shot};
+use super::character::{Cadence, Flight, LowerBody, MoveIntent, Shot};
 use super::foot_ik::FootGoal;
 use super::rig::{PoseClip, PoseSample, PoseSet, Rig};
 
@@ -50,6 +50,10 @@ const STEER_MAX: f32 = 45.0;
 /// Fastest a shot may add steer, radians per second, so a stick change late in the window leaves the rest to the loop.
 const STEER_RATE: f32 = 3.0;
 const STRIDING: f32 = 1.5;
+/// Ground speed, m/s, above which a jump takes off from the sprint clip rather than the run one.
+const SPRINTING: f32 = 6.0;
+/// Fall speed, m/s, from which a landing plays the heavy clip.
+const HEAVY_FALL: f32 = 7.5;
 /// Fraction of a stride the loop is sampled ahead by when matching a one-shot's frame to it, so the legs' motion is matched and not just their pose.
 const LOOKAHEAD: f32 = 0.1;
 /// Seconds over which the offset left by a source switch decays.
@@ -449,7 +453,7 @@ fn play_pose(
     let idle = set.clips.iter().find(|c| c.name == "idle");
     let dt = time.delta_secs();
     for (character, mut cadence, lower, acting, intent, inertia) in &mut characters {
-        if !cadence.grounded {
+        if !cadence.grounded && cadence.flight.is_none() {
             cadence.contact = (false, false);
             cadence.clip_period = None;
             cadence.shot = None;
@@ -496,21 +500,42 @@ fn play_pose(
                 Some(clip) => {
                     let hurry = if shot.turns { TURN_HURRY } else { 1.0 };
                     shot.frame += dt * clip.fps * hurry;
-                    let stopping = clip.name.contains("_stop_");
+                    let stopping =
+                        clip.name.contains("_stop_") || clip.name.contains("_land_stand_");
+                    let takeoff = cadence.flight == Some(Flight::Takeoff);
                     let resumed = stopping && pushing;
                     let goal =
                         Quat::from_rotation_y(turned_at(&shot, clip, shot.end)) * shot.facing;
                     let off = goal.cross(wish).y.atan2(goal.dot(wish)).to_degrees();
-                    let aborted = !stopping && pushing && off.abs() >= REDIRECT;
-                    if !stopping && pushing && off.abs() > 1.0 && !aborted && !cadence.locked {
+                    let aborted = !stopping && !takeoff && pushing && off.abs() >= REDIRECT;
+                    if !stopping
+                        && !takeoff
+                        && pushing
+                        && off.abs() > 1.0
+                        && !aborted
+                        && !cadence.locked
+                    {
                         let total = turned_at(&shot, clip, shot.end).to_degrees() + off;
                         let frame = shot.frame;
                         steer_shot(&mut shot, clip, frame, total);
                     }
-                    let dropped = !stopping && !pushing;
+                    let dropped = !stopping && !takeoff && !pushing;
                     if shot.frame >= shot.end || resumed || aborted || dropped {
                         if stopping && !pushing {
                             cadence.weight = 0.0;
+                        }
+                        if takeoff {
+                            let (off, apex) = clip
+                                .flight()
+                                .unwrap_or((shot.end as usize, shot.end as usize));
+                            cadence.launch = true;
+                            cadence.rise_top = 0.0;
+                            cadence.fall_speed = 0.0;
+                            cadence.flight = Some(Flight::Rise {
+                                clip: shot.clip,
+                                off: off as f32,
+                                apex: apex as f32,
+                            });
                         }
                         cadence.shot = None;
                         cadence.clip = None;
@@ -545,7 +570,58 @@ fn play_pose(
             cadence.idle_phase = (cadence.idle_phase + dt / seconds.max(0.1)).rem_euclid(1.0);
             clip.sample(cadence.idle_phase, 0)
         });
-        let mut moving = if let Some(shot) = cadence.shot {
+        let mut landed = false;
+        let fall_clip = set.clips.iter().position(|c| c.name == "jump_fall");
+        let mut moving = if let Some(flight) = cadence.flight.filter(|f| *f != Flight::Takeoff) {
+            cadence.clip_period = None;
+            cadence.rise_top = cadence.rise_top.max(cadence.rise);
+            cadence.fall_speed = cadence.fall_speed.max(-cadence.rise);
+            let flown = cadence.rise_top > 0.0;
+            landed = flown && cadence.touching && cadence.rise <= 0.0;
+            let count = cadence.stride_count;
+            match flight {
+                Flight::Rise { clip, off, apex } if flown && cadence.rise <= 0.0 && !landed => {
+                    cadence.flight = Some(Flight::Fall { frame: 0.0 });
+                    cut = true;
+                    fall_clip
+                        .and_then(|i| {
+                            cadence.clip = Some((i, count));
+                            set.clips[i].sample_frame(0.0)
+                        })
+                        .or_else(|| {
+                            set.clips
+                                .get(clip)
+                                .and_then(|c| c.sample_frame(apex.max(off)))
+                        })
+                }
+                Flight::Rise { clip, off, apex } => {
+                    let t = if flown {
+                        (1.0 - cadence.rise / cadence.rise_top).clamp(0.0, 1.0)
+                    } else {
+                        0.0
+                    };
+                    cadence.clip = Some((clip, count));
+                    set.clips
+                        .get(clip)
+                        .and_then(|c| c.sample_frame(off + (apex - off) * t))
+                }
+                Flight::Fall { frame } => fall_clip.and_then(|i| {
+                    let clip = &set.clips[i];
+                    let len = clip.frames.len().max(1) as f32;
+                    let next = (frame + dt * clip.fps).rem_euclid(len);
+                    cadence.flight = Some(Flight::Fall { frame: next });
+                    cadence.clip = Some((i, count));
+                    clip.sample_frame(next)
+                }),
+                Flight::Takeoff => None,
+            }
+            .map(|mut sample| {
+                if let Some(idle) = &resting {
+                    sample.pelvis.y = idle.pelvis.y;
+                }
+                sample
+            })
+        } else if let Some(shot) = cadence.shot {
             cadence.clip = Some((shot.clip, cadence.stride_count));
             cadence.clip_period = None;
             set.clips
@@ -704,8 +780,103 @@ fn play_pose(
                 steer_shot(shot, clip, shot.start, angle);
             }
         };
+        let jumping = intent.is_some_and(|i| i.jump);
+        if jumping && cadence.touching && cadence.flight.is_none() {
+            let pace = cadence.prior_speed.max(cadence.speed);
+            let gait = if pace < STANDING {
+                "stand"
+            } else if pace < JOGGING {
+                "walk"
+            } else if pace < SPRINTING {
+                "run"
+            } else {
+                "sprint"
+            };
+            let prefix = format!("jump_start_{gait}_");
+            let pick = set
+                .clips
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| c.name.starts_with(&prefix))
+                .filter_map(|(i, c)| c.flight().map(|(off, _)| (i, c, off)))
+                .map(|(i, c, off)| {
+                    let (at, cost) = match (&moving, &ahead) {
+                        (Some(now), Some(ahead)) if gait != "stand" => {
+                            let step = LOOKAHEAD * span;
+                            c.match_frame(0, off.saturating_sub(1), now, ahead, step, pace, &legs)
+                        }
+                        _ => (0.0, 0.0),
+                    };
+                    (i, at, off, cost)
+                })
+                .min_by(|a, b| a.3.total_cmp(&b.3));
+            if let Some((index, at, off, _)) = pick {
+                cadence.shot = None;
+                moving = begin(
+                    index,
+                    at.min(off as f32 - 1.0).max(0.0),
+                    off,
+                    false,
+                    &mut cadence,
+                );
+                cadence.flight = Some(Flight::Takeoff);
+                cadence.rise_top = 0.0;
+                cadence.fall_speed = 0.0;
+                cut = true;
+            }
+        }
+        if landed {
+            let pace = cadence.prior_speed.max(cadence.speed);
+            let gait = if !pushing {
+                "stand"
+            } else if pace > SPRINTING {
+                "sprint"
+            } else if running {
+                "run"
+            } else {
+                "walk"
+            };
+            let weight = if cadence.fall_speed > HEAVY_FALL {
+                "heavy"
+            } else {
+                "light"
+            };
+            let prefix = format!("jump_land_{gait}_{weight}_");
+            let pick = set
+                .clips
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| c.name.starts_with(&prefix))
+                .filter_map(|(i, c)| c.touchdown().map(|touch| (i, c, touch)))
+                .map(|(i, c, touch)| {
+                    let cost = match &moving {
+                        Some(now) => {
+                            c.match_frame(
+                                touch.saturating_sub(2),
+                                touch + 3,
+                                now,
+                                now,
+                                0.0,
+                                0.0,
+                                &legs,
+                            )
+                            .1
+                        }
+                        None => 0.0,
+                    };
+                    (i, c, touch, cost)
+                })
+                .min_by(|a, b| a.3.total_cmp(&b.3));
+            cadence.flight = None;
+            if let Some((index, clip, touch, _)) = pick {
+                let end = clip.land_end(touch);
+                moving = begin(index, touch as f32, end, false, &mut cadence);
+                cut = true;
+            }
+        }
         if (restart || standing || (!cut && cadence.prior_speed.max(cadence.speed) < STANDING))
             && cadence.shot.is_none()
+            && cadence.flight.is_none()
             && pushing
         {
             let forward = cadence.forward;
@@ -774,6 +945,7 @@ fn play_pose(
         }
         if (released || !cut)
             && cadence.shot.is_none()
+            && cadence.flight.is_none()
             && cadence.stepping
             && cadence.prior_speed.max(cadence.speed) > 1.0
             && !pushing
@@ -832,6 +1004,7 @@ fn play_pose(
         }
         if (redirect || !cut)
             && cadence.shot.is_none()
+            && cadence.flight.is_none()
             && cadence.stepping
             && cadence.weight >= 0.99
             && cadence.prior_speed.max(cadence.speed) > STRIDING
