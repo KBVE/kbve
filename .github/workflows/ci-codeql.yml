@@ -89,7 +89,44 @@ jobs:
                   build-mode: ${{ matrix.build-mode }}
                   config-file: ./.github/codeql/codeql-config.yml
 
+            # The rust extractor dies part way through indexing with
+            # "Unable to fetch file text for `vfs::FileId`: FileId(38506)", a
+            # panic inside vendored rust-analyzer that names no path. At the
+            # default `progress` verbosity the last thing the log says is the
+            # manifest list, so there is nothing to exclude and nothing to
+            # report upstream. `progress++` logs each file as it is indexed,
+            # which turns the id into a path -- the same way the three crates
+            # already in codeql-config.yml were found.
             - name: Perform CodeQL Analysis
               uses: github/codeql-action/analyze@v4
+              env:
+                  CODEQL_EXTRACTOR_RUST_OPTION_LOGGING_VERBOSITY: ${{ matrix.language == 'rust' && 'progress++' || '' }}
               with:
                   category: '/language:${{ matrix.language }}'
+
+    # Analyze (rust) has been failing on every push since 2026-08-29 and nobody
+    # was told: this workflow is the only one that gates a language and does not
+    # report, so the break lived entirely in the runs list. The tracker opens one
+    # issue for the job and closes it when rust goes green again.
+    #
+    # The status is the matrix result, which is a failure if any language fails.
+    # javascript-typescript and python have been green throughout, so it reads
+    # as rust today; if one of the other two starts breaking, the tracker will
+    # say rust and the run link will say otherwise.
+    #
+    # Pull requests are skipped because rust is not in their matrix at all.
+    track-rust:
+        name: Track CodeQL Rust
+        if: always() && github.event_name != 'pull_request'
+        needs: [analyze]
+        permissions:
+            actions: read
+            issues: write
+            contents: read
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        with:
+            workflow_name: 'CI - CodeQL'
+            job_name: 'Analyze (rust)'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.analyze.result }}

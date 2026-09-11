@@ -739,7 +739,7 @@
         "name": "astro-irc",
         "type": "application",
         "data": {
-          "root": "apps/irc/astro-irc",
+          "root": "apps/irc/web",
           "name": "astro-irc",
           "layer": "application",
           "stack": "frontend",
@@ -2078,7 +2078,7 @@
         "name": "irc-e2e",
         "type": "automation",
         "data": {
-          "root": "apps/irc/irc-e2e",
+          "root": "apps/irc/api/e2e",
           "name": "irc-e2e",
           "layer": "automation",
           "stack": "unknown",
@@ -2092,7 +2092,7 @@
         "name": "irc-gateway",
         "type": "application",
         "data": {
-          "root": "apps/irc/irc-gateway",
+          "root": "apps/irc/api",
           "name": "irc-gateway",
           "layer": "application",
           "stack": "unknown",
@@ -3035,12 +3035,22 @@
       "KBVEWorld": [
         {
           "source": "KBVEWorld",
+          "target": "KBVEGameplay",
+          "type": "static"
+        },
+        {
+          "source": "KBVEWorld",
           "target": "KBVEPerf",
           "type": "static"
         },
         {
           "source": "KBVEWorld",
           "target": "KBVESQLite",
+          "type": "static"
+        },
+        {
+          "source": "KBVEWorld",
+          "target": "KBVEMover",
           "type": "static"
         }
       ],
@@ -4174,12 +4184,27 @@
       "mmorpg": [
         {
           "source": "mmorpg",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
           "target": "combat",
           "type": "static"
         },
         {
           "source": "mmorpg",
+          "target": "protobuf",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
           "target": "kinetree",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
+          "target": "bevy_skills",
           "type": "static"
         }
       ],

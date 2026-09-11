@@ -34,7 +34,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-ulid = { workspace = true, features = ["std"] }
+ulid = { workspace = true, default-features = false }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -120,6 +120,51 @@ namespace
 		}
 	}
 
+	/**
+	 * Say that every one of these entities is now built at what it wanted.
+	 *
+	 * The build loops walk what they can draw -- a run with a path, a plan with
+	 * a fragment -- and a staleness check walks every entity there is. Anything
+	 * the first skips and the second reads is stale for as long as the chunk
+	 * lives: it is marked dirty again on the tick after it was rebuilt, which
+	 * marks its neighbour's system dirty with it, and neither ever settles.
+	 *
+	 * So the settling is done here, over exactly the set the check reads.
+	 */
+	template <typename FragmentType>
+	void Settled(UMassEntitySubsystem* Mass, const TArray<FMassEntityHandle>& Entities)
+	{
+		if (!Mass)
+		{
+			return;
+		}
+
+		FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+		for (const FMassEntityHandle& Entity : Entities)
+		{
+			if (!Manager.IsEntityValid(Entity))
+			{
+				continue;
+			}
+
+			FragmentType& Fragment = Manager.GetFragmentDataChecked<FragmentType>(Entity);
+			Fragment.Detail = Fragment.WantedDetail;
+		}
+	}
+
+	/**
+	 * Draw the ivy at all.
+	 *
+	 * For telling what it costs rather than for playing without it: the plants
+	 * share their components with nothing, so turning them off and reading the
+	 * difference is the whole of the measurement. Takes effect on the next
+	 * regrow, because what it changes is what gets submitted.
+	 */
+	TAutoConsoleVariable<int32> GKBVEWorldIvyCVar(
+		TEXT("kbve.Road.Ivy"), 1,
+		TEXT("Draw the walls' and posts' ivy. 0 to measure what it costs."),
+		ECVF_Default);
+
 	void Rebase(FKBVEWorldRibbonMesh& Data, const FVector& Origin)
 	{
 		for (FVector& V : Data.Vertices)
@@ -288,6 +333,7 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	const double FenceStart = FPlatformTime::Seconds();
 	FKBVEWorldFenceMesh Fences;
 	BuildFenceParts(In, Fences);
+	Settled<FKBVEWorldFenceRunFragment>(Mass, FenceRuns);
 	Timings.FenceMs = static_cast<float>((FPlatformTime::Seconds() - FenceStart) * 1000.0);
 
 	const double MasonryStart = FPlatformTime::Seconds();
@@ -295,6 +341,7 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	FKBVEWorldBuildingMesh Structures;
 	BuildStructures(In, Structures);
+	Settled<FKBVEWorldBuildingFragment>(Mass, Buildings);
 	Timings.MasonryMs =
 		static_cast<float>((FPlatformTime::Seconds() - MasonryStart) * 1000.0 + PlotMs);
 
@@ -530,6 +577,7 @@ bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 
 	FKBVEWorldFenceMesh Fences;
 	BuildFenceParts(In, Fences);
+	Settled<FKBVEWorldFenceRunFragment>(Mass, FenceRuns);
 
 	// The crossings go back too. They share a bucket and a key with the fences,
 	// so submitting one without the other is submitting that this chunk's bridges
@@ -993,6 +1041,7 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In, FParts& OutParts)
 
 	FKBVEWorldBuildingMesh Structures;
 	BuildStructures(In, Structures);
+	Settled<FKBVEWorldBuildingFragment>(Mass, Buildings);
 
 	const FVector Origin = GetActorLocation();
 	Rebase(Structures.Masonry, Origin);
@@ -1218,7 +1267,21 @@ void AKBVEWorldRoadNetwork::EnsureIvyBuckets(float DrawDistance)
 	{
 		// The material is the sheet's own, and it is already on the mesh: a bucket
 		// keyed on both is what keeps one variant from being handed another's.
-		IvyBuckets.Add(Parts->EnsureBucket(Sprig, IvyAtlas->Material, DrawDistance));
+		//
+		// Nothing traces against a leaf, and there are thousands of them for
+		// every pier, so they carry no collision at all. They are gone before the
+		// wall they are on is, for the same reason: a leaf resolved at the far
+		// edge of the view is a few pixels and a shadow nobody reads.
+		FKBVEWorldDecorKind Leaf;
+		Leaf.Mesh = Sprig;
+		Leaf.Material = IvyAtlas->Material;
+		Leaf.CullStart = DrawDistance * IvyDrawShare;
+		Leaf.CullEnd = DrawDistance * IvyDrawShare * 1.25f;
+		Leaf.Collision = ECollisionEnabled::NoCollision;
+		Leaf.bCastShadow = true;
+		Leaf.bCastFarShadow = false;
+
+		IvyBuckets.Add(Parts->EnsureBucket(Leaf));
 	}
 
 	Fence.Ivy.Variants = IvyBuckets.Num();
@@ -1239,6 +1302,15 @@ void AKBVEWorldRoadNetwork::SubmitIvy(const FIntPoint& Key, AKBVEWorldRoadChunk:
 	if (!Parts)
 	{
 		return;
+	}
+
+	// Submitted empty rather than skipped when it is off: a key left out of a
+	// bucket is that key's last submission still standing, so skipping would
+	// leave the plants exactly where they were and measure nothing.
+	const bool bDraw = GKBVEWorldIvyCVar.GetValueOnGameThread() != 0;
+	if (!bDraw)
+	{
+		ChunkParts.Ivy.Reset();
 	}
 
 	for (const TArray<FTransform>& Variant : ChunkParts.Ivy)
@@ -1303,6 +1375,19 @@ void AKBVEWorldRoadNetwork::Regrow()
 
 namespace
 {
+	/**
+	 * Whether the leaves cast a shadow.
+	 *
+	 * Thousands of masked cards on a wall are thousands of masked cards in
+	 * every shadow pass that reaches them, and a leaf's shadow at any distance
+	 * is a few pixels of noise. Live, because the answer is whatever the cost
+	 * turns out to be.
+	 */
+	TAutoConsoleVariable<int32> GKBVEWorldIvyShadowCVar(
+		TEXT("kbve.Road.IvyShadow"), 1,
+		TEXT("Let the ivy cast shadows. 0 to measure what the shadow pass costs."),
+		ECVF_Default);
+
 	// Every network in the world, because a level has one of these and typing a
 	// name to reach it is worse than telling all of them.
 	FAutoConsoleCommandWithWorld GKBVEWorldRegrowCmd(
@@ -1421,8 +1506,21 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	// level that assigns one later does not need the actor rebuilt.
 	if (Parts && PartMesh && StoneBucket == INDEX_NONE)
 	{
-		StoneBucket = Parts->EnsureBucket(PartMesh, StoneMaterial, DrawDistance);
-		WoodBucket = Parts->EnsureBucket(PartMesh, WoodMaterial, DrawDistance);
+		// A pier and a rail are things a pawn walks into, and they stand as long
+		// as the chunk they are in is drawn at all.
+		FKBVEWorldDecorKind Part;
+		Part.Mesh = PartMesh;
+		Part.CullStart = DrawDistance;
+		Part.CullEnd = DrawDistance * 1.25f;
+		Part.Collision = ECollisionEnabled::QueryAndPhysics;
+		Part.bCastShadow = true;
+		Part.bCastFarShadow = true;
+
+		Part.Material = StoneMaterial;
+		StoneBucket = Parts->EnsureBucket(Part);
+
+		Part.Material = WoodMaterial;
+		WoodBucket = Parts->EnsureBucket(Part);
 	}
 
 	EnsureIvyBuckets(DrawDistance);
@@ -1536,6 +1634,26 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		}
 
 		KBVEPERF_COUNT("Road.Restood", Restood);
+	}
+
+	// What the pool is holding, every tick rather than only when something was
+	// built: a readout that only updates while the world is changing is blank
+	// at exactly the moment somebody stands still to read it.
+	if (Parts)
+	{
+		int32 Held = 0;
+		int32 Parked = 0;
+		Parts->Describe(Held, Parked);
+		KBVEPERF_COUNT("Road.Pool.Instances", Held);
+		KBVEPERF_COUNT("Road.Pool.Parked", Parked);
+		KBVEPERF_COUNT("Road.Chunks.Live", Live.Num());
+		KBVEPERF_COUNT("Road.Ivy.Sprigs", IvySprigs);
+
+		const bool bShadow = GKBVEWorldIvyShadowCVar.GetValueOnGameThread() != 0;
+		for (const int32 Bucket : IvyBuckets)
+		{
+			Parts->SetShadows(Bucket, bShadow);
+		}
 	}
 
 	// Once per tick rather than per chunk: a bucket is rebuilt from all its keys,

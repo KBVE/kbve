@@ -23,16 +23,38 @@ runs:
               echo "version=$VERSION" >> "$GITHUB_OUTPUT"
               echo "moon $VERSION"
 
-          # Task outputs, keyed on the lockfiles and task configuration. A miss
-          # costs a rebuild, never a wrong result: moon hashes its own inputs
-          # and ignores anything restored that does not match.
+          # The content-addressable store only -- blobs and the manifests that
+          # index them. NOT .moon/cache/states.
+          #
+          # states/ records "this task hash already ran in this workspace", and
+          # moon trusts it over the filesystem: on a state hit it skips the task
+          # and never hydrates the declared outputs. That invariant holds on a
+          # developer machine, where the state and the outputs were written
+          # together. It is false on a runner, where the state arrives from this
+          # cache and the checkout is brand new, so every output is missing. The
+          # task then reports `(cached)`, replays the archived stdout, and leaves
+          # nothing on disk -- a green build whose artifacts were never written.
+          #
+          # Restoring the CAS alone keeps the speed and drops the lie: with no
+          # state to short-circuit on, moon resolves the hash against the
+          # manifest and hydrates the blobs (measured at ~125ms for an astro
+          # embed bundle, versus ~1.8s to rebuild it).
         - name: Restore moon cache
           uses: actions/cache@v4
           with:
-              path: .moon/cache
-              key: moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'Cargo.lock', '.moon/**/*.yml') }}
+              path: |
+                  .moon/cache/blobs
+                  .moon/cache/manifests
+              #
+              # v2: the pre-fix cache holds archives produced while the states
+              # bug was live, so a task that ran with its inputs missing was
+              # archived under the hash it should have had. Those entries stay
+              # valid-looking forever -- the key is derived from lockfiles and
+              # moon config, none of which this fix touches -- so the prefix is
+              # bumped to abandon them rather than keep restoring a bad build.
+              key: moon-v2-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'Cargo.lock', '.moon/**/*.yml') }}
               restore-keys: |
-                  moon-${{ runner.os }}-
+                  moon-v2-${{ runner.os }}-
 
         - name: Install moon
           shell: bash
