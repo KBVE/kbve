@@ -19,6 +19,9 @@ use super::world::height_at;
 /// movement path panics on the frame this becomes non-zero.
 const COMPANIONS: usize = 4;
 
+/// Companions per ring when `MMORPG_NPCS=<n>` asks for more; each ring sits 6 m further out.
+const RING: usize = 8;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -52,18 +55,21 @@ fn spawn_cast(mut commands: Commands) {
         super::combat::player_stats(),
     );
 
-    if std::env::var("MMORPG_NPCS").as_deref() == Ok("0") {
-        return;
-    }
-    for index in 0..COMPANIONS {
-        let angle = index as f32 / COMPANIONS as f32 * core::f32::consts::TAU;
-        let (x, z) = (angle.cos() * 4.0, angle.sin() * 4.0);
+    let companions = std::env::var("MMORPG_NPCS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(COMPANIONS);
+    for index in 0..companions {
+        let ring = index / RING;
+        let angle = (index % RING) as f32 / RING as f32 * core::f32::consts::TAU;
+        let radius = 4.0 + 6.0 * ring as f32;
+        let (x, z) = (angle.cos() * radius, angle.sin() * radius);
         spawn_character(&mut commands, drop(x, z));
     }
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them; `MMORPG_NPCS=<n>` places that many idle companions in rings.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
