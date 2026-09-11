@@ -266,6 +266,41 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
+            # A docker build task inherits its project's toolchain, so on a rust
+            # project moon tries to provision rust before running `docker buildx`
+            # and dies on proto::locate::missing_executable (no rustup toolchain
+            # on this runner). herbmail-api@0.1.3 was the first rust image tagged
+            # since the moon migration and failed exactly there. Same two steps
+            # ci.yml runs: preinstall the pinned rustup toolchain so moon's own
+            # install is a no-op, then `moon setup` for everything
+            # .moon/toolchains.yml declares.
+            - name: Detect whether the build task needs rust
+              id: toolchain
+              env:
+                  TARGET: ${{ inputs.project }}:${{ inputs.target }}-publish
+              run: |
+                  if moon task "$TARGET" --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const t=JSON.parse(s);process.exit((t.toolchains||[]).includes("rust")?0:1)})'; then
+                    echo "rust=true" >> "$GITHUB_OUTPUT"
+                    echo "$TARGET needs rust"
+                  else
+                    echo "rust=false" >> "$GITHUB_OUTPUT"
+                    echo "$TARGET does not need rust"
+                  fi
+
+            - name: Preinstall the rust toolchain
+              if: steps.toolchain.outputs.rust == 'true'
+              run: |
+                  rustup show active-toolchain || rustup toolchain install
+                  TARGETS="$(node tools/moon/rust-targets.mjs)"
+                  if [ -n "$TARGETS" ]; then
+                    echo "rustup target add $TARGETS"
+                    # shellcheck disable=SC2086
+                    rustup target add $TARGETS
+                  fi
+
+            - name: Provision the moon toolchains
+              run: moon setup
+
             - name: Build the image
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' }}
               env:
