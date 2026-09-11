@@ -887,7 +887,11 @@ impl AssetLoader for PoseLoader {
     ) -> Result<PoseSet, RigError> {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;
-        let mut set: PoseSet = ron::de::from_bytes(&bytes)?;
+        let mut set = if bytes.starts_with(POSE_MAGIC) {
+            decode_pose_bin(&bytes)?
+        } else {
+            ron::de::from_bytes(&bytes)?
+        };
         for clip in &mut set.clips {
             if !clip.one_shot() {
                 clip.trim_seam();
@@ -898,8 +902,115 @@ impl AssetLoader for PoseLoader {
     }
 
     fn extensions(&self) -> &[&str] {
-        &["pose.ron"]
+        &["pose.bin", "pose.ron"]
     }
+}
+
+/// Header of the packed pose database written by `kbve-pose-pack`.
+const POSE_MAGIC: &[u8] = b"KPOS";
+
+/// Little-endian cursor over the packed pose bytes.
+struct Cursor<'a> {
+    bytes: &'a [u8],
+    at: usize,
+}
+
+impl Cursor<'_> {
+    fn take(&mut self, n: usize) -> Result<&[u8], RigError> {
+        let end = self.at + n;
+        let slice = self.bytes.get(self.at..end).ok_or_else(|| {
+            RigError::Format(format!("pose file ends at byte {}", self.bytes.len()))
+        })?;
+        self.at = end;
+        Ok(slice)
+    }
+
+    fn u8(&mut self) -> Result<u8, RigError> {
+        Ok(self.take(1)?[0])
+    }
+
+    fn u16(&mut self) -> Result<u16, RigError> {
+        Ok(u16::from_le_bytes(self.take(2)?.try_into().unwrap()))
+    }
+
+    fn u32(&mut self) -> Result<u32, RigError> {
+        Ok(u32::from_le_bytes(self.take(4)?.try_into().unwrap()))
+    }
+
+    fn f32(&mut self) -> Result<f32, RigError> {
+        Ok(f32::from_le_bytes(self.take(4)?.try_into().unwrap()))
+    }
+
+    fn i16s(&mut self, n: usize) -> Result<impl Iterator<Item = f32> + '_, RigError> {
+        Ok(self
+            .take(2 * n)?
+            .chunks_exact(2)
+            .map(|c| i16::from_le_bytes([c[0], c[1]]) as f32 / 32767.0))
+    }
+
+    fn string(&mut self) -> Result<String, RigError> {
+        let n = self.u16()? as usize;
+        String::from_utf8(self.take(n)?.to_vec())
+            .map_err(|e| RigError::Format(format!("pose file string: {e}")))
+    }
+}
+
+/// Reads the packed form: rotations and directions as signed 16-bit fractions, the rest float32.
+fn decode_pose_bin(bytes: &[u8]) -> Result<PoseSet, RigError> {
+    let mut c = Cursor {
+        bytes,
+        at: POSE_MAGIC.len(),
+    };
+    let version = c.u32()?;
+    if version != 1 {
+        return Err(RigError::Format(format!("pose file version {version}")));
+    }
+    let n = c.u16()? as usize;
+    let bones = (0..n).map(|_| c.string()).collect::<Result<Vec<_>, _>>()?;
+    let clips = c.u32()? as usize;
+    let mut set = PoseSet {
+        bones,
+        clips: Vec::with_capacity(clips),
+    };
+    for _ in 0..clips {
+        let name = c.string()?;
+        let source = c.string()?;
+        let fps = c.f32()?;
+        let leg_length = c.f32()?;
+        let speed = c.f32()?;
+        let direction = c.f32()?;
+        let count = c.u32()? as usize;
+        let mut frames = Vec::with_capacity(count);
+        for _ in 0..count {
+            let root = (c.f32()?, c.f32()?, c.f32()?);
+            let pelvis = (c.f32()?, c.f32()?, c.f32()?);
+            let rot: Vec<f32> = c.i16s(4 * n)?.collect();
+            let rotations = rot
+                .chunks_exact(4)
+                .map(|q| (q[0], q[1], q[2], q[3]))
+                .collect();
+            let dir: Vec<f32> = c.i16s(3 * n)?.collect();
+            let directions = dir.chunks_exact(3).map(|d| (d[0], d[1], d[2])).collect();
+            let contact = c.u8()?;
+            frames.push(PoseFrame {
+                root,
+                pelvis,
+                rotations,
+                directions,
+                contact: (contact & 1 != 0, contact & 2 != 0),
+            });
+        }
+        set.clips.push(PoseClip {
+            name,
+            source,
+            fps,
+            leg_length,
+            speed,
+            direction,
+            frames,
+        });
+    }
+    Ok(set)
 }
 
 #[derive(Default, TypePath)]
@@ -932,6 +1043,8 @@ pub enum RigError {
     Io(#[from] std::io::Error),
     #[error("parse rig profile: {0}")]
     Ron(#[from] ron::error::SpannedError),
+    #[error("packed pose data: {0}")]
+    Format(String),
 }
 
 #[derive(Default, TypePath)]

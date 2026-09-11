@@ -121,10 +121,11 @@ impl Inertia {
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PoseSystems;
 
-/// Whether the baked pose drives the legs; `MMORPG_POSE=0` falls back to the procedural stride.
+/// Whether the baked pose drives the legs; `MMORPG_POSE=0` falls back to the procedural stride, `MMORPG_PROFILE=1` logs the pose cost once a second.
 #[derive(Resource)]
 pub struct PosePlayback {
     pub on: bool,
+    pub profile: bool,
 }
 
 impl PosePlayback {
@@ -133,6 +134,7 @@ impl PosePlayback {
             on: std::env::var("MMORPG_POSE")
                 .map(|v| v != "0")
                 .unwrap_or(true),
+            profile: std::env::var("MMORPG_PROFILE").is_ok(),
         }
     }
 }
@@ -443,6 +445,7 @@ fn play_pose(
     )>,
     mut goals: Query<&mut FootGoal>,
     mut transforms: Query<&mut Transform>,
+    mut profile: Local<(f32, f64, u32, u32)>,
 ) {
     if !playback.on {
         return;
@@ -450,6 +453,8 @@ fn play_pose(
     let Some(set) = rig.poses.as_ref().and_then(|handle| sets.get(handle)) else {
         return;
     };
+    let started = std::time::Instant::now();
+    let mut posed = 0u32;
     let idle = set.clips.iter().find(|c| c.name == "idle");
     let dt = time.delta_secs();
     for (character, mut cadence, lower, acting, intent, inertia) in &mut characters {
@@ -1051,6 +1056,7 @@ fn play_pose(
             (Some(idle), None) => idle,
             (None, None) => continue,
         };
+        posed += 1;
         let PoseSample {
             mut pelvis,
             mut rotations,
@@ -1183,6 +1189,25 @@ fn play_pose(
                 }
             }
             model_rot.push((role.bone, target));
+        }
+    }
+    if playback.profile {
+        let (clock, spent, bodies, frames) = &mut *profile;
+        *clock += dt;
+        *spent += started.elapsed().as_secs_f64() * 1000.0;
+        *bodies += posed;
+        *frames += 1;
+        if *clock >= 1.0 {
+            info!(
+                "pose: {:.1} bodies/frame, {:.2} ms/frame over {} frames",
+                *bodies as f32 / *frames as f32,
+                *spent / *frames as f64,
+                frames
+            );
+            *clock = 0.0;
+            *spent = 0.0;
+            *bodies = 0;
+            *frames = 0;
         }
     }
 }
