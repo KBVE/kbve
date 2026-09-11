@@ -13,7 +13,7 @@
 use bevy::prelude::*;
 use bevy_skills::{
     BevySkillsPlugin, GrantXpMsg, LevelUpMsg, SkillDef, SkillId, SkillProfile, SkillRegistry,
-    XpCurve, process_xp_grants,
+    SkillSystems, XpCurve,
 };
 use combat::{AbilityLanded, Died, Outcome};
 
@@ -38,10 +38,10 @@ impl Plugin for GameSkillsPlugin {
             .add_systems(
                 Update,
                 (train_on_damage, train_on_kill)
-                    .before(process_xp_grants)
+                    .before(SkillSystems::Grants)
                     .chain(),
             )
-            .add_systems(Update, announce_levels.after(process_xp_grants));
+            .add_systems(Update, announce_levels.after(SkillSystems::Grants));
     }
 }
 
@@ -142,6 +142,7 @@ pub fn combat_levels(profile: &SkillProfile) -> [(&'static str, u32); 2] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::ecs::schedule::{LogLevel, ScheduleBuildSettings};
     use combat::Outcome;
 
     fn harness() -> (App, Entity, Entity) {
@@ -150,6 +151,13 @@ mod tests {
             .add_message::<AbilityLanded>()
             .add_message::<Died>()
             .add_plugins(GameSkillsPlugin);
+
+        app.edit_schedule(Update, |schedule| {
+            schedule.set_build_settings(ScheduleBuildSettings {
+                ambiguity_detection: LogLevel::Error,
+                ..default()
+            });
+        });
 
         let student = app.world_mut().spawn(SkillProfile::default()).id();
         let victim = app.world_mut().spawn_empty().id();
