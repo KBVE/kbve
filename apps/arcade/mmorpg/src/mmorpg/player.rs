@@ -8,6 +8,8 @@
 use bevy::prelude::*;
 
 use super::camera::{CameraTarget, OrbitCamera};
+use bevy_skills::SkillProfile;
+
 use super::character::{MoveIntent, spawn_character};
 use super::combat::{CameraLock, Faction, make_combatant};
 use super::world::height_at;
@@ -51,9 +53,12 @@ fn spawn_cast(mut commands: Commands) {
         })
         .unwrap_or((0.0, 0.0));
     let player = spawn_character(&mut commands, drop(sx, sz));
-    commands
-        .entity(player)
-        .insert((Player, CameraTarget, CameraLock::default()));
+    commands.entity(player).insert((
+        Player,
+        CameraTarget,
+        CameraLock::default(),
+        SkillProfile::default(),
+    ));
     make_combatant(
         &mut commands,
         player,

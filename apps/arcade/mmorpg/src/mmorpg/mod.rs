@@ -11,6 +11,7 @@ pub mod player;
 pub mod pose;
 pub mod rig;
 pub mod river;
+pub mod skills;
 pub mod target_ring;
 pub mod terrain;
 pub mod terrain_material;
@@ -30,6 +31,7 @@ impl Plugin for MmorpgPlugin {
             action::ActionPlugin,
             combat::GameCombatPlugin,
             inventory::GameInventoryPlugin,
+            skills::GameSkillsPlugin,
             player::PlayerPlugin,
             foot_ik::FootIkPlugin,
             gaze::GazePlugin,
