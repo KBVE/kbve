@@ -25,12 +25,14 @@ COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
 COPY apps/rows/build.rs apps/rows/build.rs
 COPY apps/rows/src/ apps/rows/src/
 COPY crates/jedi/src/ crates/jedi/src/
 COPY crates/holy/src/ crates/holy/src/
 COPY crates/kbve/src/ crates/kbve/src/
+COPY crates/bevy_supa/src/ crates/bevy_supa/src/
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -52,6 +54,7 @@ COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
 COPY apps/rows/build.rs apps/rows/build.rs
 
@@ -71,6 +74,7 @@ RUN dpkg -s make >/dev/null 2>&1 || \
 COPY crates/jedi/ crates/jedi/
 COPY crates/holy/ crates/holy/
 COPY crates/kbve/ crates/kbve/
+COPY crates/bevy_supa/ crates/bevy_supa/
 COPY apps/rows/src/ apps/rows/src/
 # Re-copy real manifest: cargo-chef masks crate version to 0.0.1, leaks into env!("CARGO_PKG_VERSION")
 COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
