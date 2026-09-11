@@ -27,9 +27,9 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
-COPY apps/irc/astro-irc/ apps/irc/astro-irc/
+COPY apps/irc/web/ apps/irc/web/
 
-WORKDIR /app/apps/irc/astro-irc
+WORKDIR /app/apps/irc/web
 
 # Build the embed bundle FIRST — output lands in public/embed/chat.js so
 # the subsequent astro build picks it up and ships it under /embed/chat.js.
@@ -76,10 +76,10 @@ RUN find . -type f \( \
 # [STAGE C] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
-COPY apps/irc/irc-gateway/Cargo.workspace.toml Cargo.toml
+COPY apps/irc/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/irc/irc-gateway/Cargo.toml apps/irc/irc-gateway/Cargo.toml
+COPY apps/irc/api/Cargo.toml apps/irc/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
@@ -90,7 +90,7 @@ COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/irc/irc-gateway/src && echo "fn main() {}" > apps/irc/irc-gateway/src/main.rs && \
+RUN mkdir -p apps/irc/api/src && echo "fn main() {}" > apps/irc/api/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
@@ -125,13 +125,13 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/irc/irc-gateway/Cargo.toml apps/irc/irc-gateway/Cargo.toml
+COPY apps/irc/api/Cargo.toml apps/irc/api/Cargo.toml
 # bevy_chat is a workspace member and a path dep of irc-gateway; cargo
 # evaluates the full graph even for -p kbve -p jedi, so we stub it here
 # to keep this stage untouched by chat-side changes.
 COPY crates/bevy_chat/Cargo.toml crates/bevy_chat/Cargo.toml
-RUN mkdir -p apps/irc/irc-gateway/src && \
-    echo "fn main() {}" > apps/irc/irc-gateway/src/main.rs && \
+RUN mkdir -p apps/irc/api/src && \
+    echo "fn main() {}" > apps/irc/api/src/main.rs && \
     mkdir -p crates/bevy_chat/src && \
     echo "" > crates/bevy_chat/src/lib.rs
 
@@ -159,7 +159,7 @@ FROM foundation AS builder
 RUN dpkg -s make >/dev/null 2>&1 || \
     (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
 
-COPY --from=astro-precompressor /static /app/apps/irc/irc-gateway/templates/dist
+COPY --from=astro-precompressor /static /app/apps/irc/api/templates/dist
 
 COPY packages/data/proto packages/data/proto
 COPY crates/jedi crates/jedi
@@ -172,9 +172,9 @@ COPY crates/holy crates/holy
 # Shared ChatMessage schema used by /minechat — path dep of irc-gateway.
 COPY crates/bevy_chat crates/bevy_chat
 
-COPY apps/irc/irc-gateway apps/irc/irc-gateway
+COPY apps/irc/api apps/irc/api
 
-COPY apps/irc/irc-gateway/templates/askama /app/apps/irc/irc-gateway/templates/askama
+COPY apps/irc/api/templates/askama /app/apps/irc/api/templates/askama
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -189,8 +189,8 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/irc-gateway /app/irc-gateway
 
-COPY --from=builder --chown=10001:10001 /app/apps/irc/irc-gateway/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/irc/irc-gateway/templates/askama /app/templates/askama
+COPY --from=builder --chown=10001:10001 /app/apps/irc/api/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/irc/api/templates/askama /app/templates/askama
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

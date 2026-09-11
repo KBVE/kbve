@@ -12615,6 +12615,8 @@ dependencies = [
  "bevy",
  "bevy_egui",
  "bevy_gltf",
+ "bevy_inventory",
+ "bevy_skills",
  "combat",
  "kinetree",
  "ron",

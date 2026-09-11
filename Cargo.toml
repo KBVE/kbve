@@ -6,7 +6,7 @@ members = [
 	'apps/kbve/kilobase',
 'apps/herbmail/api',
 	'apps/memes/axum-memes',
-	'apps/irc/irc-gateway',
+	'apps/irc/api',
 	'apps/agones/shim',
 	'apps/discordsh/api',
 	'apps/discordsh/bot',

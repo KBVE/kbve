@@ -17,6 +17,18 @@ struct FKBVEPerfOpStat
 	double MaxMs = 0.0;
 	double SumMs = 0.0;
 	TArray<float> Samples;
+
+	/**
+	 * When each sample was taken, alongside the sample itself.
+	 *
+	 * Without it a readout describes the whole session: an average takes a
+	 * viewer standing still and a viewer running through a village and reports
+	 * the mean of the two, and a maximum is whatever the worst moment since the
+	 * editor opened happened to be -- usually the first build of the world, kept
+	 * forever. Neither answers "what is it doing now", which is the only
+	 * question somebody watching a live readout is asking.
+	 */
+	TArray<double> SampleAt;
 	int32 SampleHead = 0;
 };
 
@@ -88,6 +100,11 @@ private:
 	TMap<FName, FKBVEPerfOpStat> Ops;
 	TMap<FName, double> Counts;
 	TArray<FKBVEPerfEvent> Recent;
+
+	/** Frame times and when each was taken, for the windowed frame figures. */
+	TArray<float> FrameMs;
+	TArray<double> FrameAt;
+	int32 FrameHead = 0;
 	int32 RecentHead = 0;
 
 	TSet<FName> CategoryFilter;

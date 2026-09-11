@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/irc/irc-gateway",
+    "apps/irc/api",
     "crates/bevy_chat",
     "crates/holy",
     "crates/jedi",

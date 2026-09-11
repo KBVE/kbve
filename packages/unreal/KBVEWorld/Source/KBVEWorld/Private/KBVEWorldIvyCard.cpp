@@ -41,6 +41,7 @@ namespace
 	{
 		float Along = 0.0f;
 		float Turn = 0.0f;
+		float Tilt = 0.0f;
 		float Scale = 1.0f;
 	};
 
@@ -49,11 +50,21 @@ namespace
 		// Along is a fraction of the leaf's own height, so a sprig scales as one
 		// thing: a plant with bigger leaves sets them further apart, which is what
 		// a bigger plant does.
+		//
+		// Turn fans the blade across the face it is held against and Tilt lifts
+		// its tip off that face. Turn is about the wall's own normal, so however
+		// far a leaf is fanned it keeps whatever Tilt stood it off by -- which is
+		// what stops a blade being swung through the masonry it grows on.
+		//
+		// Tilt is always out. A leaf lying dead flat reads as a decal and a leaf
+		// tipped inwards is half buried, so they all lift, by differing amounts,
+		// and the differing amounts are most of what keeps a wall of them from
+		// looking printed on.
 		static const FSprigLeaf Sprig[] = {
-			{ 0.00f, 68.0f, 1.00f },
-			{ 0.52f, -74.0f, 0.90f },
-			{ 1.04f, 61.0f, 0.78f },
-			{ 1.56f, -66.0f, 0.68f },
+			{ 0.00f, 62.0f, 17.0f, 1.00f },
+			{ 0.52f, -71.0f, 28.0f, 0.90f },
+			{ 1.04f, 55.0f, 12.0f, 0.78f },
+			{ 1.56f, -66.0f, 23.0f, 0.68f },
 		};
 
 		return Sprig[FMath::Clamp(Index, 0, UE_ARRAY_COUNT(Sprig) - 1)];
@@ -124,10 +135,19 @@ UStaticMesh* FKBVEWorldIvyCard::Sprig(UObject* Outer, const FVector4& Cell, int3
 			const float Scale = Node.Scale;
 			const float Half = 0.5f * LeafW * Scale;
 
-			// Held out to its own side of the stem, turned about the way the sprig
-			// faces. The stalk end is the origin of the leaf, so the turn swings
-			// the blade rather than spinning it about its middle.
-			const FTransform Hold(FRotator(0.0f, 0.0f, Node.Turn), FVector(0.0f, 0.0f,
+			// Tilt first and fan second, which is the order a rotator applies them
+			// in: the tilt lifts the tip off the wall, and the fan is about the
+			// axis the wall's normal lies on, so it carries that lift around with
+			// it rather than turning it back into the stone.
+			//
+			// The stalk end is the origin of the leaf, so both swing the blade
+			// rather than spinning it about its own middle.
+			// Tilt is stored as how far the blade lifts off the wall and negated
+			// here, because a positive roll carries the tip towards +Y and the
+			// face a leaf is held against is the one its normal points out of,
+			// down -Y. Lifting by a positive number is the thing the table means;
+			// which way the engine spins for it is not.
+			const FTransform Hold(FRotator(Node.Turn, 0.0f, -Node.Tilt), FVector(0.0f, 0.0f,
 				Node.Along * LeafH));
 
 			const FVector3f Local[4] = {

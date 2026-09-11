@@ -52,6 +52,11 @@ static TAutoConsoleVariable<int32>* CVarPerfOverlay = new TAutoConsoleVariable<i
 	TEXT("Draw the KBVEPerf on-screen overlay of the worst ops. 0 = off, 1 = on."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<float>* CVarPerfWindow = new TAutoConsoleVariable<float>(
+	TEXT("kbve.perf.window"), 5.0f,
+	TEXT("Seconds of history the windowed figures in /perf are taken over."),
+	ECVF_Default);
+
 static TAutoConsoleVariable<float>* CVarPerfThreshold = new TAutoConsoleVariable<float>(
 	TEXT("kbve.perf.threshold"), 3.0f,
 	TEXT("Log sink threshold in milliseconds; scopes slower than this emit a [KBVEPerf] warning."),
@@ -60,6 +65,44 @@ static TAutoConsoleVariable<float>* CVarPerfThreshold = new TAutoConsoleVariable
 namespace
 {
 	constexpr int32 SampleCap = 256;
+	constexpr int32 FrameCap = 512;
+
+	/**
+	 * The samples taken inside the window, sorted, with whatever percentile is
+	 * asked for.
+	 *
+	 * Returns nothing at all rather than a zero for an empty window: an op that
+	 * has not run in the last few seconds has no recent cost, which is a
+	 * different statement from costing nothing, and a readout that says 0.000
+	 * for both is the readout that sent us chasing a spike that had stopped
+	 * happening minutes earlier.
+	 */
+	bool WindowOf(const TArray<float>& Samples, const TArray<double>& At, double Since,
+		TArray<float>& Out)
+	{
+		Out.Reset();
+		const int32 Num = FMath::Min(Samples.Num(), At.Num());
+		for (int32 I = 0; I < Num; ++I)
+		{
+			if (At[I] >= Since)
+			{
+				Out.Add(Samples[I]);
+			}
+		}
+		Out.Sort();
+		return Out.Num() > 0;
+	}
+
+	float Pick(const TArray<float>& Sorted, float Fraction)
+	{
+		if (Sorted.Num() == 0)
+		{
+			return 0.0f;
+		}
+		const int32 At = FMath::Clamp(static_cast<int32>(Fraction * (Sorted.Num() - 1)), 0,
+			Sorted.Num() - 1);
+		return Sorted[At];
+	}
 	constexpr int32 RecentCap = 256;
 	constexpr uint64 OverlayKeyBase = 0x4B56455046ULL;
 }
@@ -277,6 +320,9 @@ void UKBVEPerfSubsystem::ResetStats()
 	Counts.Reset();
 	Recent.Reset();
 	RecentHead = 0;
+	FrameMs.Reset();
+	FrameAt.Reset();
+	FrameHead = 0;
 }
 
 void UKBVEPerfSubsystem::ApplyEnabledState()
@@ -354,13 +400,16 @@ void UKBVEPerfSubsystem::SubmitScope(FName Name, FName Category, double Ms)
 		Stat.LastMs = Ms;
 		Stat.MaxMs = FMath::Max(Stat.MaxMs, Ms);
 		Stat.SumMs += Ms;
+		const double At = FPlatformTime::Seconds();
 		if (Stat.Samples.Num() < SampleCap)
 		{
 			Stat.Samples.Add(static_cast<float>(Ms));
+			Stat.SampleAt.Add(At);
 		}
 		else
 		{
 			Stat.Samples[Stat.SampleHead] = static_cast<float>(Ms);
+			Stat.SampleAt[Stat.SampleHead] = At;
 			Stat.SampleHead = (Stat.SampleHead + 1) % SampleCap;
 		}
 
@@ -397,13 +446,36 @@ FString UKBVEPerfSubsystem::BuildJson() const
 {
 	FScopeLock Lock(&Mutex);
 
+	const double Window = FMath::Max(CVarPerfWindow->GetValueOnAnyThread(), 0.1f);
+	const double Since = FPlatformTime::Seconds() - Window;
+	const float Hitch = CVarPerfThreshold->GetValueOnAnyThread();
+
+	// What the last few seconds looked like, which is the question somebody
+	// watching a live readout is asking. A frame that took longer than the hitch
+	// threshold is counted rather than averaged away: one 40ms frame in a
+	// hundred is invisible in a mean and is the whole of what a player feels.
+	TArray<float> Frames;
+	const bool bFrames = WindowOf(FrameMs, FrameAt, Since, Frames);
+	int32 Hitches = 0;
+	for (const float At : Frames)
+	{
+		Hitches += At > Hitch ? 1 : 0;
+	}
+
 	FString Out;
 	Out += FString::Printf(
 		TEXT("{\"enabled\":%s,\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,")
-			TEXT("\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"ops\":["),
+			TEXT("\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"windowSec\":%.1f,\"windowFrames\":%d,")
+			TEXT("\"frameP50Ms\":%.2f,\"frameP95Ms\":%.2f,\"frameP99Ms\":%.2f,\"frameMaxMs\":%.2f,")
+			TEXT("\"hitches\":%d,\"hitchMs\":%.1f,\"ops\":["),
 		CVarPerf->GetValueOnGameThread() != 0 ? TEXT("true") : TEXT("false"),
 		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs,
-		CachedRhiMs);
+		CachedRhiMs, Window, Frames.Num(),
+		bFrames ? Pick(Frames, 0.50f) : 0.0f,
+		bFrames ? Pick(Frames, 0.95f) : 0.0f,
+		bFrames ? Pick(Frames, 0.99f) : 0.0f,
+		bFrames ? Frames.Last() : 0.0f,
+		Hitches, Hitch);
 
 	bool bFirst = true;
 	for (const TPair<FName, FKBVEPerfOpStat>& Pair : Ops)
@@ -422,9 +494,27 @@ FString UKBVEPerfSubsystem::BuildJson() const
 			Out += TEXT(",");
 		}
 		bFirst = false;
+		// Lifetime figures kept beside the windowed ones rather than replaced.
+		// A maximum since the reset is worth knowing -- it is just not worth
+		// mistaking for what is happening now, which is what happens when it is
+		// the only maximum on offer.
+		TArray<float> Win;
+		const bool bWin = WindowOf(Stat.Samples, Stat.SampleAt, Since, Win);
+		double WinSum = 0.0;
+		for (const float At : Win)
+		{
+			WinSum += At;
+		}
+
 		Out += FString::Printf(
-			TEXT("{\"name\":\"%s\",\"count\":%llu,\"lastMs\":%.3f,\"maxMs\":%.3f,\"avgMs\":%.3f,\"p95Ms\":%.3f}"),
-			*Pair.Key.ToString(), Stat.Count, Stat.LastMs, Stat.MaxMs, Avg, P95);
+			TEXT("{\"name\":\"%s\",\"count\":%llu,\"lastMs\":%.3f,\"maxMs\":%.3f,\"avgMs\":%.3f,")
+				TEXT("\"p95Ms\":%.3f,\"winCount\":%d,\"winAvgMs\":%.3f,\"winP95Ms\":%.3f,")
+				TEXT("\"winMaxMs\":%.3f}"),
+			*Pair.Key.ToString(), Stat.Count, Stat.LastMs, Stat.MaxMs, Avg, P95,
+			Win.Num(),
+			bWin ? WinSum / Win.Num() : 0.0,
+			bWin ? Pick(Win, 0.95f) : 0.0f,
+			bWin ? Win.Last() : 0.0f);
 	}
 
 	Out += TEXT("],\"counts\":[");
@@ -545,8 +635,12 @@ void UKBVEPerfSubsystem::StartHttp()
 			// everything else is refused by not being named here.
 			if (Path == TEXT("/exec"))
 			{
+				// Scalability with the rest of them. What a player runs at is a
+				// scalability level rather than a list of cvars, so a readout
+				// that can set every underlying knob but not the group is one
+				// that can measure everything except what somebody will play.
 				static const TCHAR* Allowed[] = { TEXT("kbve."), TEXT("r."), TEXT("stat "),
-					TEXT("showflag."), TEXT("t.MaxFPS"), TEXT("fx.") };
+					TEXT("showflag."), TEXT("t.MaxFPS"), TEXT("fx."), TEXT("sg.") };
 
 				const FString* Command = Request.QueryParams.Find(TEXT("cmd"));
 				const FString Wanted = Command ? Command->TrimStartAndEnd() : FString();
@@ -568,7 +662,7 @@ void UKBVEPerfSubsystem::StartHttp()
 				}
 				else if (!bAllowed)
 				{
-					Body = TEXT("{\"error\":\"not allow-listed: kbve. r. stat showflag. t.MaxFPS fx.\"}");
+					Body = TEXT("{\"error\":\"not allow-listed: kbve. r. stat showflag. t.MaxFPS fx. sg.\"}");
 				}
 				else
 				{
@@ -668,6 +762,23 @@ void UKBVEPerfSubsystem::StopHttp()
 bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 {
 	CachedFps = DeltaSeconds > 0.0f ? 1.0f / DeltaSeconds : 0.0f;
+
+	{
+		FScopeLock Lock(&Mutex);
+		const double At = FPlatformTime::Seconds();
+		const float Ms = DeltaSeconds * 1000.0f;
+		if (FrameMs.Num() < FrameCap)
+		{
+			FrameMs.Add(Ms);
+			FrameAt.Add(At);
+		}
+		else
+		{
+			FrameMs[FrameHead] = Ms;
+			FrameAt[FrameHead] = At;
+			FrameHead = (FrameHead + 1) % FrameCap;
+		}
+	}
 	CachedGameMs = FPlatformTime::ToMilliseconds(GGameThreadTime);
 	CachedRenderMs = FPlatformTime::ToMilliseconds(GRenderThreadTime);
 	CachedGpuMs = FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());

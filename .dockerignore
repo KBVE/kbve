@@ -29,7 +29,11 @@ target
 .moon/cache
 
 # Large / irrelevant app directories not needed by any Dockerfile
-apps/irc/ergo
 apps/godot
 !apps/godot/nexus-defense/server
 apps/unity
+
+# Playwright output. e2e suites now live inside the api project directory a
+# Dockerfile COPYs wholesale, so these would otherwise enter the build context.
+**/playwright-report
+**/test-results
