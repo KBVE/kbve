@@ -11,3 +11,4 @@ resources:
     - certificate.yaml
     - externalsecret.yaml
     - sealed-stalwart-recovery-admin.yaml
+    - sealed-stalwart-hook-secret.yaml
