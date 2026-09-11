@@ -27,6 +27,8 @@ RUN mkdir -p apps/agones/herbmail/server/src && \
     mkdir -p crates/bevy_spells/src && echo "" > crates/bevy_spells/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs
 
+COPY packages/data/proto packages/data/proto
+
 RUN cargo chef prepare --recipe-path recipe.json --bin herbmail-server
 
 # ============================================================================
