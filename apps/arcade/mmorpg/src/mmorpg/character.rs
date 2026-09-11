@@ -29,6 +29,11 @@ const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
 const JUMP_SPEED: f32 = 5.5;
 
+/// How far past its own radius a body looks for a wall along its wish, how upright a hit may be and still count as one, and how much of the wish must survive sliding along it for the push to count as movement.
+const WALL_REACH: f32 = 0.2;
+const WALL_LEAN: f32 = 0.5;
+const WALL_GLANCE: f32 = 0.35;
+
 /// Ground acceleration in metres per second squared, for speeding up and turning; easing off to a slower gait uses [`GROUND_DECEL`], letting go brakes instantly.
 const GROUND_ACCEL: f32 = 14.0;
 const GROUND_DECEL: f32 = 9.0;
@@ -147,6 +152,8 @@ pub struct Character;
 pub struct MoveIntent {
     /// Desired planar direction, unit length or zero.
     pub wish: Vec3,
+    /// Set by the movement when the wish runs straight into a wall, so the pose treats the stick as released instead of starting into it.
+    pub blocked: bool,
     /// Whether to move at [`RUN_SPEED`] instead of [`WALK_SPEED`].
     pub run: bool,
     pub jump: bool,
@@ -1181,9 +1188,12 @@ pub fn find_bone(
 
 fn apply_movement(
     time: Res<Time>,
+    spatial: SpatialQuery,
     mut characters: Query<
         (
-            &MoveIntent,
+            Entity,
+            &Transform,
+            &mut MoveIntent,
             &Heading,
             &mut LinearVelocity,
             &mut Grounded,
@@ -1193,8 +1203,31 @@ fn apply_movement(
         With<Character>,
     >,
 ) {
-    for (intent, heading, mut velocity, mut grounded, hits, mut cadence) in &mut characters {
+    let nose = Collider::sphere(CHARACTER_RADIUS * 0.9);
+    for (entity, transform, mut intent, heading, mut velocity, mut grounded, hits, mut cadence) in
+        &mut characters
+    {
         grounded.0 = !hits.is_empty();
+        let wall = Dir3::new(intent.wish).ok().and_then(|dir| {
+            spatial
+                .cast_shape(
+                    &nose,
+                    transform.translation,
+                    Quat::IDENTITY,
+                    dir,
+                    &ShapeCastConfig::from_max_distance(WALL_REACH),
+                    &SpatialQueryFilter::default().with_excluded_entities([entity]),
+                )
+                .map(|hit| hit.normal1)
+                .filter(|normal| normal.y.abs() < WALL_LEAN)
+                .map(|normal| Vec3::new(normal.x, 0.0, normal.z).normalize_or_zero())
+                .filter(|normal| normal.length_squared() > 0.5)
+        });
+        let slide = |v: Vec3| match wall {
+            Some(normal) if v.dot(normal) < 0.0 => v - normal * v.dot(normal),
+            _ => v,
+        };
+        intent.blocked = wall.is_some() && slide(intent.wish).length() < WALL_GLANCE;
         if let Some(cadence) = cadence.as_deref_mut()
             && cadence.launch
         {
@@ -1207,8 +1240,9 @@ fn apply_movement(
             && (cadence.shot.is_some() || cadence.hold)
             && grounded.0
         {
-            velocity.x = cadence.shot_velocity.x;
-            velocity.z = cadence.shot_velocity.z;
+            let along = slide(cadence.shot_velocity);
+            velocity.x = along.x;
+            velocity.z = along.z;
             continue;
         }
 
@@ -1235,7 +1269,7 @@ fn apply_movement(
             Some(cadence) if stance => speed.min(cadence.lane_cap),
             _ => speed,
         };
-        let wish = intent.wish * speed;
+        let wish = slide(intent.wish * speed);
 
         let planar = Vec3::new(velocity.x, 0.0, velocity.z);
         let dt = time.delta_secs();

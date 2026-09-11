@@ -476,7 +476,7 @@ fn play_pose(
         let mut released = false;
         let mut swapped = false;
         let wish = intent.map(|i| i.wish).unwrap_or(Vec3::ZERO);
-        let pushing = wish.length_squared() > 0.25;
+        let pushing = wish.length_squared() > 0.25 && !intent.is_some_and(|i| i.blocked);
         cadence.lane_cap = if cadence.locked && pushing {
             let forward = cadence.forward;
             let aim = forward.cross(wish).y.atan2(forward.dot(wish)).to_degrees();

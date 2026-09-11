@@ -290,6 +290,15 @@ Idle, walk and run jumps were one Quaternius clip on a physics hop of 8 m/s. The
 
 Measured with the `stillhop` and `hop` autowalks (jump every 3 s, `MMORPG_AUTORUN=1` for the run): stand jump = 0.4 s takeoff crouch, 0.46 s flight, 0.72 s landing to idle; walk = matched takeoff, walk landing 1.1 s back to the loop; run = 0.55 s takeoff, run landing 0.65 s back to the jog. No knee step over 26° outside the push-off frame, which the data itself steps 28°. Jump impulse is 5.5 m/s now (0.63 m under 24 m/s² gravity); the rise plays the clip 1.7× faster than captured because the capture's hang time is longer.
 
+### Feet on the wall (2026-09-10, last of the day)
+
+"Walking towards a pillar, his feet get stuck to the wall." Reproduced with the `walk` autowalk, which runs straight into the pillar at (0, −42) after 18 s (the "map edge at z ≈ −40" in earlier notes was this pillar).
+
+- The foot probe is a sphere cast down from above the body at the pose ankle's x, z. When the swing foot's pose enters the pillar the cast starts inside the collider and returns its own origin, 1.5 m up the wall, and the foot planted there. A hit now has to be walkable: normal at least 0.7 upright, below the cast origin, and no more than 0.35 m above the pose ankle. A foot the pose swings into a wall follows the pose instead.
+- The body kept being driven straight into the wall: the collision zeroed its speed, the pose read standing and played a start whose root motion pushed in again, the lateral part slid the body along the wall, the facing followed the slide, the stick was 60° off and a turn clip swung it back. A sphere cast along the wish, a fifth of a metre past the body's radius, finds the wall and the wish and every shot velocity slide along it; a wish within 20° of straight in counts as not pushing, so the pose stops and idles facing the wall while the key is held.
+
+Measured: at the wall the yaw holds within 0.03 rad, the body does not drift along it, and no foot goal rises above the floor. Zigzag and terrain walking unchanged.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.
