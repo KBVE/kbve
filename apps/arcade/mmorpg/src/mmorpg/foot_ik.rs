@@ -82,6 +82,7 @@ impl Plugin for FootIkPlugin {
             .add_systems(
                 PostUpdate,
                 (level_feet, note_support, lean_torso)
+                    .in_set(PostureSystems)
                     .after(KinetreeSystems)
                     .before(TransformSystems::Propagate),
             );
@@ -90,6 +91,10 @@ impl Plugin for FootIkPlugin {
 
 #[derive(Resource)]
 pub struct FootIkEnabled(pub bool);
+
+/// The posture pass after the leg solve: foot levelling, support notes and the torso lean; layers over the whole body run after it.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PostureSystems;
 
 /// Whether feet follow the clip's foot height or step procedurally from gait data.
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -397,7 +402,7 @@ impl Trace {
             .map(|mut file| {
                 let _ = writeln!(
                     file,
-                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,l_carry,l_ball_gnd,l_slope,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,r_carry,r_ball_gnd,r_slope,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
+                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,l_carry,l_ball_gnd,l_slope,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,r_carry,r_ball_gnd,r_slope,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch,gaze_yaw,gaze_pitch,gaze_w"
                 );
                 Mutex::new(file)
             });
@@ -414,6 +419,7 @@ fn trace_pose(
         &LowerBody,
         &GlobalTransform,
         Option<&super::character::MoveIntent>,
+        Option<&super::gaze::Gaze>,
     )>,
     goals: Query<(&FootGoal, &IkLimbBones, &IkLimb)>,
     globals: Query<&GlobalTransform>,
@@ -424,7 +430,7 @@ fn trace_pose(
     let Ok(mut file) = file.lock() else {
         return;
     };
-    for (entity, cadence, lower, body, intent) in &characters {
+    for (entity, cadence, lower, body, intent, gaze) in &characters {
         let capsule = body.translation();
         let body = hip_centre(Some(lower), &globals, capsule);
         let right = cadence.forward.cross(Vec3::Y).normalize_or_zero();
@@ -506,7 +512,7 @@ fn trace_pose(
         let torso = torso_angles(lower, &globals, cadence.forward, right);
         let _ = writeln!(
             file,
-            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{},{},{:.4},{},{:.1},{:.1},{}",
+            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{},{},{:.4},{},{:.1},{:.1},{},{:.1},{:.1},{:.2}",
             time.elapsed_secs(),
             entity,
             cadence.phase,
@@ -531,7 +537,10 @@ fn trace_pose(
             cadence
                 .shot
                 .map_or(0.0, |s| (s.steered + s.steer).to_degrees()),
-            torso
+            torso,
+            gaze.map_or(0.0, |g| g.yaw.to_degrees()),
+            gaze.map_or(0.0, |g| g.pitch.to_degrees()),
+            gaze.map_or(0.0, |g| g.weight)
         );
     }
 }

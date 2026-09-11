@@ -334,6 +334,12 @@ With the sole tilted, the swing toe still clipped 2.3 cm on the hill walk, becau
 
 Turning `MAX_REACH_DROP` on had a side effect the slope numbers hid: the drop was computed against the leg's nominal reach, and a jog's own toe-off puts the leg at 0.97–0.99 of it, so the pelvis sat a constant 1.5–4.5 cm low on flat ground and planted knees read 10° more bent than the data (hip over ground on the walk reversals 0.912 → 0.867 m). It also could not do its actual job: the hold's reach clamp pulled a far foot in before the pelvis solve ever saw it. Now the hold records what the clamp took off (`FootGoal.short`), the pelvis solves against the unclamped target, and its reach is never less than the pose's own hip-to-ankle distance. Flat hip heights and knees match the pre-change traces again; `MMORPG_SPAWN=23.1,27.6` with heading 40 walks the ramp down (spawn sits in a basin, every heading from it climbs).
 
+### The gaze (2026-09-11)
+
+`src/mmorpg/gaze.rs`: a character with a selected `Target` looks at it. Each frame the bearing from the head to the target's head bone (or 0.6 m above its origin) is taken as yaw and pitch from the body's facing, clamped to what a neck does (±75° yaw, 29° up, 40° down), chased at 8/s, and faded in and out at 4/s; `Has<Action>` suspends it so attack clips keep their heads. The rotation applied is the arc from the head's current facing to that direction, so it replaces the pose's own head sway while a target is held rather than adding to it; the chest takes a fifth of the remainder, the neck a third of what is left, the head the rest, so the head lands on the target exactly (symbios-avatar's gaze spreads the same way). It runs after the posture pass (`PostureSystems`), before propagation.
+
+`MMORPG_TARGET=1` selects the nearest hostile at start for tests; trace columns `gaze_yaw`, `gaze_pitch`, `gaze_w`. Measured with the `rest` and `orbit` autowalks against a training dummy: head yaw and pitch match the gaze to 0.1° at the 95th percentile, no head jump above 2.2° in 50 ms, and a run without a target is byte-identical in head yaw to before. Under the soft lock the body already faces the target, so most of what the gaze adds is the pitch and a head that holds still on the target through the walk cycle.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

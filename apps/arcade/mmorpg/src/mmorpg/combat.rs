@@ -226,8 +226,11 @@ fn cycle_target(
     camera: Single<&Transform, With<OrbitCamera>>,
     mut selector: Query<Selector, With<Player>>,
     candidates: Query<Candidate, (With<Character>, Without<Dead>)>,
+    mut auto: Local<Option<bool>>,
 ) {
-    let cycle = keys.just_pressed(KeyCode::Tab);
+    let auto = *auto.get_or_insert_with(|| std::env::var("MMORPG_TARGET").is_ok_and(|v| v != "0"));
+    let cycle = keys.just_pressed(KeyCode::Tab)
+        || (auto && selector.iter().any(|(_, _, target, _)| target.0.is_none()));
     let clear = keys.just_pressed(KeyCode::Escape);
     if !cycle && !clear {
         return;
