@@ -125,6 +125,12 @@ projects:
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
+        # The same app's rust crate. Nested inside the project above on
+        # purpose: the TypeScript project owns the bundle and the release lane,
+        # this one owns the compile, and only a rust project gets its cargo
+        # dependencies inferred.
+        isometric-game: 'apps/kbve/isometric/src-tauri'
+
         # The arcade games are not listed here: apps/arcade/* is globbed
         # above, which registers colony and mmorpg under the same ids these
         # lines gave them.
