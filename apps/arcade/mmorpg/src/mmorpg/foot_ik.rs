@@ -150,7 +150,7 @@ const MAX_SOLE_TILT: f32 = 0.44;
 
 /// Pelvis reach: extra drop cap, how much leg is kept in reserve, and the drop and rise rates per second.
 const MAX_REACH_DROP: f32 = 0.15;
-const REACH_RESERVE: f32 = 0.02;
+const REACH_RESERVE: f32 = 0.04;
 const REACH_DROP_RATE: f32 = 14.0;
 const REACH_RISE_RATE: f32 = 5.0;
 /// Pelvis drop cap and leg reserve while standing on held feet, so a stance wider than the idle's does not lock the knees.
@@ -233,6 +233,8 @@ pub struct FootGoal {
     last_ankle: Vec3,
     /// Where the pose's foot sat relative to the pin when the pin was set, so the lock's slack measures the pose's own creep since then.
     base: Vec3,
+    /// What the reach clamp took off the held goal this frame, so the pelvis can drop to give it back.
+    short: Vec3,
 }
 
 impl FootGoal {
@@ -262,6 +264,7 @@ impl FootGoal {
             still: 0,
             last_ankle: Vec3::ZERO,
             base: Vec3::ZERO,
+            short: Vec3::ZERO,
         }
     }
 }
@@ -812,7 +815,7 @@ fn pose_lower_body(
     }
 }
 
-/// Drops the model root when a planted or landing foot sits beyond a straight leg, as the downhill foot does on a slope, so no knee locks reaching for it; drops fast, rises slow.
+/// Drops the model root when a planted or landing foot sits beyond the leg, as the downhill foot does on a slope, so no knee locks reaching for it; the pose's own extension never counts; drops fast, rises slow.
 fn reach_pelvis(
     time: Res<Time>,
     mut characters: Query<(Entity, &mut Cadence, &LowerBody)>,
@@ -841,10 +844,14 @@ fn reach_pelvis(
             };
             let hip = hip.translation;
             let reserve = if resting { REST_RESERVE } else { REACH_RESERVE };
-            let reach = cadence.leg_length * (1.0 - reserve);
-            let flat = Vec2::new(limb.goal.x - hip.x, limb.goal.z - hip.z).length();
+            let posed = bone_world_transform(bones.tip, &read, &parents)
+                .map(|ankle| (ankle.translation - hip).length())
+                .unwrap_or(0.0);
+            let reach = (cadence.leg_length * (1.0 - reserve)).max(posed);
+            let target = limb.goal + goal.short;
+            let flat = Vec2::new(target.x - hip.x, target.z - hip.z).length();
             let rise = (reach * reach - flat * flat).max(0.0).sqrt();
-            let drop = hip.y + cadence.reach_drop - (limb.goal.y + rise);
+            let drop = hip.y + cadence.reach_drop - (target.y + rise);
             wanted = wanted.max(drop * limb.weight);
         }
         let wanted = wanted.min(if resting { REST_DROP } else { MAX_REACH_DROP });
@@ -1335,6 +1342,7 @@ fn hold_foot(
     } else {
         cadence.contact.0
     } && full;
+    goal.short = Vec3::ZERO;
     let toe_lift = ball
         .and_then(|(ball, height)| ground(ball).map(|(hit, n)| (hit + n * height).y - ball.y))
         .unwrap_or(f32::MIN);
@@ -1399,6 +1407,7 @@ fn hold_foot(
             let lift = (pin.y + goal.ankle_height - ankle.y).max(toe_lift).max(0.0);
             Vec3::new(held.x, ankle.y + lift, held.z)
         };
+        let wanted = limb.goal;
         let reach = (ankle - hip).length().max(cadence.leg_length * HOLD_REACH);
         let span = limb.goal - hip;
         if span.length() > reach && goal.base.length_squared() > 0.0 {
@@ -1417,6 +1426,7 @@ fn hold_foot(
             }
             limb.goal = ankle + pull * lo;
         }
+        goal.short = wanted - limb.goal;
         goal.carry = limb.goal - ankle;
 
         limb.weight = goal.grounded

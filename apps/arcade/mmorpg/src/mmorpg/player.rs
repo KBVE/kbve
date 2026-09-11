@@ -43,7 +43,14 @@ pub struct Player;
 fn spawn_cast(mut commands: Commands) {
     let drop = |x: f32, z: f32| Vec3::new(x, height_at(x, z) + 4.0, z);
 
-    let player = spawn_character(&mut commands, drop(0.0, 0.0));
+    let (sx, sz) = std::env::var("MMORPG_SPAWN")
+        .ok()
+        .and_then(|v| {
+            let (x, z) = v.split_once(',')?;
+            Some((x.trim().parse().ok()?, z.trim().parse().ok()?))
+        })
+        .unwrap_or((0.0, 0.0));
+    let player = spawn_character(&mut commands, drop(sx, sz));
     commands
         .entity(player)
         .insert((Player, CameraTarget, CameraLock::default()));
@@ -63,13 +70,13 @@ fn spawn_cast(mut commands: Commands) {
         let ring = index / RING;
         let angle = (index % RING) as f32 / RING as f32 * core::f32::consts::TAU;
         let radius = 4.0 + 6.0 * ring as f32;
-        let (x, z) = (angle.cos() * radius, angle.sin() * radius);
+        let (x, z) = (sx + angle.cos() * radius, sz + angle.sin() * radius);
         spawn_character(&mut commands, drop(x, z));
     }
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them; `MMORPG_NPCS=<n>` places that many idle companions in rings; `MMORPG_HEADING=<deg>` yaws every autowalk.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them; `MMORPG_NPCS=<n>` places that many idle companions in rings; `MMORPG_HEADING=<deg>` yaws every autowalk; `MMORPG_SPAWN=<x>,<z>` places the cast.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
