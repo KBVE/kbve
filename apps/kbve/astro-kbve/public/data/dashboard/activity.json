@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-09-10T05:48:46Z",
+  "generated_at": "2026-09-11T06:07:07Z",
   "window": {
     "days": 7,
-    "since": "2026-09-03T05:48:46Z"
+    "since": "2026-09-04T06:07:07Z"
   },
   "commits": {
-    "total": 269,
+    "total": 310,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 203
+        "commits": 234
       },
       {
         "author": "github-actions[bot]",
-        "commits": 66
+        "commits": 76
       }
     ],
     "recent": [
       {
-        "sha": "8e56e31",
+        "sha": "173805e",
         "author": "h0lybyte",
-        "message": "Merge pull request #17052 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/8e56e3174ad1cf45d21d75f49146e16e8fcd5ebf",
-        "date": "2026-09-10T01:38:09Z"
+        "message": "Merge pull request #17106 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/173805ec994028a7cac0fa4c458cd3c47531660c",
+        "date": "2026-09-11T05:44:22Z"
       },
       {
-        "sha": "c1ee573",
+        "sha": "35ad16f",
         "author": "h0lybyte",
-        "message": "fix(kube): manage the stalwart role password from one sealed secret (#17054)",
-        "url": "https://github.com/KBVE/kbve/commit/c1ee573a26ba4b64c57ecd174f271cc852aa2822",
-        "date": "2026-09-10T01:37:58Z"
+        "message": "fix(docker): copy bevy_supa into the axum images and sync the ulid pin (#17107)",
+        "url": "https://github.com/KBVE/kbve/commit/35ad16f08df4d68e9db430d53f23681acf16905a",
+        "date": "2026-09-11T05:41:04Z"
       },
       {
-        "sha": "ecc8d10",
+        "sha": "04aac2f",
         "author": "h0lybyte",
-        "message": "docs(kinetree): field notes for pose-owned body and the contact fixes",
-        "url": "https://github.com/KBVE/kbve/commit/ecc8d106bc092f749fdfa582498957add44baa0b",
-        "date": "2026-09-10T00:46:29Z"
+        "message": "fix(ci): close every duplicate tracker issue a green run resolves (#17104)",
+        "url": "https://github.com/KBVE/kbve/commit/04aac2f08116441dcf82db3581d1d6bcb12ce690",
+        "date": "2026-09-11T05:34:44Z"
       },
       {
-        "sha": "b799f4c",
+        "sha": "ea75f95",
         "author": "h0lybyte",
-        "message": "feat(mmorpg): pose owns the whole body while grounded, contacts follow the data",
-        "url": "https://github.com/KBVE/kbve/commit/b799f4c61f604dc11f1ee6059010024fa92d9fc3",
-        "date": "2026-09-10T00:45:27Z"
+        "message": "feat(mmorpg): train combat skills from damage and kills (#17105)",
+        "url": "https://github.com/KBVE/kbve/commit/ea75f95c4f8a740f0003176239264785770c5136",
+        "date": "2026-09-11T04:57:54Z"
       },
       {
-        "sha": "f2d1e77",
+        "sha": "ebeb727",
         "author": "h0lybyte",
-        "message": "feat(kbve): bake chest, neck, head and arm rotations into the pose set",
-        "url": "https://github.com/KBVE/kbve/commit/f2d1e77938960d7baf84d2c4ba9d0a8853c8b5fc",
-        "date": "2026-09-10T00:45:14Z"
+        "message": "Merge pull request #17101 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/ebeb727e6b603a832f4d9517c9e9b7598253cbf9",
+        "date": "2026-09-11T04:28:56Z"
       },
       {
-        "sha": "f1f53ab",
+        "sha": "81cc564",
         "author": "h0lybyte",
-        "message": "feat(mmorpg): slow motion, no-NPC and IK-off switches for gait capture",
-        "url": "https://github.com/KBVE/kbve/commit/f1f53ab7d294df23559dfe24b47b6391a597eb66",
-        "date": "2026-09-10T00:16:37Z"
+        "message": "feat(mmorpg): loot the dead through bevy_inventory and gate builds on protobuf (#17103)",
+        "url": "https://github.com/KBVE/kbve/commit/81cc564345f174318e9c889d303de7cb052f7ee4",
+        "date": "2026-09-11T04:19:11Z"
       },
       {
-        "sha": "04930c8",
+        "sha": "a908b2b",
         "author": "h0lybyte",
-        "message": "docs(kinetree): crate page with the procedural gait field notes",
-        "url": "https://github.com/KBVE/kbve/commit/04930c801b2c72486b8eebd18596ff98703bbd41",
-        "date": "2026-09-09T22:38:50Z"
+        "message": "refactor(irc): one directory per product (#17102)",
+        "url": "https://github.com/KBVE/kbve/commit/a908b2b9ab502ab9921321b569f1823573bcc072",
+        "date": "2026-09-11T04:06:00Z"
       },
       {
-        "sha": "c72ab43",
+        "sha": "d8a7501",
         "author": "h0lybyte",
-        "message": "feat(mmorpg): contact lock over played poses, gait trace and probes",
-        "url": "https://github.com/KBVE/kbve/commit/c72ab43f21ec61b70e4c1ed845d6e8531df9c783",
-        "date": "2026-09-09T22:38:48Z"
+        "message": "fix(bevy_tasker): survive panicking tasks and unblock the proto crates on wasm (#17100)",
+        "url": "https://github.com/KBVE/kbve/commit/d8a75017809707763d14d6375643324fb70218f9",
+        "date": "2026-09-11T03:53:50Z"
       },
       {
-        "sha": "0060954",
+        "sha": "a7d2bc4",
         "author": "h0lybyte",
-        "message": "feat(mmorpg): play baked mocap joint rotations on the rig",
-        "url": "https://github.com/KBVE/kbve/commit/0060954c5e6ff0b989a754da81a19abdf98ed2ff",
-        "date": "2026-09-09T22:37:55Z"
+        "message": "Merge pull request #17098 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/a7d2bc443092a124015317e1e52662c280799588",
+        "date": "2026-09-11T03:53:25Z"
       },
       {
-        "sha": "fb63308",
+        "sha": "1cc90e1",
         "author": "h0lybyte",
-        "message": "feat(kbve): bake lower-body joint rotations and stance-level contacts from mocap",
-        "url": "https://github.com/KBVE/kbve/commit/fb63308631137f7c2597393e1daeea922d21ef03",
-        "date": "2026-09-09T22:37:41Z"
+        "message": "fix(ci): mirror moved tags to forgejo instead of failing the push (#17095)",
+        "url": "https://github.com/KBVE/kbve/commit/1cc90e150e9c3d1361e13f56c6b54bfc78470f6e",
+        "date": "2026-09-11T03:50:58Z"
       },
       {
-        "sha": "a52df8d",
+        "sha": "a3c7b65",
         "author": "h0lybyte",
-        "message": "Merge pull request #17038 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/a52df8d8c53b48cee2c6f02744f7a13762a3e730",
-        "date": "2026-09-09T21:03:38Z"
+        "message": "docs(combat): added a project mdx.",
+        "url": "https://github.com/KBVE/kbve/commit/a3c7b65fbffd1c68dbf094153913f976083d1a1f",
+        "date": "2026-09-11T03:48:45Z"
       },
       {
-        "sha": "07f8bbb",
+        "sha": "17d1ddd",
         "author": "h0lybyte",
-        "message": "fix(chuck-launcher): approve the esbuild build script for pnpm 11 (#17049)",
-        "url": "https://github.com/KBVE/kbve/commit/07f8bbb17d4ac8f21f994f9c6e47973afeef1a74",
-        "date": "2026-09-09T18:10:43Z"
+        "message": "Merge pull request #17094 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/17d1ddd9739044dddcf4de3e0ccf085d24a092d5",
+        "date": "2026-09-11T03:42:03Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 237,
+    "merged": 258,
     "recent": [
       {
-        "number": 17060,
+        "number": 17113,
         "title": "chore(content): daily graph scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17060"
+        "url": "https://github.com/KBVE/kbve/pull/17113"
       },
       {
-        "number": 17059,
-        "title": "chore(content): daily journal scaffold",
+        "number": 17112,
+        "title": "fix(crates): resync the workspace stubs and say what a missing proto tree needs",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17112"
+      },
+      {
+        "number": 17109,
+        "title": "fix(devops): unbreak every rust docker image on dev",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17109"
+      },
+      {
+        "number": 17111,
+        "title": "chore(content): daily deps scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17059"
+        "url": "https://github.com/KBVE/kbve/pull/17111"
       },
       {
-        "number": 17055,
-        "title": "fix(mmorpg): clear clippy denials in the gait pose path",
+        "number": 17110,
+        "title": "fix(ci): report the codeql rust break and log the file that panics it",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17055"
+        "url": "https://github.com/KBVE/kbve/pull/17110"
       },
       {
-        "number": 17052,
-        "title": "Release: 6 features, 2 docs \u2192 Main",
+        "number": 17106,
+        "title": "Release: 1 feature, 2 fixes \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17052"
+        "url": "https://github.com/KBVE/kbve/pull/17106"
       },
       {
-        "number": 17054,
-        "title": "fix(kube): manage the stalwart role password from one sealed secret",
+        "number": 17107,
+        "title": "fix(docker): copy bevy_supa into the axum images and sync the ulid pin",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17054"
+        "url": "https://github.com/KBVE/kbve/pull/17107"
       },
       {
-        "number": 17049,
-        "title": "fix(chuck-launcher): approve the esbuild build script for pnpm 11",
+        "number": 17104,
+        "title": "fix(ci): close every duplicate tracker issue a green run resolves",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17049"
+        "url": "https://github.com/KBVE/kbve/pull/17104"
       },
       {
-        "number": 17046,
-        "title": "fix(ci): provision the moon toolchains before an e2e suite runs",
+        "number": 17105,
+        "title": "feat(mmorpg): train combat skills from damage and kills",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17046"
+        "url": "https://github.com/KBVE/kbve/pull/17105"
       },
       {
-        "number": 17042,
-        "title": "fix(edge): provision deno through moon so check runs in ci",
+        "number": 17095,
+        "title": "fix(ci): mirror moved tags to forgejo instead of failing the push",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17042"
-      },
-      {
-        "number": 17029,
-        "title": "refactor(herbmail): rename project ids to herbmail-web/api",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17029"
-      },
-      {
-        "number": 17038,
-        "title": "Release: 1 feature, 10 fixes, 1 refactor \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17038"
+        "url": "https://github.com/KBVE/kbve/pull/17095"
       }
     ]
   },
   "issues": {
-    "opened": 249,
-    "closed": 259
+    "opened": 270,
+    "closed": 279
   }
 }
