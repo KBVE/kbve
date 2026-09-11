@@ -346,4 +346,15 @@ private:
 	// so it has to be measured separately or the budget looks broken.
 	float FillSpawnMs = 0.0f;
 	int32 SpawnCount = 0;
+	// What a patch built on a worker cost once it came back. The per-LOD numbers
+	// above cannot hold it: the patch is accounted the tick it is dispatched and
+	// lands some later tick, by which point the ring it was built for is no
+	// longer the thing being asked about.
+	float FillLandMs = 0.0f;
+	int32 FillLandCount = 0;
+	// A window is filling from the moment anything is built for it until the
+	// last patch is on screen, which with workers is later than the last one
+	// dispatched. Without this the summary is gated on a tick that built
+	// something, and the tick the last landing arrives on need not be one.
+	bool bFilling = false;
 };

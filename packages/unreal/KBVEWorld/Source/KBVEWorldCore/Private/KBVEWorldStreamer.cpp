@@ -451,6 +451,8 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		FillTicks = 0;
 		FillBuildMs = 0.0f;
 		FillSpawnMs = 0.0f;
+		FillLandMs = 0.0f;
+		FillLandCount = 0;
 		WorstBuildMs = 0.0f;
 		FMemory::Memzero(BuildMsByLOD);
 		FMemory::Memzero(GenerateMsByLOD);
@@ -515,11 +517,33 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		}
 	}
 
+	// Whatever is left of the budget goes to patches that came back from a
+	// worker, and at least one goes through however little is left -- landings
+	// hold whole meshes, so a queue that is never emptied is memory as well as
+	// ground nobody can see yet.
+	const float SpentMs = static_cast<float>((FPlatformTime::Seconds() - TickStart) * 1000.0);
+	const int32 Landed = AKBVEWorldHeightfieldActor::DrainLandings(
+		FMath::Max(MaxBuildMillisecondsPerTick - SpentMs, 0.0f), FillLandMs);
+	FillLandCount += Landed;
+
+	if (Built > 0 || Landed > 0)
+	{
+		bFilling = true;
+	}
+
 	// One line when the window finishes filling, rather than per patch. The
 	// interesting numbers are what the whole window cost and which ring it went
 	// to, not each of its 169 parts.
-	if (Built > 0 && Pending.Num() == 0 && Restage.Num() == 0)
+	//
+	// Nothing queued is not the same as nothing outstanding once patches build
+	// on workers: the last one is dispatched several ticks before it lands, and
+	// a summary printed then would be describing a window with holes in it.
+	if (bFilling && Pending.Num() == 0 && Restage.Num() == 0
+		&& AKBVEWorldHeightfieldActor::LandingsWaiting() == 0
+		&& AKBVEWorldHeightfieldActor::JobsInFlight() == 0)
 	{
+		bFilling = false;
+
 		FString ByLOD;
 		for (int32 I = 0; I < MaxTrackedLOD; ++I)
 		{
@@ -547,6 +571,17 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 			Centre.X, Centre.Y, Live.Num(), Pool.Num(), FillTicks,
 			FillBuildMs, FillSpawnMs, FPlatformTime::Seconds() - FillStartSeconds,
 			WorstBuildMs, *ByLOD, BuildCount, SpawnCount);
+
+		if (FillLandCount > 0)
+		{
+			// Separate line, because it is a separate claim. The one above says
+			// what the window cost the tick it was asked for; this says what the
+			// same window cost the ticks it actually arrived on, which is the
+			// number threading was supposed to move.
+			UE_LOG(LogKBVEWorldStream, Display,
+				TEXT("  of those, %d landed from workers costing %.0f ms on the game thread"),
+				FillLandCount, FillLandMs);
+		}
 	}
 }
 

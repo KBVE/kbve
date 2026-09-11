@@ -7,9 +7,28 @@
 
 #include "KBVEWorldHeightfieldActor.generated.h"
 
+class AKBVEWorldHeightfieldActor;
 class FKBVEWorldRoadField;
 class UMaterialInterface;
 class UProceduralMeshComponent;
+
+/**
+ * A patch built on a worker thread, waiting for the game thread to take it.
+ *
+ * The worker cannot hand its mesh to a component itself, and it must not decide
+ * when the handover happens either: creating a mesh section costs the game
+ * thread real time and cooking collision costs it more, so landing them the
+ * frame they happen to finish puts an unpaced burst of that work into whatever
+ * frame that is. A landing is parked here instead and taken by whoever is
+ * pacing the terrain, under the same budget it paces everything else by.
+ */
+struct KBVEWORLDCORE_API FKBVEWorldPatchLanding
+{
+	TWeakObjectPtr<AKBVEWorldHeightfieldActor> Patch;
+	uint32 Serial = 0;
+	TSharedPtr<FKBVEWorldPatchMesh> Draw;
+	TSharedPtr<FKBVEWorldPatchMesh> Collide;
+};
 
 /**
  * A single procedural mesh patch built from FKBVEWorldHeightfield.
@@ -122,6 +141,25 @@ public:
 
 	UProceduralMeshComponent* GetMeshComponent() const { return Mesh; }
 
+	/**
+	 * Take finished patches and give them to their components, newest first
+	 * within one patch, until the budget is spent.
+	 *
+	 * Always takes one before it looks at the clock. A budget smaller than a
+	 * single handover would otherwise let the queue grow without ever emptying,
+	 * and the queue holds whole meshes.
+	 *
+	 * Game thread only. Returns how many landings were taken, and adds what they
+	 * cost to OutSpentMs.
+	 */
+	static int32 DrainLandings(float BudgetMs, float& OutSpentMs);
+
+	/** Patches waiting to be handed to their components. */
+	static int32 LandingsWaiting();
+
+	/** Patches being built on worker threads right now. */
+	static int32 JobsInFlight();
+
 	/** Milliseconds spent generating heights, normals and triangles. */
 	float GetLastGenerateMs() const { return LastGenerateMs; }
 
@@ -169,8 +207,14 @@ private:
 	/** Hand a built patch to its component. Game thread, always. */
 	void Commit(UProceduralMeshComponent* Target, const FKBVEWorldPatchMesh& Patch, bool bCollision);
 
-	/** Build both sections off the game thread and commit them when they land. */
-	void RebuildAsync();
+	/**
+	 * Build the drawn surface off the game thread and park it for the drain.
+	 *
+	 * Returns false when it declined -- too many jobs are already in flight --
+	 * so the caller can build the patch the ordinary way rather than queue work
+	 * for ground the view may have left by the time it is done.
+	 */
+	bool RebuildAsync();
 
 	/**
 	 * Which rebuild the patch is on.
