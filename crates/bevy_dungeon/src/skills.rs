@@ -9,7 +9,7 @@ use bevy_items::profession::{GatherInfo, ProfessionDb};
 use bevy_skills::{SkillId, SkillProfile, XpCurve};
 
 /// Embedded snapshot of the profession database, baked from the professiondb
-/// MDX collection by `apps/kbve/isometric/scripts/sync-professiondb.mjs`.
+/// MDX collection by `apps/arcade/isometric/scripts/sync-professiondb.mjs`.
 const PROFESSIONDB_JSON: &str = include_str!("../data/professiondb.json");
 
 static PROFESSIONS: LazyLock<Option<ProfessionDb>> =

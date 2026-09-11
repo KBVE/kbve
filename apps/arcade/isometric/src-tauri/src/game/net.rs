@@ -788,7 +788,7 @@ fn poll_go_online_request(
             net_config::base64_to_token_bytes(&token_b64).expect("base64_to_token_bytes failed");
 
         let cert_digest_path = std::env::var("GAME_WT_DIGEST")
-            .unwrap_or_else(|_| "apps/kbve/isometric/certificates/digest.txt".to_string());
+            .unwrap_or_else(|_| "apps/arcade/isometric/certificates/digest.txt".to_string());
         let (wt_url, cert_digest) = match std::fs::read_to_string(&cert_digest_path) {
             Ok(digest) => {
                 let digest = digest.trim().to_owned();

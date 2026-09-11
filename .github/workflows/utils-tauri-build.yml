@@ -8,7 +8,7 @@ on:
                 required: true
                 type: string
             project_path:
-                description: 'Path to the Tauri app (e.g., apps/kbve/isometric)'
+                description: 'Path to the Tauri app (e.g., apps/arcade/isometric)'
                 required: true
                 type: string
             app_name:

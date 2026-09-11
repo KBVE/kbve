@@ -11,7 +11,7 @@ tags:
     - rust
     - wasm
 key: isometric
-source_path: apps/kbve/isometric
+source_path: apps/arcade/isometric
 author: h0lybyte
 license: KBVE
 status: active
@@ -39,7 +39,7 @@ bento:
         through WebGPU in the browser, and shipped as a Tauri 2 native desktop app.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/kbve/isometric
+          href: https://github.com/KBVE/kbve/tree/main/apps/arcade/isometric
           primary: true
           external: true
         - label: Architecture
@@ -190,7 +190,7 @@ WebTransport is preferred when available. Safari and older browsers fall back to
 Items are defined as MDX files in the [itemdb collection](/itemdb/) and baked into the game binary at compile time. To regenerate after adding items:
 
 ```sh
-node apps/kbve/isometric/scripts/sync-itemdb.mjs
+node apps/arcade/isometric/scripts/sync-itemdb.mjs
 ```
 
 </BentoProse>

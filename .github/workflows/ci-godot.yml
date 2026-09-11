@@ -281,7 +281,7 @@ jobs:
                       apps/kbve/kilobase
                       apps/kbve/axum-kbve
                       apps/kbve/kbve-gate
-                      apps/kbve/isometric/src-tauri
+                      apps/arcade/isometric/src-tauri
                       apps/kbve/desktop-kbve/src-tauri
                       apps/herbmail/api
                       apps/memes/axum-memes

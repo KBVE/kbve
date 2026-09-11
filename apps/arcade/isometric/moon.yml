@@ -52,7 +52,7 @@ tasks:
     # into another project, so it is not part of any build.
     deploy:
         deps: ['~:build']
-        script: 'rm -rf ../astro-kbve/public/isometric && mkdir -p ../astro-kbve/public && cp -r dist ../astro-kbve/public/isometric'
+        script: 'rm -rf ../../kbve/astro-kbve/public/isometric && mkdir -p ../../kbve/astro-kbve/public && cp -r dist ../../kbve/astro-kbve/public/isometric'
         options:
             cache: false
 
