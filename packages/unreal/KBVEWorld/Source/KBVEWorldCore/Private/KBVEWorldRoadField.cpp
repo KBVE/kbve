@@ -15,7 +15,98 @@ namespace
 	}
 }
 
-float FKBVEWorldRoadField::CorridorDistance(const FVector2D& P, const FSegment& Segment,
+void FKBVEWorldRoadLook::Index(int32 At)
+{
+	if (!Segments.IsValidIndex(At))
+	{
+		return;
+	}
+
+	// Every bucket the segment's influence reaches, not just the ones its ends
+	// land in: a query is answered from one bucket and its neighbours, so a
+	// segment crossing a bucket without stopping in it still has to be listed
+	// there.
+	const FSegment& Segment = Segments[At];
+	const FVector2D Min = FVector2D::Min(Segment.A, Segment.B) - FVector2D(CellSize, CellSize);
+	const FVector2D Max = FVector2D::Max(Segment.A, Segment.B) + FVector2D(CellSize, CellSize);
+	for (int32 Y = FMath::FloorToInt(Min.Y / CellSize); Y <= FMath::FloorToInt(Max.Y / CellSize); ++Y)
+	{
+		for (int32 X = FMath::FloorToInt(Min.X / CellSize); X <= FMath::FloorToInt(Max.X / CellSize); ++X)
+		{
+			Buckets.FindOrAdd(FIntPoint(X, Y)).Add(At);
+		}
+	}
+}
+
+FKBVEWorldRoadLook FKBVEWorldRoadField::LookOver(const FVector2D& Min, const FVector2D& Max) const
+{
+	FKBVEWorldRoadLook Out;
+	Out.Road = Look.Road;
+	Out.CellSize = Look.CellSize;
+
+	// The cells a query inside the box can reach, which is the box's own cells
+	// and one ring around them -- a query reads its cell and its neighbours, so
+	// a point on the boundary reads a cell the box does not cover.
+	const int32 MinX = FMath::FloorToInt(Min.X / Look.CellSize) - 1;
+	const int32 MaxX = FMath::FloorToInt(Max.X / Look.CellSize) + 1;
+	const int32 MinY = FMath::FloorToInt(Min.Y / Look.CellSize) - 1;
+	const int32 MaxY = FMath::FloorToInt(Max.Y / Look.CellSize) + 1;
+
+	// The centre lines of every chunk the box touches, and a ring around it: an
+	// edge is named by the chunk it starts in and runs into the next one, so a
+	// box's own surface can be laid from a line a chunk outside it owns.
+	const float ChunkSize = Look.Road.TilesPerChunk * Look.Road.WorldUnitsPerTile;
+	const int32 FromX = FMath::FloorToInt(Min.X / ChunkSize) - 1;
+	const int32 ToX = FMath::FloorToInt(Max.X / ChunkSize) + 1;
+	const int32 FromY = FMath::FloorToInt(Min.Y / ChunkSize) - 1;
+	const int32 ToY = FMath::FloorToInt(Max.Y / ChunkSize) + 1;
+
+	for (int32 Y = FromY; Y <= ToY; ++Y)
+	{
+		for (int32 X = FromX; X <= ToX; ++X)
+		{
+			for (int32 S = 0; S < 2; ++S)
+			{
+				const FIntVector Key(X, Y, S);
+				if (const TArray<FVector>* Line = Look.Edges.Find(Key))
+				{
+					Out.Edges.Add(Key, *Line);
+				}
+			}
+		}
+	}
+
+	// Segments are copied once however many cells list them, and the copy is
+	// what the new index points at.
+	TMap<int32, int32> Moved;
+	for (int32 Y = MinY; Y <= MaxY; ++Y)
+	{
+		for (int32 X = MinX; X <= MaxX; ++X)
+		{
+			const TArray<int32>* Bucket = Look.Buckets.Find(FIntPoint(X, Y));
+			if (!Bucket)
+			{
+				continue;
+			}
+
+			for (const int32 At : *Bucket)
+			{
+				if (Moved.Contains(At))
+				{
+					continue;
+				}
+
+				const int32 To = Out.Segments.Add(Look.Segments[At]);
+				Moved.Add(At, To);
+				Out.Index(To);
+			}
+		}
+	}
+
+	return Out;
+}
+
+float FKBVEWorldRoadLook::CorridorDistance(const FVector2D& P, const FSegment& Segment,
 	float& OutT) const
 {
 	const FVector2D AB = Segment.B - Segment.A;
@@ -50,27 +141,48 @@ float FKBVEWorldRoadField::CorridorDistance(const FVector2D& P, const FSegment& 
 
 FKBVEWorldRoadField::FKBVEWorldRoadField(const FKBVEWorldRoadParams& InRoad,
 	const FKBVEWorldHeightfieldParams& InShape, int32 InSeed)
-	: Road(InRoad)
-	, Shape(InShape)
+	: Shape(InShape)
 	, Seed(InSeed)
-	, CellSize(FMath::Max(InRoad.CutHalfWidth, 100.0f))
 {
+	Look.Road = InRoad;
+	Look.CellSize = FMath::Max(InRoad.CutHalfWidth, 100.0f);
 }
 
 bool FKBVEWorldRoadField::Matches(const FKBVEWorldRoadParams& InRoad, int32 InSeed) const
 {
 	return Seed == InSeed
-		&& Road.TilesPerChunk == InRoad.TilesPerChunk
-		&& Road.CutHalfWidth == InRoad.CutHalfWidth
-		&& Road.CutFlatHalfWidth == InRoad.CutFlatHalfWidth
-		&& Road.EdgeDensity == InRoad.EdgeDensity
-		&& Road.ProfileSmoothPasses == InRoad.ProfileSmoothPasses
-		&& Road.BridgeEndReach == InRoad.BridgeEndReach;
+		&& Look.Road.TilesPerChunk == InRoad.TilesPerChunk
+		&& Look.Road.CutHalfWidth == InRoad.CutHalfWidth
+		&& Look.Road.CutFlatHalfWidth == InRoad.CutFlatHalfWidth
+		&& Look.Road.EdgeDensity == InRoad.EdgeDensity
+		&& Look.Road.ProfileSmoothPasses == InRoad.ProfileSmoothPasses
+		&& Look.Road.BridgeEndReach == InRoad.BridgeEndReach;
+}
+
+float FKBVEWorldRoadField::Level(float Base, float WorldX, float WorldY) const
+{
+	return Look.Level(Base, WorldX, WorldY);
+}
+
+float FKBVEWorldRoadField::SurfaceWeight(float WorldX, float WorldY) const
+{
+	return Look.SurfaceWeight(WorldX, WorldY);
+}
+
+bool FKBVEWorldRoadField::Probe(float WorldX, float WorldY, float& OutDistance, float& OutZ,
+	float& OutWeight) const
+{
+	return Look.Probe(WorldX, WorldY, OutDistance, OutZ, OutWeight);
+}
+
+const TArray<FVector>* FKBVEWorldRoadLook::FindEdge(const FIntPoint& Chunk, int32 Step) const
+{
+	return Edges.Find(FIntVector(Chunk.X, Chunk.Y, Step));
 }
 
 const TArray<FVector>* FKBVEWorldRoadField::FindEdge(const FIntPoint& Chunk, int32 Step) const
 {
-	return Edges.Find(FIntVector(Chunk.X, Chunk.Y, Step));
+	return Look.FindEdge(Chunk, Step);
 }
 
 void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points, float StartReach,
@@ -78,16 +190,16 @@ void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points, float Start
 {
 	for (int32 I = 0; I + 1 < Points.Num(); ++I)
 	{
-		const int32 Index = Segments.Num();
-		FSegment& Segment = Segments.AddDefaulted_GetRef();
+		const int32 Index = Look.Segments.Num();
+		FSegment& Segment = Look.Segments.AddDefaulted_GetRef();
 		Segment.A = FVector2D(Points[I]);
 		Segment.B = FVector2D(Points[I + 1]);
 		Segment.ZA = Points[I].Z;
 		Segment.ZB = Points[I + 1].Z;
 		// Only the run's own two ends are ends. Everywhere else the next segment
 		// carries on and there is nothing to overshoot into.
-		Segment.ReachA = (I == 0) ? StartReach : Road.CutHalfWidth;
-		Segment.ReachB = (I + 2 == Points.Num()) ? EndReach : Road.CutHalfWidth;
+		Segment.ReachA = (I == 0) ? StartReach : Look.Road.CutHalfWidth;
+		Segment.ReachB = (I + 2 == Points.Num()) ? EndReach : Look.Road.CutHalfWidth;
 
 		// No taper along the run. One was tried and removed: the profile is
 		// smoothed with its ends pinned to the raw ground, so a corridor already
@@ -101,15 +213,7 @@ void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points, float Start
 		// ends land in: a query is answered from one bucket and its neighbours,
 		// so a segment crossing a bucket without stopping in it still has to be
 		// listed there.
-		const FVector2D Min = FVector2D::Min(Segment.A, Segment.B) - FVector2D(CellSize, CellSize);
-		const FVector2D Max = FVector2D::Max(Segment.A, Segment.B) + FVector2D(CellSize, CellSize);
-		for (int32 Y = FMath::FloorToInt(Min.Y / CellSize); Y <= FMath::FloorToInt(Max.Y / CellSize); ++Y)
-		{
-			for (int32 X = FMath::FloorToInt(Min.X / CellSize); X <= FMath::FloorToInt(Max.X / CellSize); ++X)
-			{
-				Buckets.FindOrAdd(FIntPoint(X, Y)).Add(Index);
-			}
-		}
+		Look.Index(Index);
 	}
 }
 
@@ -128,7 +232,7 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 
 	for (int32 S = 0; S < 2; ++S)
 	{
-		FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, Chunk, Chunk + Steps[S], Path);
+		FKBVEWorldRoadGraph::RouteEdge(Look.Road, Shape, Seed, Chunk, Chunk + Steps[S], Path);
 		if (Path.Num() < 2)
 		{
 			continue;
@@ -138,7 +242,7 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 		// corridor inherits the ground's own relief and the cut does nothing --
 		// flattening terrain to a profile that already rolls with the terrain
 		// leaves it exactly where it started.
-		for (int32 Pass = 0; Pass < Road.ProfileSmoothPasses; ++Pass)
+		for (int32 Pass = 0; Pass < Look.Road.ProfileSmoothPasses; ++Pass)
 		{
 			// Ends held, exactly as the plan smoothing holds them. Every edge
 			// meeting at a node has to arrive at the same height there, and a
@@ -160,12 +264,12 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 			}
 		}
 
-		Edges.Add(FIntVector(Chunk.X, Chunk.Y, S), Path);
+		Look.Edges.Add(FIntVector(Chunk.X, Chunk.Y, S), Path);
 
 		// A bridged run is not levelled. The deck is there because the ground
 		// falls away, so grading the corridor across it would fill in the river
 		// the bridge was built to cross.
-		FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
+		FKBVEWorldRoadGraph::FindRiverSpans(Look.Road, Shape, Seed, Path, Spans);
 
 		// How far a run may grade out past an abutment, measured against the span
 		// on the other side of it. A fixed reach is fine against a long crossing
@@ -177,7 +281,7 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 		{
 			const FKBVEWorldRoadSpan& Span = Spans[Index];
 			const float Length = FVector::Dist2D(Path[Span.Begin], Path[Span.End]);
-			return FMath::Min(Road.BridgeEndReach, FMath::Max(Length * 0.25f, 1.0f));
+			return FMath::Min(Look.Road.BridgeEndReach, FMath::Max(Length * 0.25f, 1.0f));
 		};
 
 		int32 Cursor = 0;
@@ -192,8 +296,8 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 				// A run that starts after a span, or stops before one, is
 				// meeting a deck rather than continuing into a junction.
 				AddPolyline(Dry,
-					(I > 0) ? CapFor(I - 1) : Road.CutHalfWidth,
-					(I < Spans.Num()) ? CapFor(I) : Road.CutHalfWidth);
+					(I > 0) ? CapFor(I - 1) : Look.Road.CutHalfWidth,
+					(I < Spans.Num()) ? CapFor(I) : Look.Road.CutHalfWidth);
 			}
 			if (I < Spans.Num())
 			{
@@ -205,15 +309,15 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 
 void FKBVEWorldRoadField::EnsureCovers(const FVector2D& Min, const FVector2D& Max) const
 {
-	const float ChunkSize = Road.TilesPerChunk * Road.WorldUnitsPerTile;
+	const float ChunkSize = Look.Road.TilesPerChunk * Look.Road.WorldUnitsPerTile;
 
 	// One chunk of slack each way: an edge is owned by the chunk it starts in but
 	// its corridor bows sideways and ends in the next one, so a node outside the
 	// box can still put road inside it.
-	const int32 MinX = FMath::FloorToInt((Min.X - Road.CutHalfWidth) / ChunkSize) - 1;
-	const int32 MaxX = FMath::FloorToInt((Max.X + Road.CutHalfWidth) / ChunkSize) + 1;
-	const int32 MinY = FMath::FloorToInt((Min.Y - Road.CutHalfWidth) / ChunkSize) - 1;
-	const int32 MaxY = FMath::FloorToInt((Max.Y + Road.CutHalfWidth) / ChunkSize) + 1;
+	const int32 MinX = FMath::FloorToInt((Min.X - Look.Road.CutHalfWidth) / ChunkSize) - 1;
+	const int32 MaxX = FMath::FloorToInt((Max.X + Look.Road.CutHalfWidth) / ChunkSize) + 1;
+	const int32 MinY = FMath::FloorToInt((Min.Y - Look.Road.CutHalfWidth) / ChunkSize) - 1;
+	const int32 MaxY = FMath::FloorToInt((Max.Y + Look.Road.CutHalfWidth) / ChunkSize) + 1;
 
 	for (int32 Y = MinY; Y <= MaxY; ++Y)
 	{
@@ -224,7 +328,7 @@ void FKBVEWorldRoadField::EnsureCovers(const FVector2D& Min, const FVector2D& Ma
 	}
 }
 
-float FKBVEWorldRoadField::SurfaceWeight(float WorldX, float WorldY) const
+float FKBVEWorldRoadLook::SurfaceWeight(float WorldX, float WorldY) const
 {
 	if (Segments.Num() == 0)
 	{
@@ -270,7 +374,7 @@ float FKBVEWorldRoadField::SurfaceWeight(float WorldX, float WorldY) const
 	return Best;
 }
 
-bool FKBVEWorldRoadField::Probe(float WorldX, float WorldY, float& OutDistance, float& OutZ,
+bool FKBVEWorldRoadLook::Probe(float WorldX, float WorldY, float& OutDistance, float& OutZ,
 	float& OutWeight) const
 {
 	OutDistance = TNumericLimits<float>::Max();
@@ -311,7 +415,7 @@ bool FKBVEWorldRoadField::Probe(float WorldX, float WorldY, float& OutDistance, 
 	return OutDistance < TNumericLimits<float>::Max();
 }
 
-float FKBVEWorldRoadField::Level(float Base, float WorldX, float WorldY) const
+float FKBVEWorldRoadLook::Level(float Base, float WorldX, float WorldY) const
 {
 	if (!Road.bCutTerrain || Segments.Num() == 0)
 	{

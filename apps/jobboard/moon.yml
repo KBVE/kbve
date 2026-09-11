@@ -37,11 +37,13 @@ tasks:
         options:
             cache: false
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/jobboard/Dockerfile -t kbve/jobboard:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/jobboard:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/jobboard:buildcache,mode=max -f apps/jobboard/Dockerfile -t ghcr.io/kbve/jobboard:latest -t kbve/jobboard:latest .'
         options:
             runFromWorkspaceRoot: true

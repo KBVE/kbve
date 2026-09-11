@@ -61,6 +61,8 @@ bevy_inventory = { path = "../../../crates/bevy_inventory", default-features = f
 	"bevy",
 ] }
 bevy_skills = { path = "../../../crates/bevy_skills" }
+bevy_pathfinder = { path = "../../../crates/bevy_pathfinder" }
+bevy_behavior = { path = "../../../crates/bevy_behavior" }
 bevy_egui = { workspace = true, features = ["render", "default_fonts"] }
 bevy_gltf = { workspace = true }
 avian3d = { workspace = true, features = [

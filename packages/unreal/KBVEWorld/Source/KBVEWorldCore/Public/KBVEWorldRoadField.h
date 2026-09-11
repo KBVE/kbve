@@ -5,6 +5,83 @@
 #include "KBVEWorldRoadGraph.h"
 
 /**
+ * The part of the road network a query actually reads.
+ *
+ * Split out from the field itself because the field is built lazily and the
+ * queries are not: routing a chunk appends to these containers, and an array
+ * that grows moves, so a worker reading one while the game thread routes
+ * another is reading freed memory. A look is a value -- copy the handful of
+ * corridors that reach a patch and hand that to the worker, and there is
+ * nothing shared left to race on.
+ *
+ * The live field holds one of these and answers out of it, so the snapshot and
+ * the field are not two implementations that have to be kept agreeing. They are
+ * the same code over different data.
+ */
+struct KBVEWORLDCORE_API FKBVEWorldRoadLook
+{
+	struct FSegment
+	{
+		FVector2D A;
+		FVector2D B;
+		float ZA;
+		float ZB;
+		// How far the corridor reaches out past each end. A full corridor width
+		// where the run carries on into a junction, and much less where it stops
+		// at an abutment and the ground beyond it is the river.
+		float ReachA;
+		float ReachB;
+	};
+
+	TArray<FSegment> Segments;
+	TMap<FIntPoint, TArray<int32>> Buckets;
+
+	/**
+	 * The routed centre lines, for whatever lays a surface along them.
+	 *
+	 * Held by the look rather than reached into, because the alternative hands
+	 * out a pointer into a map that rehashes when the next chunk routes. A
+	 * caller that keeps one across a build -- which is what laying a surface
+	 * does -- is holding a pointer the field is free to invalidate.
+	 *
+	 * Keyed (chunk x, chunk y, which of the chunk's two forward edges).
+	 */
+	TMap<FIntVector, TArray<FVector>> Edges;
+
+	FKBVEWorldRoadParams Road;
+	float CellSize = 1.0f;
+
+	/** Ground height levelled toward any corridor over it. Base where there is none. */
+	float Level(float Base, float WorldX, float WorldY) const;
+
+	/** How much of this point is road surface, 0 to 1. */
+	float SurfaceWeight(float WorldX, float WorldY) const;
+
+	/** Nearest corridor to a point: distance, its levelled height, its weight. */
+	bool Probe(float WorldX, float WorldY, float& OutDistance, float& OutZ, float& OutWeight) const;
+
+	/** Half the carriageway width, for callers deciding how finely to sample. */
+	float GetSurfaceHalfWidth() const { return Road.RoadWidth * 0.5f; }
+
+	/** The centre line of one of a chunk's forward edges, if it has one. */
+	const TArray<FVector>* FindEdge(const FIntPoint& Chunk, int32 Step) const;
+
+	/** Put a segment in every cell its corridor can be read from. */
+	void Index(int32 At);
+
+	/**
+	 * Distance to a corridor, with overshoot past a capped end counted at the
+	 * rate that end reaches out at.
+	 *
+	 * Sideways it is the plain distance to the segment. Past an end it is scaled,
+	 * so a tight cap shrinks the corridor along its axis without narrowing it --
+	 * and continuously, since the scaling only applies to overshoot, which is
+	 * zero at the end itself.
+	 */
+	float CorridorDistance(const FVector2D& P, const FSegment& Segment, float& OutT) const;
+};
+
+/**
  * The road network as a field the ground can be levelled against.
  *
  * Roads are graded into the terrain rather than laid on top of it, for two
@@ -59,7 +136,22 @@ public:
 	float SurfaceWeight(float WorldX, float WorldY) const;
 
 	/** Half the carriageway width, for callers deciding how finely to sample. */
-	float GetSurfaceHalfWidth() const { return Road.RoadWidth * 0.5f; }
+	float GetSurfaceHalfWidth() const { return Look.Road.RoadWidth * 0.5f; }
+
+	/**
+	 * Everything a patch over this box can read, as a value it owns.
+	 *
+	 * Routing has to have happened first -- this copies what is there, it does
+	 * not build what is missing -- so the caller covers the box and then takes
+	 * the look, on the thread that owns the field. What comes back shares
+	 * nothing with it and outlives any further routing, which is what lets the
+	 * patch be built somewhere else.
+	 *
+	 * Bounded by what is near the box rather than by how far the world has been
+	 * explored: a corridor twenty chunks away is in the field and is not in
+	 * this.
+	 */
+	FKBVEWorldRoadLook LookOver(const FVector2D& Min, const FVector2D& Max) const;
 
 	/** Nearest corridor to a point: distance, its levelled height, its weight. */
 	bool Probe(float WorldX, float WorldY, float& OutDistance, float& OutZ, float& OutWeight) const;
@@ -67,47 +159,25 @@ public:
 	bool Matches(const FKBVEWorldRoadParams& InRoad, int32 InSeed) const;
 
 private:
-	struct FSegment
-	{
-		FVector2D A;
-		FVector2D B;
-		float ZA;
-		float ZB;
-		// How far the corridor reaches out past each end. A full corridor width
-		// where the run carries on into a junction, and much less where it stops
-		// at an abutment and the ground beyond it is the river.
-		float ReachA;
-		float ReachB;
-	};
+	using FSegment = FKBVEWorldRoadLook::FSegment;
 
 	void RouteChunk(const FIntPoint& Chunk) const;
 	// Reaches are world units, not flags: a cap has to be small against the span
 	// it abuts, and the spans differ by an order of magnitude across a network.
 	void AddPolyline(const TArray<FVector>& Points, float StartReach, float EndReach) const;
 
-	/**
-	 * Distance to a corridor, with overshoot past a capped end counted at the
-	 * rate that end reaches out at.
-	 *
-	 * Sideways it is the plain distance to the segment. Past an end it is scaled,
-	 * so a tight cap shrinks the corridor along its axis without narrowing it --
-	 * and continuously, since the scaling only applies to overshoot, which is
-	 * zero at the end itself.
-	 */
-	float CorridorDistance(const FVector2D& P, const FSegment& Segment, float& OutT) const;
-
-	FKBVEWorldRoadParams Road;
 	FKBVEWorldHeightfieldParams Shape;
 	int32 Seed;
-	float CellSize;
+
+	// The corridors themselves, and the only thing a query reads. Mutable for
+	// the same reason the rest of this is: a patch asking about ground nobody
+	// has routed yet is what builds it.
+	mutable FKBVEWorldRoadLook Look;
 
 	// Built on demand as patches ask about ground the field has not seen yet, so
 	// an edge is routed once for the whole window rather than once per patch that
 	// happens to touch it -- which at nine chunk-pairs per patch and a Viterbi
 	// pass each was the whole cost of this.
 	// Keyed (chunk x, chunk y, which of the chunk's two forward edges).
-	mutable TMap<FIntVector, TArray<FVector>> Edges;
 	mutable TSet<FIntPoint> Routed;
-	mutable TArray<FSegment> Segments;
-	mutable TMap<FIntPoint, TArray<int32>> Buckets;
 };

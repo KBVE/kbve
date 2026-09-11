@@ -12,6 +12,14 @@ metadata:
         fluentd.alpha.kubernetes.io/exclude: 'false'
 spec:
     replicas: 1
+    # ergo-data-pvc is ReadWriteOnce and the datastore is a single-writer file
+    # (/ircd/db/ircd.db). A rolling update would start the replacement before
+    # terminating the incumbent, and the new pod cannot attach a volume the old
+    # one still holds -- it sits in ContainerCreating on a multi-attach error
+    # until something gives. Recreate takes the brief outage instead, which is
+    # what every other PVC-backed deployment here already does.
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
             app: ergo-irc
@@ -24,7 +32,14 @@ spec:
         spec:
             containers:
                 - name: ergo
-                  image: ghcr.io/ergochat/ergo:stable
+                  # Pinned, not `:stable`. A floating tag plus the default
+                  # IfNotPresent pull means the running version is whatever was
+                  # cached on the node that happened to schedule the pod: the
+                  # bridge doc recorded ergo-2.18.0 live while `:stable` upstream
+                  # had already moved to 2.19.1, so any reschedule was an
+                  # unannounced two-minor jump. Upgrades belong in a commit.
+                  image: ghcr.io/ergochat/ergo:v2.19.1@sha256:ef885e44f7fa19101bbbc41baef11dc280dc8107465dccaf6f0860f41b48a682
+                  imagePullPolicy: IfNotPresent
                   ports:
                       - containerPort: 6667
                         name: irc

@@ -24,11 +24,13 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/cryptothrone/api/Dockerfile -t kbve/cryptothrone:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max -f apps/cryptothrone/api/Dockerfile -t ghcr.io/kbve/cryptothrone:latest -t kbve/cryptothrone:latest .'
         options:
             runFromWorkspaceRoot: true

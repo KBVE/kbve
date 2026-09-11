@@ -1,5 +1,7 @@
 #include "KBVEWorldHeightfieldActor.h"
 
+#include "KBVEWorldPatch.h"
+
 #include "Async/ParallelFor.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldRoadField.h"
@@ -28,249 +30,169 @@ AKBVEWorldHeightfieldActor::AKBVEWorldHeightfieldActor()
 	CollisionMesh->SetVisibility(false);
 }
 
-void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, int32 InStep, bool bCollision)
+bool AKBVEWorldHeightfieldActor::PlanSection(int32 InStep, bool bCollision,
+	FKBVEWorldPatchPlan& Plan) const
+{
+	Plan = FKBVEWorldPatchPlan();
+	Plan.Shape = Shape;
+	Plan.TileOrigin = TileOrigin;
+	Plan.CellsPerEdge = CellsPerEdge;
+	Plan.CellSize = CellSize;
+	Plan.WorldSeed = WorldSeed;
+	Plan.Step = InStep;
+	Plan.SkirtDepth = SkirtDepth;
+	Plan.bCollision = bCollision;
+
+	// Routed here, where the field lives, and then copied. Level only reads the
+	// corridors, but routing builds them lazily into caches that are not
+	// guarded, so the routing has to be finished before the reading is handed
+	// anywhere else -- and once it is a look, it cannot be caught mid-route at
+	// all.
+	if (RoadField)
+	{
+		const int32 Step = FMath::Clamp(InStep, 1, FMath::Max(1, CellsPerEdge / 4));
+		const float VertexSize = CellSize * Step;
+		const int32 PadEdge = (CellsPerEdge / Step) + 3;
+		const float TileStep = VertexSize / 100.0f;
+		const float PadOrigin = -TileStep * 100.0f;
+
+		const FVector2D Min(TileOrigin.X * 100.0f + PadOrigin, TileOrigin.Y * 100.0f + PadOrigin);
+		const FVector2D Max = Min + FVector2D(PadEdge * VertexSize, PadEdge * VertexSize);
+
+		RoadField->EnsureCovers(Min, Max);
+		Plan.Road = RoadField->LookOver(Min, Max);
+		Plan.bHasRoad = true;
+	}
+
+	return true;
+}
+
+void AKBVEWorldHeightfieldActor::Commit(UProceduralMeshComponent* Target,
+	const FKBVEWorldPatchMesh& Patch, bool bCollision)
 {
 	if (!Target)
 	{
 		return;
 	}
 
-	// Stride never divides the patch into fewer than four quads; past that the
-	// patch stops describing the ground at all and the skirt does the work.
-	const double GenerateStart = FPlatformTime::Seconds();
-	const int32 Step = FMath::Clamp(InStep, 1, FMath::Max(1, CellsPerEdge / 4));
-	const int32 Quads = CellsPerEdge / Step;
-	const int32 Edge = Quads + 1;
-	const int32 GridCount = Edge * Edge;
-	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(WorldSeed);
-	const float VertexSize = CellSize * Step;
-	const float TileStep = VertexSize / 100.0f;
-
-	// Sampled one ring wider than the patch. Normals come from central
-	// differences, so an edge vertex needs the height of its neighbour in the
-	// next patch over -- without that ring the difference is clamped at the
-	// border and adjacent patches disagree about the surface, which shows up as
-	// a lit seam along every chunk boundary.
-	const int32 PadEdge = Edge + 2;
-
-	// Generated once per stride and kept. The collision proxy asks for the same
-	// stride as the drawn surface on every patch that carries collision, and the
-	// heights it wants are the heights already computed -- it differs in its
-	// skirts and its vertex colours, not in its ground.
-	if (CachedPaddedStep != Step || CachedPadded.Num() != PadEdge * PadEdge)
-	{
-		CachedPadded.SetNumUninitialized(PadEdge * PadEdge);
-		FKBVEWorldHeightfield::FillGrid(Shape, Seed,
-			TileOrigin.X - TileStep, TileOrigin.Y - TileStep, TileStep, PadEdge, CachedPadded);
-
-		// Applied over the padded grid, before normals are taken from it, so the
-		// cutting is lit as the shape it is rather than as the ground it replaced --
-		// and so the ring shared with the next patch is levelled identically on both
-		// sides and no seam opens along a road that crosses a chunk boundary.
-		if (RoadField)
-		{
-			const float PadOrigin = -TileStep * 100.0f;
-			const FVector2D Min(TileOrigin.X * 100.0f + PadOrigin, TileOrigin.Y * 100.0f + PadOrigin);
-			const FVector2D Max = Min + FVector2D(PadEdge * VertexSize, PadEdge * VertexSize);
-			// Routed first, on this thread. Level only reads the corridors, but
-			// EnsureCovers builds them lazily into caches that are not guarded --
-			// so the routing has to be finished before any of this is spread out.
-			RoadField->EnsureCovers(Min, Max);
-
-			const FKBVEWorldRoadField* Field = RoadField;
-			float* const Heights = CachedPadded.GetData();
-
-			ParallelFor(PadEdge, [Field, Heights, Min, VertexSize, PadEdge](int32 Y)
-			{
-				const float Wy = Min.Y + Y * VertexSize;
-				float* Row = Heights + Y * PadEdge;
-				for (int32 X = 0; X < PadEdge; ++X)
-				{
-					Row[X] = Field->Level(Row[X], Min.X + X * VertexSize, Wy);
-				}
-			}, PadEdge >= 64 ? EParallelForFlags::None : EParallelForFlags::ForceSingleThread);
-		}
-
-		CachedPaddedStep = Step;
-		LastFillMs += static_cast<float>((FPlatformTime::Seconds() - GenerateStart) * 1000.0);
-	}
-
-	const TArray<float>& Padded = CachedPadded;
-
-	auto PaddedAt = [&Padded, PadEdge](int32 X, int32 Y) -> float
-	{
-		return Padded[(Y + 1) * PadEdge + (X + 1)];
-	};
-
-	// Skirts hide LOD cracks visually. As collision they are 400 uu walls at
-	// every chunk boundary -- invisible geometry a capsule snags on and a camera
-	// probe collides with -- so the proxy gets the surface and nothing else.
-	const bool bSkirt = !bCollision && SkirtDepth > KINDA_SMALL_NUMBER;
-	const int32 SkirtCount = bSkirt ? 4 * Quads : 0;
-	const int32 VertCount = GridCount + SkirtCount;
-
-	TArray<FVector> Vertices;
-	TArray<FVector2D> UVs;
-	TArray<FVector> Normals;
-	TArray<FLinearColor> Colors;
-	Vertices.SetNumUninitialized(VertCount);
-	UVs.SetNumUninitialized(VertCount);
-	Normals.SetNumUninitialized(VertCount);
-	Colors.SetNumUninitialized(VertCount);
-
-	const FVector2D PatchOrigin = TileOrigin * 100.0f;
-	const float Road2Width = RoadField ? RoadField->GetSurfaceHalfWidth() : 0.0f;
-
-	for (int32 Y = 0; Y < Edge; ++Y)
-	{
-		for (int32 X = 0; X < Edge; ++X)
-		{
-			const int32 I = Y * Edge + X;
-			Vertices[I] = FVector(X * VertexSize, Y * VertexSize, PaddedAt(X, Y));
-			UVs[I] = FVector2D(static_cast<float>(X * Step), static_cast<float>(Y * Step));
-
-			// Red is road. The material blends the road surface in against it,
-			// so the road is these triangles rather than a second set above them.
-			float Road = 0.0f;
-			if (RoadField)
-			{
-				const float Wx = PatchOrigin.X + X * VertexSize;
-				const float Wy = PatchOrigin.Y + Y * VertexSize;
-
-				// Sampled across the vertex's own cell, not just at the point.
-				// A distant patch has vertices further apart than the road is
-				// wide, and a road that passes between two of them would be
-				// painted onto neither -- so it would fade out with distance
-				// while the cutting it sits in stayed.
-				const float Reach = VertexSize * 0.4f;
-				Road = RoadField->SurfaceWeight(Wx, Wy);
-
-				// Only where the vertices are further apart than the road is
-				// wide. A near patch samples finely enough that one query per
-				// vertex already resolves the road, and these are the patches
-				// with the vertices to spare -- paying five queries each there
-				// was most of the cost of painting.
-				if (VertexSize > Road2Width)
-				{
-					Road = FMath::Max(Road, RoadField->SurfaceWeight(Wx - Reach, Wy));
-					Road = FMath::Max(Road, RoadField->SurfaceWeight(Wx + Reach, Wy));
-					Road = FMath::Max(Road, RoadField->SurfaceWeight(Wx, Wy - Reach));
-					Road = FMath::Max(Road, RoadField->SurfaceWeight(Wx, Wy + Reach));
-				}
-			}
-			Colors[I] = FLinearColor(Road, 0.0f, 0.0f, 1.0f);
-		}
-	}
-
-	// Central differences over the height grid rather than accumulating face
-	// normals: the grid is regular, so the analytic normal is both cheaper and
-	// free of the artefacts averaged face normals leave at patch edges.
-	const float TwoSamples = 2.0f * VertexSize;
-	for (int32 Y = 0; Y < Edge; ++Y)
-	{
-		for (int32 X = 0; X < Edge; ++X)
-		{
-			const float DX = (PaddedAt(X + 1, Y) - PaddedAt(X - 1, Y)) / TwoSamples;
-			const float DY = (PaddedAt(X, Y + 1) - PaddedAt(X, Y - 1)) / TwoSamples;
-			Normals[Y * Edge + X] = FVector(-DX, -DY, 1.0f).GetSafeNormal();
-		}
-	}
-
-	TArray<int32> Triangles;
-	Triangles.Reserve(Quads * Quads * 6 + SkirtCount * 6);
-	for (int32 Y = 0; Y < Quads; ++Y)
-	{
-		for (int32 X = 0; X < Quads; ++X)
-		{
-			const int32 I = Y * Edge + X;
-			Triangles.Add(I);
-			Triangles.Add(I + Edge);
-			Triangles.Add(I + Edge + 1);
-			Triangles.Add(I);
-			Triangles.Add(I + Edge + 1);
-			Triangles.Add(I + 1);
-		}
-	}
-
-	if (bSkirt)
-	{
-		// One dropped vertex per border edge start, walked as four runs so the
-		// wall is continuous around the patch. Each run emits its quad against
-		// the next border vertex, which the run's own ordering keeps wound
-		// outward.
-		int32 Next = GridCount;
-		auto AddSkirtRun = [&](TFunctionRef<int32(int32)> BorderIndex, bool bFlip)
-		{
-			for (int32 K = 0; K < Quads; ++K)
-			{
-				const int32 A = BorderIndex(K);
-				const int32 B = BorderIndex(K + 1);
-				const int32 DownA = Next++;
-				Vertices[DownA] = Vertices[A] - FVector(0.0f, 0.0f, SkirtDepth);
-				UVs[DownA] = UVs[A];
-				Normals[DownA] = Normals[A];
-				Colors[DownA] = Colors[A];
-
-				// The second dropped vertex is shared with the next iteration's
-				// A only at the run's end, so emit it per quad and let the
-				// duplicate cost stand -- it is 4 * Quads vertices, not a mesh.
-				const int32 DownB = Next++;
-				Vertices[DownB] = Vertices[B] - FVector(0.0f, 0.0f, SkirtDepth);
-				UVs[DownB] = UVs[B];
-				Normals[DownB] = Normals[B];
-				Colors[DownB] = Colors[B];
-
-				if (bFlip)
-				{
-					Triangles.Add(A); Triangles.Add(DownB); Triangles.Add(DownA);
-					Triangles.Add(A); Triangles.Add(B); Triangles.Add(DownB);
-				}
-				else
-				{
-					Triangles.Add(A); Triangles.Add(DownA); Triangles.Add(DownB);
-					Triangles.Add(A); Triangles.Add(DownB); Triangles.Add(B);
-				}
-			}
-		};
-
-		// Each run consumes two vertices per quad, so the four runs together
-		// need 8 * Quads slots; size the array to match before writing.
-		Vertices.SetNumUninitialized(GridCount + 8 * Quads);
-		UVs.SetNumUninitialized(GridCount + 8 * Quads);
-		Normals.SetNumUninitialized(GridCount + 8 * Quads);
-		Colors.SetNumUninitialized(GridCount + 8 * Quads);
-
-		AddSkirtRun([Edge](int32 K) { return K; }, false);                          // Y = 0
-		AddSkirtRun([Edge, Quads](int32 K) { return Quads * Edge + K; }, true);     // Y = max
-		AddSkirtRun([Edge](int32 K) { return K * Edge; }, true);                    // X = 0
-		AddSkirtRun([Edge, Quads](int32 K) { return K * Edge + Quads; }, false);    // X = max
-	}
-
-	// The ground material samples by world XY, so the tangent that matches how
-	// the normal map is actually being read is world +X projected onto the
-	// surface. Leaving tangents empty leaves the normal map with no basis at
-	// all, which is what makes lit detail invert as the camera swings around.
-	TArray<FProcMeshTangent> Tangents;
-	Tangents.SetNumUninitialized(Vertices.Num());
-	for (int32 I = 0; I < Vertices.Num(); ++I)
-	{
-		const FVector& N = Normals[I];
-		const FVector Tangent = (FVector::XAxisVector - N * (N | FVector::XAxisVector)).GetSafeNormal();
-		Tangents[I] = FProcMeshTangent(Tangent, false);
-	}
-
-	LastGenerateMs += static_cast<float>((FPlatformTime::Seconds() - GenerateStart) * 1000.0);
+	LastFillMs += Patch.FillMs;
+	LastGenerateMs += Patch.GenerateMs;
 
 	const double SectionStart = FPlatformTime::Seconds();
 	Target->ClearAllMeshSections();
-	Target->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, Colors, Tangents,
-		bCollision);
+	Target->CreateMeshSection_LinearColor(0, Patch.Vertices, Patch.Triangles, Patch.Normals,
+		Patch.UVs, Patch.Colors, Patch.Tangents, bCollision);
 	LastSectionMs += static_cast<float>((FPlatformTime::Seconds() - SectionStart) * 1000.0);
 
 	if (TerrainMaterial && !bCollision)
 	{
 		Target->SetMaterial(0, TerrainMaterial);
 	}
+}
+
+void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, int32 InStep,
+	bool bCollision)
+{
+	if (!Target)
+	{
+		return;
+	}
+
+	FKBVEWorldPatchPlan Plan;
+	if (!PlanSection(InStep, bCollision, Plan))
+	{
+		return;
+	}
+
+	FKBVEWorldPatchMesh Patch;
+	FKBVEWorldPatchPlan::Build(Plan, CachedPadded, bCachedPaddedValid, Patch);
+	Commit(Target, Patch, bCollision);
+}
+
+namespace
+{
+	/**
+	 * Build patches off the game thread.
+	 *
+	 * Off by default, and deliberately: what it changes is when a patch appears,
+	 * and a patch that appears a frame later is a hole in the ground for a
+	 * frame. Whether that is worth the ten milliseconds it takes off the frame
+	 * is a thing to look at rather than to assume.
+	 */
+	TAutoConsoleVariable<int32> GKBVEWorldAsyncPatchCVar(
+		TEXT("kbve.World.AsyncPatch"), 0,
+		TEXT("Build terrain patches on a worker thread and commit them when they land."),
+		ECVF_Default);
+}
+
+void AKBVEWorldHeightfieldActor::RebuildAsync()
+{
+	// Planned here, where the road field lives and where routing happens. What
+	// crosses to the worker is a plan that owns everything it reads.
+	FKBVEWorldPatchPlan Draw;
+	const bool bDraw = PlanSection(LODStep, false, Draw);
+
+	FKBVEWorldPatchPlan Collide;
+	const bool bCollide = CollisionMesh && bGenerateCollision
+		&& PlanSection(FMath::Max(LODStep, CollisionLODStep), true, Collide);
+
+	if (CollisionMesh && !bGenerateCollision)
+	{
+		CollisionMesh->ClearAllMeshSections();
+	}
+
+	if (!bDraw && !bCollide)
+	{
+		return;
+	}
+
+	const uint32 Mine = ++Serial;
+	TWeakObjectPtr<AKBVEWorldHeightfieldActor> Held(this);
+
+	Async(EAsyncExecution::ThreadPool, [Held, Mine, Draw, Collide, bDraw, bCollide]()
+	{
+		// The worker's own scratch. The two sections share it the way the
+		// synchronous path does -- the collision proxy asks for heights the
+		// drawn surface has usually already computed -- and it belongs to this
+		// job alone, so two patches building at once cannot meet in it.
+		TArray<float> Padded;
+		bool bValid = false;
+
+		TSharedPtr<FKBVEWorldPatchMesh> DrawMesh;
+		if (bDraw)
+		{
+			DrawMesh = MakeShared<FKBVEWorldPatchMesh>();
+			FKBVEWorldPatchPlan::Build(Draw, Padded, bValid, *DrawMesh);
+		}
+
+		TSharedPtr<FKBVEWorldPatchMesh> CollideMesh;
+		if (bCollide)
+		{
+			CollideMesh = MakeShared<FKBVEWorldPatchMesh>();
+			FKBVEWorldPatchPlan::Build(Collide, Padded, bValid, *CollideMesh);
+		}
+
+		AsyncTask(ENamedThreads::GameThread, [Held, Mine, DrawMesh, CollideMesh]()
+		{
+			AKBVEWorldHeightfieldActor* Patch = Held.Get();
+			if (!Patch || Patch->Serial != Mine)
+			{
+				// The patch was recycled to another coordinate while this was in
+				// flight. Its ground is somewhere else now and this is the ground
+				// it used to be on.
+				return;
+			}
+
+			if (DrawMesh.IsValid())
+			{
+				Patch->Commit(Patch->Mesh, *DrawMesh, false);
+			}
+			if (CollideMesh.IsValid())
+			{
+				Patch->Commit(Patch->CollisionMesh, *CollideMesh, true);
+			}
+		});
+	});
 }
 
 void AKBVEWorldHeightfieldActor::Rebuild()
@@ -282,7 +204,16 @@ void AKBVEWorldHeightfieldActor::Rebuild()
 	const double RebuildStart = FPlatformTime::Seconds();
 
 	// A pooled patch arrives with the last coordinate's heights still cached.
-	CachedPaddedStep = 0;
+	bCachedPaddedValid = false;
+
+	if (GKBVEWorldAsyncPatchCVar.GetValueOnGameThread() != 0)
+	{
+		RebuildAsync();
+		LastRebuildMs = static_cast<float>((FPlatformTime::Seconds() - RebuildStart) * 1000.0);
+		return;
+	}
+
+	++Serial;
 
 	BuildSection(Mesh, LODStep, false);
 

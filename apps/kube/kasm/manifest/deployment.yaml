@@ -13,7 +13,15 @@ metadata:
     annotations:
         secret.reloader.stakater.com/reload: vpn-wireguard-kasm
 spec:
+    # replicas stays 0 here on purpose -- the live pod is scaled up out of band
+    # and the Application ignores /spec/replicas. This only sets the strategy:
+    # kasm-discord-profile is ReadWriteOnce, so a rolling update would leave the
+    # replacement stuck on a multi-attach error while the incumbent holds the
+    # volume. Changing the strategy does not touch the pod template, so nothing
+    # restarts and the logged-in Discord session survives.
     replicas: 0
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
             app: kasm-vpn

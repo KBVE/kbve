@@ -6,11 +6,13 @@ tags: ['rust', 'docker']
 
 tasks:
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/agones/factorio/relay/Dockerfile -t kbve/agones-factorio-relay:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/agones-factorio-relay:buildcache,mode=max -f apps/agones/factorio/relay/Dockerfile -t ghcr.io/kbve/agones-factorio-relay:latest -t kbve/agones-factorio-relay:latest .'
         options:
             runFromWorkspaceRoot: true

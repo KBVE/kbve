@@ -12,6 +12,7 @@ tasks:
     # The registry build, which is CI's. It loads rather than pushing -- the
     # workflow pushes afterwards -- but carries the buildcache and the ghcr tag.
     containerx-publish:
+        deps: ['protobuf:build']
         script: >-
             docker buildx build --load
             --cache-from=type=registry,ref=ghcr.io/kbve/metrics:buildcache
@@ -28,6 +29,7 @@ tasks:
     # The local build. `container` above tags it kbve/metrics; this is the same
     # image under the name the containerx target used.
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/metrics:latest .'
         options:
             runFromWorkspaceRoot: true
