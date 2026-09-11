@@ -20,11 +20,13 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/kbve/axum-kbve/Dockerfile -t kbve/kbve:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max -f apps/kbve/axum-kbve/Dockerfile -t ghcr.io/kbve/kbve:latest -t kbve/kbve:latest .'
         options:
             runFromWorkspaceRoot: true

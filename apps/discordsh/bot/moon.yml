@@ -6,6 +6,7 @@ tags: ['rust', 'docker']
 
 tasks:
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot:latest .'
         inputs:
             - '**/*'
@@ -14,6 +15,7 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --push -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot:latest -t ghcr.io/kbve/discordsh-bot:latest .'
         inputs:
             - '**/*'

@@ -20,11 +20,13 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/herbmail/api/Dockerfile -t kbve/herbmail:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/herbmail:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max -f apps/herbmail/api/Dockerfile -t ghcr.io/kbve/herbmail:latest -t kbve/herbmail:latest .'
         options:
             runFromWorkspaceRoot: true

@@ -45,6 +45,7 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/discordsh:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max -f apps/discordsh/api/Dockerfile -t ghcr.io/kbve/discordsh:latest -t kbve/discordsh:latest .'
         inputs:
             - '**/*'
