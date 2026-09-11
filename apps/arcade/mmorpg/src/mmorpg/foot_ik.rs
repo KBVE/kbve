@@ -410,17 +410,20 @@ impl Trace {
     }
 }
 
+/// One traced character: its cadence, lower body, placement, and the intent and gaze it may carry.
+type Traced = (
+    Entity,
+    &'static Cadence,
+    &'static LowerBody,
+    &'static GlobalTransform,
+    Option<&'static super::character::MoveIntent>,
+    Option<&'static super::gaze::Gaze>,
+);
+
 fn trace_pose(
     trace: Res<Trace>,
     time: Res<Time>,
-    characters: Query<(
-        Entity,
-        &Cadence,
-        &LowerBody,
-        &GlobalTransform,
-        Option<&super::character::MoveIntent>,
-        Option<&super::gaze::Gaze>,
-    )>,
+    characters: Query<Traced>,
     goals: Query<(&FootGoal, &IkLimbBones, &IkLimb)>,
     globals: Query<&GlobalTransform>,
 ) {

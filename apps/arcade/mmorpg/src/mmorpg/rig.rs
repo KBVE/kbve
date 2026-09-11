@@ -691,6 +691,7 @@ impl PoseClip {
     }
 
     /// The frame in `lo..hi` whose legs, and where they are `step` frames on, best match `now` and `ahead`, with the root speed weighed against `speed` so a braking frame is not matched at full pace; returns the frame and its cost.
+    #[allow(clippy::too_many_arguments)]
     pub fn match_frame(
         &self,
         lo: usize,
@@ -938,8 +939,10 @@ impl Cursor<'_> {
     fn i16s(&mut self, n: usize) -> Result<impl Iterator<Item = f32> + '_, RigError> {
         Ok(self
             .take(2 * n)?
-            .chunks_exact(2)
-            .map(|c| i16::from_le_bytes([c[0], c[1]]) as f32 / 32767.0))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| i16::from_le_bytes(*c) as f32 / 32767.0))
     }
 
     fn string(&mut self) -> Result<String, RigError> {
@@ -980,11 +983,18 @@ fn decode_pose_bin(bytes: &[u8]) -> Result<PoseSet, RigError> {
             let pelvis = (c.f32()?, c.f32()?, c.f32()?);
             let rot: Vec<f32> = c.i16s(4 * n)?.collect();
             let rotations = rot
-                .chunks_exact(4)
+                .as_chunks::<4>()
+                .0
+                .iter()
                 .map(|q| (q[0], q[1], q[2], q[3]))
                 .collect();
             let dir: Vec<f32> = c.i16s(3 * n)?.collect();
-            let directions = dir.chunks_exact(3).map(|d| (d[0], d[1], d[2])).collect();
+            let directions = dir
+                .as_chunks::<3>()
+                .0
+                .iter()
+                .map(|d| (d[0], d[1], d[2]))
+                .collect();
             let contact = c.u8()?;
             frames.push(PoseFrame {
                 root,
