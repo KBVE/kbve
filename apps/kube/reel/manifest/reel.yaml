@@ -17,6 +17,10 @@ metadata:
     namespace: reel
 spec:
     replicas: 1
+    # reel-data is ReadWriteOnce; see the note on ergo-irc. A rolling update
+    # deadlocks on the volume rather than rolling.
+    strategy:
+        type: Recreate
     selector:
         matchLabels: { app: reel }
     template:
