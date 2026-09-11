@@ -584,6 +584,18 @@ public:
 	TObjectPtr<UMaterialInterface> IvyStemMaterial;
 
 	/**
+	 * How far out the leaves are drawn, as a share of everything else.
+	 *
+	 * A pier has a silhouette worth keeping to the edge of the view; a leaf is a
+	 * few pixels well before that, and there are thousands of them for every
+	 * pier. Dropping them earlier than the wall they are on is the cheapest
+	 * saving the ivy has, and the wall is what reads at distance anyway.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Foliage",
+		meta = (ClampMin = "0.05", ClampMax = "1.0"))
+	float IvyDrawShare = 0.6f;
+
+	/**
 	 * Throw the world's chunks away and build them again.
 	 *
 	 * Every number the roads, the fences, the villages and their ivy are grown
