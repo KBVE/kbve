@@ -12,7 +12,7 @@
 //
 // Canopies are a stack of up to 6 overlapping blobs (first two always
 // present). Colouring mirrors the 3-zone scheme used by the isometric
-// trees (apps/kbve/isometric/src-tauri/src/game/trees.rs push_dome):
+// trees (apps/arcade/isometric/src-tauri/src/game/trees.rs push_dome):
 // the top of each blob picks up the light tone, the middle stays mid,
 // the underside falls to the dark tone, and blob 0 gets a single
 // sun-cap highlight offset up-left so every tree has one readable

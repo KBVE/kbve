@@ -19,7 +19,7 @@ members = [
 	'apps/rows',
 	'apps/jobboard',
 	'apps/metrics',
-	'apps/kbve/isometric/src-tauri',
+	'apps/arcade/isometric/src-tauri',
 	'apps/vm/firecracker-ctl',
 	'apps/vm/factorio-ctl',
 	'apps/vm/kubectl',

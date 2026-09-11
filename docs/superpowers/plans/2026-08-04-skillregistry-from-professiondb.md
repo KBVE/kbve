@@ -24,7 +24,7 @@
 - `bevy_items::profession` (`packages/rust/bevy/bevy_items/src/profession.rs`): `ProfessionInfo{ r#ref:String, name:String, category:String, emoji:Option<String>, max_level:u32 }`; `ProfessionDb::professions(&self) -> &[ProfessionInfo]` (public accessor; the Vec itself is private); `from_json(&str)->Result<Self,_>`; module singleton `get_profession_db()->Option<&'static ProfessionDb>`.
 - Dep direction: `bevy_skills` and `bevy_items` are independent leaves — neither deps the other. Adding `bevy_skills → bevy_items` creates NO cycle.
 - axum `apps/kbve/axum-kbve/src/gameserver/mod.rs`: `register_server_skills` (L226-253) hardcodes 3 `SkillDef`s and ignores `ProfessionDb`; `load_server_professiondb()` runs synchronously at app-build BEFORE any Startup system, so `get_profession_db()` IS populated when `register_server_skills` runs; wiring at L874-881 (`add_systems(Startup, register_server_skills)` + `validate_professiondb_skills.after(...)`). Imports already include `get_profession_db`, `SkillDef`, `SkillRegistry`.
-- isometric `apps/kbve/isometric/src-tauri/src/game/skills.rs`: ALREADY sources from professiondb — `register_skills` (L52+) loops `db.professions()` building `SkillDef{ ref, name, category, icon:emoji, xp_curve:None }` with a hardcoded-3 fallback; `load_baked_professiondb` runs `.before(register_skills)`. This inline loop is the reference mapping to lift into the shared method.
+- isometric `apps/arcade/isometric/src-tauri/src/game/skills.rs`: ALREADY sources from professiondb — `register_skills` (L52+) loops `db.professions()` building `SkillDef{ ref, name, category, icon:emoji, xp_curve:None }` with a hardcoded-3 fallback; `load_baked_professiondb` runs `.before(register_skills)`. This inline loop is the reference mapping to lift into the shared method.
 - Read call-sites (`id_for_ref`, `get`, `xp_curve`) in axum/isometric/`bevy_skills::systems` touch only reads — population change is safe for them.
 
 ---
@@ -116,7 +116,7 @@ git commit -m "refactor(axum): source server skills from professiondb, drop hard
 ## Task 3: isometric uses the shared builder
 
 **Files:**
-- Modify: `apps/kbve/isometric/src-tauri/src/game/skills.rs`
+- Modify: `apps/arcade/isometric/src-tauri/src/game/skills.rs`
 
 - [ ] **Step 1:** Replace the inline `for profession in db.professions() { registry.register(SkillDef{...}) }` loop AND the hardcoded fallback `for (r#ref,name) in [...] { registry.register(...) }` in `register_skills` with the shared methods:
 ```rust
@@ -132,11 +132,11 @@ fn register_skills(mut registry: ResMut<SkillRegistry>) {
 ```
 Preserve the existing `info!`/`warn!` logging intent. Remove any now-unused imports (`SkillDef` if no longer referenced in the file — check `notify_level_ups`/others first).
 
-- [ ] **Step 2: Compile.** Determine isometric's Tauri Rust crate/package name (`grep -m1 "^name" apps/kbve/isometric/src-tauri/Cargo.toml`), then `cargo check -p <that-name>` (or the appropriate nx target if one exists, e.g. `nx run isometric:check-*`). Passes, no new warnings.
+- [ ] **Step 2: Compile.** Determine isometric's Tauri Rust crate/package name (`grep -m1 "^name" apps/arcade/isometric/src-tauri/Cargo.toml`), then `cargo check -p <that-name>` (or the appropriate nx target if one exists, e.g. `nx run isometric:check-*`). Passes, no new warnings.
 
 - [ ] **Step 3: Commit.**
 ```bash
-git add apps/kbve/isometric/src-tauri/src/game/skills.rs
+git add apps/arcade/isometric/src-tauri/src/game/skills.rs
 git commit -m "refactor(isometric): use shared professiondb skill builder"
 ```
 
