@@ -12,6 +12,14 @@ metadata:
         fluentd.alpha.kubernetes.io/exclude: 'false'
 spec:
     replicas: 1
+    # ergo-data-pvc is ReadWriteOnce and the datastore is a single-writer file
+    # (/ircd/db/ircd.db). A rolling update would start the replacement before
+    # terminating the incumbent, and the new pod cannot attach a volume the old
+    # one still holds -- it sits in ContainerCreating on a multi-attach error
+    # until something gives. Recreate takes the brief outage instead, which is
+    # what every other PVC-backed deployment here already does.
+    strategy:
+        type: Recreate
     selector:
         matchLabels:
             app: ergo-irc
