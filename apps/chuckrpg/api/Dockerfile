@@ -80,6 +80,7 @@ COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY crates/bevy_kbve_net/Cargo.toml crates/bevy_kbve_net/Cargo.toml
 COPY crates/bevy_npc/Cargo.toml crates/bevy_npc/Cargo.toml
 # bevy_kbve_net carries an optional path dep on bevy_tasker behind the
@@ -95,6 +96,7 @@ RUN mkdir -p apps/chuckrpg/api/src && echo "fn main() {}" > apps/chuckrpg/api/sr
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
     mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs && \
     mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/bevy_supa/src && echo "" > crates/bevy_supa/src/lib.rs && \
     mkdir -p crates/bevy_kbve_net/src && echo "" > crates/bevy_kbve_net/src/lib.rs && \
     mkdir -p crates/bevy_npc/src && echo "" > crates/bevy_npc/src/lib.rs && \
     mkdir -p crates/bevy_tasker/src && echo "" > crates/bevy_tasker/src/lib.rs
@@ -152,6 +154,7 @@ COPY crates/kbve-proto crates/kbve-proto
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/bevy_kbve_net crates/bevy_kbve_net
 COPY crates/bevy_npc crates/bevy_npc
 # bevy_kbve_net's optional bevy_tasker path dep — cargo resolves the
@@ -180,6 +183,7 @@ COPY crates/kbve-proto crates/kbve-proto
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/bevy_kbve_net crates/bevy_kbve_net
 COPY crates/bevy_npc crates/bevy_npc
 COPY crates/bevy_tasker crates/bevy_tasker

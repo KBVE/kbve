@@ -17,6 +17,7 @@ COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY crates/bevy_inventory/Cargo.toml crates/bevy_inventory/Cargo.toml
 COPY crates/bevy_items/Cargo.toml crates/bevy_items/Cargo.toml
 COPY crates/bevy_behavior/Cargo.toml crates/bevy_behavior/Cargo.toml
@@ -46,6 +47,7 @@ RUN mkdir -p apps/discordsh/bot/src && echo "fn main() {}" > apps/discordsh/bot/
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
     mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs && \
     mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/bevy_supa/src && echo "" > crates/bevy_supa/src/lib.rs && \
     mkdir -p crates/bevy_inventory/src && echo "" > crates/bevy_inventory/src/lib.rs && \
     mkdir -p crates/bevy_items/src && echo "" > crates/bevy_items/src/lib.rs && \
     mkdir -p crates/bevy_behavior/src && echo "" > crates/bevy_behavior/src/lib.rs && \
@@ -99,6 +101,7 @@ COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/bevy_inventory crates/bevy_inventory
 COPY crates/bevy_items crates/bevy_items
 COPY crates/bevy_behavior crates/bevy_behavior
@@ -140,6 +143,7 @@ COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/bevy_inventory crates/bevy_inventory
 COPY crates/bevy_items crates/bevy_items
 COPY crates/bevy_behavior crates/bevy_behavior

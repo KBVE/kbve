@@ -16,6 +16,7 @@ COPY apps/vm/firecracker-ctl/Cargo.workspace.toml Cargo.toml
 COPY apps/vm/firecracker-ctl/Cargo.toml apps/vm/firecracker-ctl/Cargo.toml
 
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/jedi crates/jedi
 COPY crates/kbve-proto crates/kbve-proto
 COPY crates/holy-derive crates/holy-derive
@@ -56,6 +57,7 @@ COPY --from=planner /app/Cargo.toml ./
 
 COPY apps/vm/firecracker-ctl apps/vm/firecracker-ctl
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/jedi crates/jedi
 COPY crates/kbve-proto crates/kbve-proto
 COPY crates/holy-derive crates/holy-derive
