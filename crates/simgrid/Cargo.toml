@@ -28,7 +28,7 @@ axum = { workspace = true, features = ["ws"] }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net"] }
 futures-util = { workspace = true, features = ["std"] }
 dashmap = { workspace = true }
-ulid = { workspace = true }
+ulid = { workspace = true, features = ["std"] }
 async-trait = { workspace = true }
 jsonwebtoken = { workspace = true, optional = true }
 tracing = { workspace = true }
