@@ -61,7 +61,29 @@ jobs:
                       git push --no-verify "${REMOTE}" "HEAD:refs/heads/main"
                   fi
 
-                  git push --no-verify "${REMOTE}" --tags
+                  # A single divergent tag rejects the whole `--tags` push and
+                  # then no tag mirrors at all: herbmail-api@0.1.3 was deleted
+                  # and recreated on a newer commit here, so Forgejo still held
+                  # the original object and rejected the update as
+                  # `already exists`.
+                  #
+                  # GitHub is the source of truth for release tags, so a moved
+                  # tag should follow. The refspec is forced, but only over tags
+                  # this repository actually has: nothing is pruned, and tags
+                  # that exist only on Forgejo are left alone.
+                  git ls-remote --tags "${REMOTE}" \
+                      | grep -v '\^{}$' \
+                      | awk '{ print $2"\t"$1 }' \
+                      | sort >"${RUNNER_TEMP}/forgejo-tags.tsv"
+                  git show-ref --tags \
+                      | awk '{ print $2"\t"$1 }' \
+                      | sort >"${RUNNER_TEMP}/github-tags.tsv"
+                  join -t "$(printf '\t')" \
+                      "${RUNNER_TEMP}/github-tags.tsv" \
+                      "${RUNNER_TEMP}/forgejo-tags.tsv" \
+                      | awk -F'\t' '$2 != $3 { print "::notice::moving "$1" from "$3" to "$2 }'
+
+                  git push --no-verify --force "${REMOTE}" "refs/tags/*:refs/tags/*"
 
     track-mirror:
         name: Track Mirror
