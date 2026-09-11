@@ -22,7 +22,8 @@ RUN mkdir -p apps/agones/friendslop/server/src && \
     echo "" > crates/q/src/lib.rs && \
     mkdir -p crates/jedi/src && \
     echo "" > crates/jedi/src/lib.rs && \
-    echo "fn main() {}" > crates/jedi/build.rs
+    echo "fn main() {}" > crates/jedi/build.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin friendslop-server
 

@@ -32,7 +32,8 @@ RUN mkdir -p apps/agones/arpg/server/src && \
     mkdir -p crates/bevy_mapdb/src && \
     echo "" > crates/bevy_mapdb/src/lib.rs && \
     mkdir -p crates/bevy_spells/src && \
-    echo "" > crates/bevy_spells/src/lib.rs
+    echo "" > crates/bevy_spells/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin arpg-server
 

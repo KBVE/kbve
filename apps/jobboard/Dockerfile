@@ -38,6 +38,8 @@ COPY Cargo.lock Cargo.lock
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
 COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
@@ -45,6 +47,8 @@ COPY apps/jobboard/build.rs apps/jobboard/build.rs
 COPY apps/jobboard/src/ apps/jobboard/src/
 COPY crates/jedi/src/ crates/jedi/src/
 COPY crates/holy/src/ crates/holy/src/
+COPY crates/kbve-proto/src/ crates/kbve-proto/src/
+COPY crates/holy-derive/src/ crates/holy-derive/src/
 COPY crates/kbve/src/ crates/kbve/src/
 COPY crates/bevy_supa/src/ crates/bevy_supa/src/
 
@@ -67,6 +71,8 @@ COPY Cargo.lock Cargo.lock
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
 COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
@@ -86,6 +92,8 @@ FROM cook AS builder
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
 COPY crates/jedi/ crates/jedi/
 COPY crates/holy/ crates/holy/
+COPY crates/kbve-proto/ crates/kbve-proto/
+COPY crates/holy-derive/ crates/holy-derive/
 COPY crates/kbve/ crates/kbve/
 COPY crates/bevy_supa/ crates/bevy_supa/
 COPY apps/jobboard/src/ apps/jobboard/src/

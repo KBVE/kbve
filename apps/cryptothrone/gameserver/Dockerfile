@@ -21,7 +21,9 @@ RUN mkdir -p apps/cryptothrone/gameserver/src && \
     mkdir -p crates/simgrid/src && \
     echo "" > crates/simgrid/src/lib.rs && \
     mkdir -p crates/jedi/src && \
-    echo "" > crates/jedi/src/lib.rs
+    echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/bevy_spells/src && echo "" > crates/bevy_spells/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin cryptothrone-server
 
