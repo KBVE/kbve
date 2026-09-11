@@ -76,6 +76,7 @@ COPY apps/herbmail/api/Cargo.toml apps/herbmail/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
@@ -86,6 +87,7 @@ RUN mkdir -p apps/herbmail/api/src && echo "fn main() {}" > apps/herbmail/api/sr
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
     mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/bevy_supa/src && echo "" > crates/bevy_supa/src/lib.rs && \
     mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
@@ -125,6 +127,7 @@ COPY crates/kbve-proto crates/kbve-proto
 COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/holy crates/holy
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
@@ -149,6 +152,7 @@ COPY crates/kbve-proto crates/kbve-proto
 COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/kbve crates/kbve
+COPY crates/bevy_supa crates/bevy_supa
 COPY crates/holy crates/holy
 
 COPY apps/herbmail/api apps/herbmail/api
