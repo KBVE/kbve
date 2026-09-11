@@ -285,7 +285,7 @@ jobs:
                       apps/kbve/desktop-kbve/src-tauri
                       apps/herbmail/api
                       apps/memes/axum-memes
-                      apps/irc/irc-gateway
+                      apps/irc/api
                       apps/discordsh/api
                       apps/discordsh/bot
                       apps/chuckrpg/api
