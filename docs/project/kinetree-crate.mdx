@@ -268,6 +268,37 @@ Still open: jog stop cuts step the swing knee 22°/frame for three frames becaus
 
 Still open: strafe at run with 90° stick flips every 0.6 s shows 17° single-frame knee steps from the foot lock as lanes swap, and planted slide near 0.9 m/s; the jog set has no lane starts or stops; free-mode diagonals still slide on the loop steer.
 
+### Soft lock: the strafe runs at its own speed (2026-09-10, later still)
+
+The user's reminder that combat (a selected target, the hybrid soft lock) plays its own animations. Four things were wrong in that mode once the lanes blended.
+
+- The body ran at 5.5 m/s in every lane, but the captured sideways jog is 3.5 m/s and the backward one 3.0, so the strafe loops were overdriven and the planted feet slid 0.75 m/s. `Cadence.lane_cap` is the fastest loop of the lane the stick points down, in leg lengths per second times the rig's leg, mixed between neighbouring lanes; the movement caps a locked body's target speed by it. Sideways now runs 3.6, backward 3.1, planted slide 0.62.
+- Starts and stops played the forward walk clips under the lock because the gait came from the shift key, while a heading forces running. A locked body counts as running, uses the lane's own start and stop when the gait has one, and otherwise fades through the loops rather than playing a forward clip sideways.
+- A key gap during a strafe held the body along its *facing*, so a backpedal turned into a forward lunge for 0.13 s. `Cadence.travel` remembers the last direction the body actually moved at walking pace, and the hold and the lane pick use it while locked, since the velocity is already zero on the brake frame.
+- A 180° reversal under the lock drops the ground probe for one frame; the pose skipped that frame and the raw animation clip showed through (left knee 152°, foot at the hip, one frame). `Cadence.air` counts the miss and the pose stays grounded for 0.1 s of it.
+
+Measured with `MMORPG_STRAFE=1` and the `swap`, `stopgo`, `orbit` and `jitter` autowalks: no knee rate over 1500°/s on orbit or stop-go, jog start and stop clips on every stop, reversal cuts 4° or under; free-mode swap and stop-go unchanged.
+
+### Jumps from the data (2026-09-10, last)
+
+Idle, walk and run jumps were one Quaternius clip on a physics hop of 8 m/s. The GASP jump set is 145 clips; 29 are baked: `jump_start_{stand,walk,run,sprint}_{lf,rf}`, `jump_off_{walk,run}_*`, `jump_fall`, `jump_land_{stand,walk,run,sprint}_{light,heavy}_{lf,rf}`.
+
+- The captures jump off a 7 m ledge, so the bake's single floor put the takeoff stance seven metres in the air and found no contacts there. The floor is local now: the lowest any ankle gets within half a second of each frame finds the contacts, and the hip height is measured against the floor under the last planted frame (or the first one ahead), so a flight keeps the floor it left and a landing measures against the one it reaches. Flat clips bake identically.
+- A jump is three stages driven by the body, not the clock. The takeoff plays as a grounded shot from the matched frame to the clip's first sustained airborne frame (a run's stride flights are shorter than nine frames and do not count); on that frame the pose raises `launch` and the movement applies the impulse. The rise maps vertical speed onto the clip's frames between takeoff and apex, so any jump height lands on the apex pose. Past the apex the fall loop runs by time. Touchdown picks the landing by stick (stand, walk, run, sprint past 6 m/s), by fall speed (heavy past 7.5 m/s) and by which foot variant's touchdown frames match the falling pose, and plays it as a plain shot from its touchdown frame to where the hips settle or the gait resumes. A standing landing counts as a stop, so input during it chains into a start.
+- In the air the hips sit at the idle's stance height over the physics body, because the fall loop is baked thirty metres over its own landing floor; the feet release from the ground the frame the body leaves it instead of fading over 0.3 s, which had the legs locked straight on the floor while the body rose.
+- Two older faults surfaced: the pose weight faded to idle whenever the pace was zero, so every standing shot and the whole standing jump played blended toward the idle; and with the weight held, the procedural blend's zero stride period at zero pace divided the phase clock into NaN and crashed the animation curves. Shots and flights keep the weight; a zero period is ignored.
+
+Measured with the `stillhop` and `hop` autowalks (jump every 3 s, `MMORPG_AUTORUN=1` for the run): stand jump = 0.4 s takeoff crouch, 0.46 s flight, 0.72 s landing to idle; walk = matched takeoff, walk landing 1.1 s back to the loop; run = 0.55 s takeoff, run landing 0.65 s back to the jog. No knee step over 26° outside the push-off frame, which the data itself steps 28°. Jump impulse is 5.5 m/s now (0.63 m under 24 m/s² gravity); the rise plays the clip 1.7× faster than captured because the capture's hang time is longer.
+
+### Feet on the wall (2026-09-10, last of the day)
+
+"Walking towards a pillar, his feet get stuck to the wall." Reproduced with the `walk` autowalk, which runs straight into the pillar at (0, −42) after 18 s (the "map edge at z ≈ −40" in earlier notes was this pillar).
+
+- The foot probe is a sphere cast down from above the body at the pose ankle's x, z. When the swing foot's pose enters the pillar the cast starts inside the collider and returns its own origin, 1.5 m up the wall, and the foot planted there. A hit now has to be walkable: normal at least 0.7 upright, below the cast origin, and no more than 0.35 m above the pose ankle. A foot the pose swings into a wall follows the pose instead.
+- The body kept being driven straight into the wall: the collision zeroed its speed, the pose read standing and played a start whose root motion pushed in again, the lateral part slid the body along the wall, the facing followed the slide, the stick was 60° off and a turn clip swung it back. A sphere cast along the wish, a fifth of a metre past the body's radius, finds the wall and the wish and every shot velocity slide along it; a wish within 20° of straight in counts as not pushing, so the pose stops and idles facing the wall while the key is held.
+
+Measured: at the wall the yaw holds within 0.03 rad, the body does not drift along it, and no foot goal rises above the floor. Zigzag and terrain walking unchanged.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

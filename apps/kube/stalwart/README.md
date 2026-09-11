@@ -54,10 +54,12 @@ they persist in postgres, not on the PVC.
    `postgres-cluster.yaml`), and `manifest/externalsecret.yaml` mirrors it
    into this namespace as `stalwart-db-credentials`. No `ALTER ROLE` by hand;
    order against the migration does not matter.
-3. **Admin login** — `STALWART_RECOVERY_ADMIN` is not set, so use the
-   bootstrap credentials printed on first boot:
-   `kubectl logs -n stalwart deploy/stalwart | grep -A8 'bootstrap'`
-   Admin UI via `kubectl port-forward -n stalwart svc/stalwart 8080:8080`.
+3. **Admin login** — `./seal-stalwart-recovery-admin.sh` seals
+   `user:password` as `stalwart-recovery-admin` in this namespace; the
+   deployment injects it as `STALWART_RECOVERY_ADMIN`. The bootstrap
+   credentials Stalwart is supposed to print on first boot never reached
+   stdout here, so this is the login path. Admin UI via
+   `kubectl port-forward -n stalwart svc/stalwart 8080:8080`, then `/login`.
 4. **Registry config** (web-admin): local domain `herbmail.com`; MTA hook
    url `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
    stages `data`, auth Bearer = value from

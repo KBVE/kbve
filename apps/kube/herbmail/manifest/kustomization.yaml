@@ -9,3 +9,4 @@ resources:
     - httproute.yaml
     - certificate.yaml
     - reference-grant.yaml
+    - sealed-stalwart-hook-secret.yaml

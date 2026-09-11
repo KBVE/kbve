@@ -27,7 +27,12 @@ pub const CHARACTER_HEIGHT: f32 = 1.16;
 /// exactly what it used to do, so the game had no walk in it at all.
 const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
-const JUMP_SPEED: f32 = 8.0;
+const JUMP_SPEED: f32 = 5.5;
+
+/// How far past its own radius a body looks for a wall along its wish, how upright a hit may be and still count as one, and how much of the wish must survive sliding along it for the push to count as movement.
+const WALL_REACH: f32 = 0.2;
+const WALL_LEAN: f32 = 0.5;
+const WALL_GLANCE: f32 = 0.35;
 
 /// Ground acceleration in metres per second squared, for speeding up and turning; easing off to a slower gait uses [`GROUND_DECEL`], letting go brakes instantly.
 const GROUND_ACCEL: f32 = 14.0;
@@ -147,6 +152,8 @@ pub struct Character;
 pub struct MoveIntent {
     /// Desired planar direction, unit length or zero.
     pub wish: Vec3,
+    /// Set by the movement when the wish runs straight into a wall, so the pose treats the stick as released instead of starting into it.
+    pub blocked: bool,
     /// Whether to move at [`RUN_SPEED`] instead of [`WALK_SPEED`].
     pub run: bool,
     pub jump: bool,
@@ -356,10 +363,26 @@ pub struct Cadence {
     pub pair2: Option<(usize, usize)>,
     pub lane_base: f32,
     pub locked: bool,
+    /// Fastest ground speed the loops of the lane the stick points down actually cover, so a locked body is not driven faster than its strafe was captured.
+    pub lane_cap: f32,
+    /// Direction the body last travelled at walking pace, kept across a brake so a key gap holds the travel and not the facing.
+    pub travel: Vec3,
     /// How many stances have fed the floor fix, so early ones weigh more.
     pub floor_samples: u32,
     /// Whether the body stands on ground this frame, so the played pose may own the legs.
     pub grounded: bool,
+    /// Seconds since the ground probe last hit; a miss shorter than the grace keeps the pose on the ground.
+    pub air: f32,
+    /// The raw ground probe, and the body's vertical speed, for the jump.
+    pub touching: bool,
+    pub rise: f32,
+    /// Where a jump is: the takeoff shot, the rise mapped to vertical speed, or the fall loop; the landing is a plain shot.
+    pub flight: Option<Flight>,
+    /// Set by the pose on the takeoff frame; the movement applies the jump impulse and clears it.
+    pub launch: bool,
+    /// Fastest the body rose and fell this flight: the rise maps the takeoff clip, the fall picks the landing.
+    pub rise_top: f32,
+    pub fall_speed: f32,
     /// Where the baked idle loop is, in turns.
     pub idle_phase: f32,
     /// A turn, start or stop clip playing once through, which owns the facing and the velocity while it runs.
@@ -373,6 +396,14 @@ pub struct Cadence {
     pub hold: bool,
     /// Seconds the stick has been released while walking, so a tap does not start a stop.
     pub release: f32,
+}
+
+/// A jump in progress: the takeoff plays as a shot, then the rise follows the vertical speed through the clip's frames from `off` to `apex`, then the fall loop runs by time.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Flight {
+    Takeoff,
+    Rise { clip: usize, off: f32, apex: f32 },
+    Fall { frame: f32 },
 }
 
 /// One pass through a one-shot clip: which clip, how far in, and the facing it started from.
@@ -425,8 +456,17 @@ impl Cadence {
             pair2: None,
             lane_base: 0.0,
             locked: false,
+            lane_cap: f32::INFINITY,
+            travel: Vec3::NEG_Z,
             floor_samples: 0,
             grounded: false,
+            air: 0.0,
+            touching: false,
+            rise: 0.0,
+            flight: None,
+            launch: false,
+            rise_top: 0.0,
+            fall_speed: 0.0,
             idle_phase: 0.0,
             shot: None,
             shot_velocity: Vec3::ZERO,
@@ -1148,26 +1188,61 @@ pub fn find_bone(
 
 fn apply_movement(
     time: Res<Time>,
+    spatial: SpatialQuery,
     mut characters: Query<
         (
-            &MoveIntent,
+            Entity,
+            &Transform,
+            &mut MoveIntent,
             &Heading,
             &mut LinearVelocity,
             &mut Grounded,
             &ShapeHits,
-            Option<&Cadence>,
+            Option<&mut Cadence>,
         ),
         With<Character>,
     >,
 ) {
-    for (intent, heading, mut velocity, mut grounded, hits, cadence) in &mut characters {
+    let nose = Collider::sphere(CHARACTER_RADIUS * 0.9);
+    for (entity, transform, mut intent, heading, mut velocity, mut grounded, hits, mut cadence) in
+        &mut characters
+    {
         grounded.0 = !hits.is_empty();
+        let wall = Dir3::new(intent.wish).ok().and_then(|dir| {
+            spatial
+                .cast_shape(
+                    &nose,
+                    transform.translation,
+                    Quat::IDENTITY,
+                    dir,
+                    &ShapeCastConfig::from_max_distance(WALL_REACH),
+                    &SpatialQueryFilter::default().with_excluded_entities([entity]),
+                )
+                .map(|hit| hit.normal1)
+                .filter(|normal| normal.y.abs() < WALL_LEAN)
+                .map(|normal| Vec3::new(normal.x, 0.0, normal.z).normalize_or_zero())
+                .filter(|normal| normal.length_squared() > 0.5)
+        });
+        let slide = |v: Vec3| match wall {
+            Some(normal) if v.dot(normal) < 0.0 => v - normal * v.dot(normal),
+            _ => v,
+        };
+        intent.blocked = wall.is_some() && slide(intent.wish).length() < WALL_GLANCE;
+        if let Some(cadence) = cadence.as_deref_mut()
+            && cadence.launch
+        {
+            cadence.launch = false;
+            velocity.y = JUMP_SPEED;
+            grounded.0 = false;
+        }
+        let cadence = cadence.as_deref();
         if let Some(cadence) = cadence
             && (cadence.shot.is_some() || cadence.hold)
             && grounded.0
         {
-            velocity.x = cadence.shot_velocity.x;
-            velocity.z = cadence.shot_velocity.z;
+            let along = slide(cadence.shot_velocity);
+            velocity.x = along.x;
+            velocity.z = along.z;
             continue;
         }
 
@@ -1190,7 +1265,11 @@ fn apply_movement(
         });
 
         let speed = if retreating { base * BACKPEDAL } else { base };
-        let wish = intent.wish * speed;
+        let speed = match cadence {
+            Some(cadence) if stance => speed.min(cadence.lane_cap),
+            _ => speed,
+        };
+        let wish = slide(intent.wish * speed);
 
         let planar = Vec3::new(velocity.x, 0.0, velocity.z);
         let dt = time.delta_secs();
@@ -1202,7 +1281,7 @@ fn apply_movement(
         velocity.x = next.x;
         velocity.z = next.z;
 
-        if grounded.0 && intent.jump {
+        if grounded.0 && intent.jump && cadence.is_none() {
             velocity.y = JUMP_SPEED;
         }
     }

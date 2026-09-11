@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: stalwart-recovery-admin
+    namespace: stalwart
+spec:
+    encryptedData:
+        credentials: AgA2bl2M3GuDqx74TMdQ8fNmI+fRUg4yaoyhwBJAX5rMcrhg5HpqBSqynpgjyT3ykAhNTrdrVWjdau9H1LwjuK7On4u2Nz7ph0SU8azyQoE7djysE3LEo3y6BzQTxgNLPqreM8jVBfys5QLLXX+913IPWncXrmOfHVUdaXUFLbP87DKH7MW0/3K4lC7zeTiVSXaK5V0234drUuVg1I35Fy/LOwWqIxcBJLa8jmoI2IB5Vvhf+klMbWRjU7izon0pQ923n6kKh9HVgUR2WU8mZzolc8PGF5iNwnbMmy+TAYFx9+1CkcxipUtE9zFhaAUDcSaKKuSc5nDwhRIlhf1Rkeyl3xJIGI7mRmgpZVmhbpbRgW0F/IrPEdiM0JzJZcptucXSTIZK1xGtV0MlgLYhYc3N6PjGWibDrTWKkiz50sJ+VZLMB8J7hfGfU9JigidovC253U08D59kmoDikiZL7xplzZ7eZaVcKshetpNrmcNpkf9E9UsS2gOluFjhVI7pPxAYZvx/j2PcG91QJTzSWKbe7jtag9XP2aQchGr07c9dxyogeLWetvBnplHG4iPz3iDuwB2Y8u13XqgVpkMJeXlQAsP8bP9mCHm4j1e2oU/VOpE8ssG1vrHXBXSGWmKcsaATsT86EGXaCooj8W1OGz83YRfWCU0tSq+drTs7nedlvOmPqKnRvDQibRzAVJGoM4m2e4k4yQF2W521LcapBX5hcBX/zg5gxK3Sy67O3itR30Xf60o=
+    template:
+        metadata:
+            name: stalwart-recovery-admin
+            namespace: stalwart
