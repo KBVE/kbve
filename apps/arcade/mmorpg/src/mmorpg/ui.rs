@@ -11,9 +11,11 @@
 
 use bevy::prelude::*;
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
+use bevy_inventory::{Inventory, ItemKind};
 use combat::{AbilityBar, ActiveEffects, Casting, Combatant, Dead};
 
 use super::combat::{Faction, Target};
+use super::inventory::{Loot, SLOTS};
 use super::player::Player;
 use super::theme::ACTIVE;
 
@@ -27,7 +29,7 @@ impl Plugin for UiPlugin {
             // in the context rather than in a resource, and a context can be
             // rebuilt -- a window change, a new primary camera -- so setting it
             // once at startup is a theme that silently reverts later.
-            (apply_theme, draw_frames, draw_action_bar).chain(),
+            (apply_theme, draw_frames, draw_inventory, draw_action_bar).chain(),
         );
     }
 }
@@ -186,6 +188,43 @@ fn draw_frames(
 }
 
 /// The four slots along the bottom, with what is stopping each of them.
+/// The bag, as `bevy_inventory` currently holds it.
+///
+/// Slots rather than a flat list, because a stack that split across two of them
+/// is the state a player needs to see; a summed total would hide it.
+fn draw_inventory(mut contexts: EguiContexts, inventory: Res<Inventory<Loot>>) -> Result {
+    egui::Window::new("inventory")
+        .title_bar(false)
+        .resizable(false)
+        .anchor(egui::Align2::RIGHT_TOP, [-16.0, 16.0])
+        .show(contexts.ctx_mut()?, |ui| {
+            ui.set_width(160.0);
+            ui.label(
+                egui::RichText::new(format!("Bag  {}/{}", inventory.items.len(), SLOTS))
+                    .strong()
+                    .color(ACTIVE.lavender),
+            );
+
+            if inventory.items.is_empty() {
+                ui.label(egui::RichText::new("empty").color(ACTIVE.overlay1));
+                return;
+            }
+
+            for stack in &inventory.items {
+                ui.horizontal(|ui| {
+                    ui.label(stack.kind.display_name());
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", stack.quantity)).color(ACTIVE.yellow),
+                        );
+                    });
+                });
+            }
+        });
+
+    Ok(())
+}
+
 fn draw_action_bar(
     mut contexts: EguiContexts,
     player: Query<(&AbilityBar, &Combatant), With<Player>>,

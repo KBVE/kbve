@@ -13,6 +13,12 @@ toolchains:
 owners:
     defaultOwner: '@h0lybyte'
 
+# The proto crates `include!` a gitignored tree that only exists once
+# `protobuf:build` has run, so without this a clean checkout fails to compile
+# on a missing file rather than on anything in this project.
+dependsOn:
+    - 'protobuf'
+
 env:
     # Pinned to the version isometric's wasm lane already installs, so a runner
     # that built either project has the other's bindgen in its cargo bin.
@@ -26,6 +32,7 @@ tasks:
     run-webgpu:
         command: 'cargo run'
         args: '--features webgpu'
+        deps: ['protobuf:build']
         preset: 'server'
 
     # Stable toolchain, no -Z build-std, no atomics: this is the single-threaded
@@ -33,6 +40,9 @@ tasks:
     # runs the sim on a worker; this one does not, and paying for that lane
     # would mean COOP/COEP headers on every host that serves the game.
     build-wasm:
+        # Inherited rust tasks pick the generated tree up through `^:build`;
+        # a script task has to name it.
+        deps: ['protobuf:build']
         script: |
             set -euo pipefail
             command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@$WASM_BINDGEN_VERSION --locked
