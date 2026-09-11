@@ -315,6 +315,17 @@ Straight run, orbit strafe, zigzag turns, walk 180° reversals and terrain walki
 
 `neutral.pose.ron` had grown to 25 MB of text (159 clips, 18,040 frames, 1.4 KB a frame) and took 0.6 s to parse at boot. `kbve-pose-pack in.pose.ron out.pose.bin` (pure Python, no Blender) writes the same numbers as `neutral.pose.bin`: rotations and bone directions as signed 16-bit fractions, root, pelvis and clip metadata as float32, one contact byte, little-endian, magic `KPOS`. The bake writes the packed form directly when `--out` ends in `.bin`. The loader sniffs the magic and still reads RON. 5.5 MB, and the game reaches its first pose 0.46 s after launch instead of 0.98 s; run metrics are unchanged. Scripts that need clip names read the header with `pose_pack.read_names`.
 
+### Feet on slopes (2026-09-11)
+
+The terrain traces so far ran over ground within 3° of flat, so nothing had tested the slope paths. `MMORPG_HEADING=220` with the `walk` autowalk climbs a 10–17° ramp 15–35 m from spawn (found by porting the terrain noise to a script and scanning headings; pillars sit every 30° at radius 42, so keep off those bearings). The trace now carries `l_ball_gnd`/`r_ball_gnd` (ball bone height over the terrain under it) and `l_slope`/`r_slope` (degrees).
+
+Two things were off:
+
+- `level_feet` skipped every character under pose playback, so the sole never tilted: the mocap's flat-ground foot orientation stood on a 15° slope with its toe 5.5 cm in the ground while planted and 4.3 cm in during swing. Under the pose each foot is now rotated about its ankle onto the probed ground normal (`goal.normal`, capped at `MAX_SOLE_TILT`), weighted by how grounded the foot is, so swing feet follow the ground too.
+- `MAX_REACH_DROP` was 0 with no leg reserve, so the pelvis never dropped for a downhill foot while walking and planted knees reached 8°. 0.15 m cap with a 2% reserve now; planted knee minimum is 12–15° on the hill and rises to 15–21° on flat walks and turns.
+
+Planted toe sink at 15–25° (5th percentile): walk −5.5 → −2.6 cm, run −4.7 → −2.3 cm; swing toe minimum walk −4.3 → −2.3 cm, run −2.5 → −0.1 cm. Flat ground reads −1.5 cm for the same statistic before and after (the heel-strike dip in the data), so that is the floor of what this metric can show. Flat run, walk reversals and zigzag turns unchanged otherwise.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

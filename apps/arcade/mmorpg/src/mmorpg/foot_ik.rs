@@ -12,7 +12,7 @@ use kinetree::{IkLimb, IkLimbBones, KinetreeSystems, bone_world_transform};
 use super::character::{Cadence, Character, Flight, Grounded, Heading, LowerBody};
 use super::pose::{PosePlayback, PoseSystems};
 use super::rig::{GaitBlend, GaitSet, Rig, at};
-use super::world::height_at;
+use super::world::{height_at, normal_at};
 
 /// How far above and below the current ankle the ground is looked for. Past
 /// this the leg is over a cliff and the clip is left alone.
@@ -149,8 +149,8 @@ const LOCK_SLACK: f32 = 0.05;
 const MAX_SOLE_TILT: f32 = 0.44;
 
 /// Pelvis reach: extra drop cap, how much leg is kept in reserve, and the drop and rise rates per second.
-const MAX_REACH_DROP: f32 = 0.0;
-const REACH_RESERVE: f32 = 0.0;
+const MAX_REACH_DROP: f32 = 0.15;
+const REACH_RESERVE: f32 = 0.02;
 const REACH_DROP_RATE: f32 = 14.0;
 const REACH_RISE_RATE: f32 = 5.0;
 /// Pelvis drop cap and leg reserve while standing on held feet, so a stance wider than the idle's does not lock the knees.
@@ -394,7 +394,7 @@ impl Trace {
             .map(|mut file| {
                 let _ = writeln!(
                     file,
-                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,l_carry,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,r_carry,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
+                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,l_carry,l_ball_gnd,l_slope,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,r_carry,r_ball_gnd,r_slope,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
                 );
                 Mutex::new(file)
             });
@@ -451,8 +451,16 @@ fn trace_pose(
             let b = ankle - calf.translation();
             let knee = 180.0 - a.angle_between(b).to_degrees();
             let goal_rel = limb.goal - body;
+            let ball_gnd = lower
+                .roles
+                .iter()
+                .find(|r| r.role == if rig.right { "ball_r" } else { "ball_l" })
+                .and_then(|r| globals.get(r.bone).ok())
+                .map(|b| b.translation().y - height_at(b.translation().x, b.translation().z))
+                .unwrap_or(f32::NAN);
+            let slope = normal_at(ankle.x, ankle.z).y.acos().to_degrees();
             feet[rig.right as usize] = format!(
-                "{:.4},{:.4},{:.4},{:.1},{:.1},{},{},{:.3},{:.4},{:.4},{:.4},{:.2},{:.4},{:.4},{:.4},{:.3},{},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.3}",
+                "{:.4},{:.4},{:.4},{:.1},{:.1},{},{},{:.3},{:.4},{:.4},{:.4},{:.2},{:.4},{:.4},{:.4},{:.3},{},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.3},{:.4},{:.1}",
                 rel.dot(cadence.forward) / leg,
                 rel.dot(right) / leg,
                 ankle.y,
@@ -479,7 +487,9 @@ fn trace_pose(
                 goal.offset.x,
                 goal.offset.y,
                 goal.offset.z,
-                Vec3::new(goal.carry.x, 0.0, goal.carry.z).length()
+                Vec3::new(goal.carry.x, 0.0, goal.carry.z).length(),
+                ball_gnd,
+                slope
             );
         }
         let wish = intent.map(|i| i.wish).unwrap_or(Vec3::ZERO);
@@ -883,7 +893,7 @@ fn lean_torso(
     }
 }
 
-/// Holds each procedural foot at its bind orientation in world space, whatever the knee did.
+/// Holds each procedural foot at its bind orientation in world space, whatever the knee did; under the pose, tilts each foot about its ankle onto the ground normal beneath it.
 fn level_feet(
     playback: Res<PosePlayback>,
     characters: Query<(&Cadence, &LowerBody)>,
@@ -892,7 +902,7 @@ fn level_feet(
     mut transforms: Query<&mut Transform>,
 ) {
     for (cadence, lower) in &characters {
-        if !cadence.stepping || playback.on {
+        if !cadence.stepping {
             continue;
         }
         let contact = |foot: Entity| {
@@ -902,6 +912,33 @@ fn level_feet(
                 .map(|(goal, _)| (goal.plant.map(|_| goal.plant_yaw), goal.normal))
         };
         let read = transforms.as_readonly();
+        if playback.on {
+            let full = if cadence.shot.is_some() {
+                1.0
+            } else {
+                cadence.weight
+            };
+            let targets: Vec<(Entity, Quat)> = lower
+                .legs
+                .iter()
+                .filter_map(|leg| {
+                    let (goal, _) = goals.iter().find(|(_, bones)| bones.tip == leg.foot)?;
+                    let calf = bone_world_transform(leg.calf, &read, &parents)?;
+                    let foot = bone_world_transform(leg.foot, &read, &parents)?;
+                    let slope = Quat::from_rotation_arc(Vec3::Y, goal.normal);
+                    let (axis, angle) = slope.to_axis_angle();
+                    let slope = Quat::from_axis_angle(axis, angle.min(MAX_SOLE_TILT));
+                    let slope = Quat::IDENTITY.slerp(slope, goal.grounded * full);
+                    Some((leg.foot, calf.rotation.inverse() * (slope * foot.rotation)))
+                })
+                .collect();
+            for (foot, rotation) in targets {
+                if let Ok(mut transform) = transforms.get_mut(foot) {
+                    transform.rotation = rotation;
+                }
+            }
+            continue;
+        }
         let Some(model) = bone_world_transform(lower.model, &read, &parents) else {
             continue;
         };

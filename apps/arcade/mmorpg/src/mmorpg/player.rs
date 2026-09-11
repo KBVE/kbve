@@ -69,12 +69,14 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them; `MMORPG_NPCS=<n>` places that many idle companions in rings.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit|hop|stillhop`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them; `MMORPG_NPCS=<n>` places that many idle companions in rings; `MMORPG_HEADING=<deg>` yaws every autowalk.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
     pub run: bool,
     pub turn_rate: f32,
+    /// Yaw added to every autowalk direction, radians; `MMORPG_HEADING=<deg>` aims a straight walk at a hill.
+    pub heading: f32,
 }
 
 impl Autowalk {
@@ -84,86 +86,107 @@ impl Autowalk {
                 enabled: true,
                 run: false,
                 turn_rate: 0.0,
+                heading: 0.0,
             },
             Ok("jog") => Self {
                 enabled: true,
                 run: true,
                 turn_rate: 0.0,
+                heading: 0.0,
             },
             Ok("turn") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: 0.8,
+                heading: 0.0,
             },
             Ok("jogturn") => Self {
                 enabled: true,
                 run: true,
                 turn_rate: 0.8,
+                heading: 0.0,
             },
             Ok("zigzag") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -1.0,
+                heading: 0.0,
             },
             Ok("reverse") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -2.0,
+                heading: 0.0,
             },
             Ok("stopgo") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -3.0,
+                heading: 0.0,
             },
             Ok("gear") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -4.0,
+                heading: 0.0,
             },
             Ok("jitter") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -5.0,
+                heading: 0.0,
             },
             Ok("swap") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -6.0,
+                heading: 0.0,
             },
             Ok("stopswap") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -7.0,
+                heading: 0.0,
             },
             Ok("rest") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -8.0,
+                heading: 0.0,
             },
             Ok("nudge") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -9.0,
+                heading: 0.0,
             },
             Ok("orbit") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -10.0,
+                heading: 0.0,
             },
             Ok("hop") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -11.0,
+                heading: 0.0,
             },
             Ok("stillhop") => Self {
                 enabled: true,
                 run: false,
                 turn_rate: -12.0,
+                heading: 0.0,
             },
             _ => Self::default(),
         };
         Self {
             run: auto.run || std::env::var("MMORPG_AUTORUN").is_ok_and(|v| v != "0"),
+            heading: std::env::var("MMORPG_HEADING")
+                .ok()
+                .and_then(|v| v.parse::<f32>().ok())
+                .unwrap_or(0.0)
+                .to_radians(),
             ..auto
         }
     }
@@ -237,7 +260,7 @@ fn read_input(
         let wish = if halted {
             Vec3::ZERO
         } else {
-            Quat::from_rotation_y(angle) * Vec3::NEG_Z
+            Quat::from_rotation_y(angle + auto.heading) * Vec3::NEG_Z
         };
         let now = time.elapsed_secs();
         let leap =
