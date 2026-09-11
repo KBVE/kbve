@@ -176,7 +176,11 @@ const TURN_SLACK: f32 = 0.1;
 const BALL_CLEAR: f32 = 0.02;
 
 /// Fraction of the leg a held foot may be pulled out to, unless the pose itself reaches further, before the pin slides instead; past it the knee locks straight.
-const HOLD_REACH: f32 = 0.985;
+const HOLD_REACH: f32 = 0.96;
+
+/// How far, in leg lengths, a held foot may stand from where the pose puts it, along the travel and across it; past either the hold yields and the foot slides along the bound's edge instead of locking the knee.
+const HOLD_ALONG: f32 = 0.3;
+const HOLD_ACROSS: f32 = 0.2;
 
 impl Default for FootIkEnabled {
     fn default() -> Self {
@@ -390,7 +394,7 @@ impl Trace {
             .map(|mut file| {
                 let _ = writeln!(
                     file,
-                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
+                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,l_carry,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,r_carry,stride,period,clip,shot,steer,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
                 );
                 Mutex::new(file)
             });
@@ -448,7 +452,7 @@ fn trace_pose(
             let knee = 180.0 - a.angle_between(b).to_degrees();
             let goal_rel = limb.goal - body;
             feet[rig.right as usize] = format!(
-                "{:.4},{:.4},{:.4},{:.1},{:.1},{},{},{:.3},{:.4},{:.4},{:.4},{:.2},{:.4},{:.4},{:.4},{:.3},{},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4}",
+                "{:.4},{:.4},{:.4},{:.1},{:.1},{},{},{:.3},{:.4},{:.4},{:.4},{:.2},{:.4},{:.4},{:.4},{:.3},{},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.4},{:.3}",
                 rel.dot(cadence.forward) / leg,
                 rel.dot(right) / leg,
                 ankle.y,
@@ -474,7 +478,8 @@ fn trace_pose(
                     + calf.translation().distance(ankle),
                 goal.offset.x,
                 goal.offset.y,
-                goal.offset.z
+                goal.offset.z,
+                Vec3::new(goal.carry.x, 0.0, goal.carry.z).length()
             );
         }
         let wish = intent.map(|i| i.wish).unwrap_or(Vec3::ZERO);
@@ -1318,6 +1323,20 @@ fn hold_foot(
         let creep = Vec3::new(goal.offset.x, 0.0, goal.offset.z) - goal.base;
         let slack = LOCK_SLACK + cadence.turn.abs() * TURN_SLACK;
         let held = Vec3::new(pin.x, 0.0, pin.z) + creep.clamp_length_max(slack);
+        let travel = Vec3::new(cadence.velocity.x, 0.0, cadence.velocity.z);
+        let travel = if travel.length_squared() > 0.25 {
+            travel.normalize()
+        } else {
+            Vec3::new(cadence.forward.x, 0.0, cadence.forward.z).normalize_or(Vec3::NEG_Z)
+        };
+        let across = Vec3::Y.cross(travel);
+        let want = Vec3::new(under.x, 0.0, under.z);
+        let give = held - want;
+        let along = cadence.leg_length * HOLD_ALONG;
+        let side = cadence.leg_length * HOLD_ACROSS;
+        let held = want
+            + travel * give.dot(travel).clamp(-along, along)
+            + across * give.dot(across).clamp(-side, side);
         limb.goal = if goal.pin_ball {
             let foot = Quat::from_rotation_y(goal.plant_yaw - cadence.yaw) * (ankle - ball);
             Vec3::new(held.x, ball.y.max(pin.y), held.z) + foot

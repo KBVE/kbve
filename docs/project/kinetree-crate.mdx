@@ -299,6 +299,18 @@ Measured with the `stillhop` and `hop` autowalks (jump every 3 s, `MMORPG_AUTORU
 
 Measured: at the wall the yaw holds within 0.03 rad, the body does not drift along it, and no foot goal rises above the floor. Zigzag and terrain walking unchanged.
 
+### A held foot yields at a bound (2026-09-11)
+
+Audit against the two feedback files and symbios-avatar's foothold ledger. Most of the foot-IK critique was already in (ground normal and sole tilt, late-swing landing commit, pelvis reach with fast drop and slow rise, animated legs kept, contacts from the bake, inertialization). What symbios does that the hold here did not: a held contact may stand only so far from where the stride itself puts the foot, along the travel and across it, and past that bound the foot slides along the bound's edge instead of being dragged at the end of a straight leg.
+
+Measured on the strafe `swap` autowalk at run (forward and backward flips every 4 s with the facing locked): during a flip the body's velocity reverses over the next third of a second while the lane loop flips at once, so the pose's stance foot runs away from its pin at about 2.5 m/s. The pin held, the leg hit the 0.985 reach cap, and the foot was dragged 0.4–0.57 m at a 20° knee before release.
+
+- `HOLD_ALONG` 0.3 and `HOLD_ACROSS` 0.2 leg lengths bound the hold's correction from the pose's own foot, along the travel direction and across it. The correction now caps at 0.22–0.27 m and the foot slides at the bound instead of locking.
+- `HOLD_REACH` 0.96 (was 0.985): a held leg keeps a bend unless the pose itself is straighter. Knee while held away is now at least 22–30° (was 20°, locked).
+- The trace has `l_carry`/`r_carry`: planar distance the solve holds the foot away from the pose.
+
+Straight run, orbit strafe, zigzag turns, walk 180° reversals and terrain walking are unchanged by it (carry ≤ 0.07 m planted, same knee ranges, no new knee jumps over 25° in 50 ms).
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.
