@@ -62,6 +62,36 @@ static TAutoConsoleVariable<float>* CVarPerfThreshold = new TAutoConsoleVariable
 	TEXT("Log sink threshold in milliseconds; scopes slower than this emit a [KBVEPerf] warning."),
 	ECVF_RenderThreadSafe);
 
+/**
+ * What counts as a hitch, as a multiple of what the window is otherwise doing.
+ *
+ * Relative rather than absolute because the question is not answerable in
+ * milliseconds alone: a 30 ms frame is a stutter in a session running at 120 and
+ * is business as usual in one running at 33. What a player notices is the frame
+ * that is much worse than the frames around it, so that is what is counted.
+ *
+ * The median is the comparison rather than the mean, because the thing being
+ * measured is exactly the kind of outlier that drags a mean towards itself and
+ * then hides under it.
+ */
+static TAutoConsoleVariable<float>* CVarPerfHitch = new TAutoConsoleVariable<float>(
+	TEXT("kbve.perf.hitch"), 2.0f,
+	TEXT("A frame this many times the window median counts as a hitch."),
+	ECVF_Default);
+
+/**
+ * The floor under that multiple.
+ *
+ * Without it, a steady session counts its ordinary jitter: at a 2 ms median,
+ * twice the median is 4 ms, and frames like that are noise rather than
+ * something anybody felt. Nothing under this is a hitch however far above the
+ * median it is.
+ */
+static TAutoConsoleVariable<float>* CVarPerfHitchFloor = new TAutoConsoleVariable<float>(
+	TEXT("kbve.perf.hitchFloorMs"), 20.0f,
+	TEXT("No frame shorter than this counts as a hitch, whatever the median is."),
+	ECVF_Default);
+
 namespace
 {
 	constexpr int32 SampleCap = 256;
@@ -448,18 +478,32 @@ FString UKBVEPerfSubsystem::BuildJson() const
 
 	const double Window = FMath::Max(CVarPerfWindow->GetValueOnAnyThread(), 0.1f);
 	const double Since = FPlatformTime::Seconds() - Window;
-	const float Hitch = CVarPerfThreshold->GetValueOnAnyThread();
-
 	// What the last few seconds looked like, which is the question somebody
-	// watching a live readout is asking. A frame that took longer than the hitch
-	// threshold is counted rather than averaged away: one 40ms frame in a
-	// hundred is invisible in a mean and is the whole of what a player feels.
+	// watching a live readout is asking. A frame much longer than its neighbours
+	// is counted rather than averaged away: one 40ms frame in a hundred is
+	// invisible in a mean and is the whole of what a player feels.
 	TArray<float> Frames;
 	const bool bFrames = WindowOf(FrameMs, FrameAt, Since, Frames);
+
+	// Derived from the window rather than fixed, and reported alongside the
+	// count so the count can be read. This used to borrow kbve.perf.threshold,
+	// which is the log sink's limit for a single op scope -- 3 ms, a sensible
+	// number for a scope and an absurd one for a frame, so every frame of a 60
+	// fps session was a hitch and the field said nothing.
+	const float Median = bFrames ? Pick(Frames, 0.50f) : 0.0f;
+	const float Hitch = FMath::Max(
+		Median * FMath::Max(CVarPerfHitch->GetValueOnAnyThread(), 1.0f),
+		CVarPerfHitchFloor->GetValueOnAnyThread());
+
 	int32 Hitches = 0;
+	float WorstHitchMs = 0.0f;
 	for (const float At : Frames)
 	{
-		Hitches += At > Hitch ? 1 : 0;
+		if (At > Hitch)
+		{
+			++Hitches;
+			WorstHitchMs = FMath::Max(WorstHitchMs, At);
+		}
 	}
 
 	FString Out;
@@ -467,7 +511,7 @@ FString UKBVEPerfSubsystem::BuildJson() const
 		TEXT("{\"enabled\":%s,\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,")
 			TEXT("\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"windowSec\":%.1f,\"windowFrames\":%d,")
 			TEXT("\"frameP50Ms\":%.2f,\"frameP95Ms\":%.2f,\"frameP99Ms\":%.2f,\"frameMaxMs\":%.2f,")
-			TEXT("\"hitches\":%d,\"hitchMs\":%.1f,\"ops\":["),
+			TEXT("\"hitches\":%d,\"hitchOverMs\":%.2f,\"worstHitchMs\":%.2f,\"ops\":["),
 		CVarPerf->GetValueOnGameThread() != 0 ? TEXT("true") : TEXT("false"),
 		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs,
 		CachedRhiMs, Window, Frames.Num(),
@@ -475,7 +519,7 @@ FString UKBVEPerfSubsystem::BuildJson() const
 		bFrames ? Pick(Frames, 0.95f) : 0.0f,
 		bFrames ? Pick(Frames, 0.99f) : 0.0f,
 		bFrames ? Frames.Last() : 0.0f,
-		Hitches, Hitch);
+		Hitches, Hitch, WorstHitchMs);
 
 	bool bFirst = true;
 	for (const TPair<FName, FKBVEPerfOpStat>& Pair : Ops)

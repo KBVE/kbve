@@ -174,6 +174,16 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
+            # moon provisions a toolchain per task it runs, not per toolchain
+            # the workspace declares, so anything a task reaches indirectly
+            # (deno through a script, cargo through a playwright webServer)
+            # dies with proto::locate::missing_executable. ci.yml and the
+            # docker publish lane run this for the same reason; the cache in
+            # setup-moon used to hide it here until #17118 narrowed that
+            # cache to the moon CAS.
+            - name: Provision the moon toolchains
+              run: moon setup
+
             - name: Test
               run: moon run ${{ needs.verify.outputs.project }}:test
 

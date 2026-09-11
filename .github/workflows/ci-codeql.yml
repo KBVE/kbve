@@ -42,7 +42,7 @@ jobs:
     # analysed -- on the push to dev that merging it produces, one merge later
     # than before.
 
-    # The config file drops three crates from the rust extractor's input set.
+    # The config file drops four paths from the rust extractor's input set.
     # hardware/esp32c6-display is its own workspace targeting
     # riscv32imac-unknown-none-elf, and crates/uniti/fuzz needs nightly and
     # cargo-fuzz; neither toolchain exists on the runner, so the vendored
@@ -60,6 +60,17 @@ jobs:
     # "failed to load file `../../../gen/rust/mod.rs`" and then takes the same
     # vfs panic. Nothing depends on this crate; it exists so generated code
     # that does not compile fails at the schema rather than downstream.
+    #
+    # apps/arcade/colony is the fourth, and it is the whole crate rather than
+    # the one file that breaks. .gitattributes runs src/private/** through
+    # git-crypt, so a checkout without the key -- every runner -- holds a
+    # mod.rs whose first bytes are \0GITCRYPT\0. CodeQL does not index a binary
+    # file, so it never reaches the extractor's vfs, but colony's def map still
+    # names it, and the first colony file that is indexed panics on a file id
+    # with no text behind it. Ignoring only src/private changes nothing: the
+    # file was already absent from the index, and that absence is the panic.
+    # The module is behind colony's `tuning` feature, off by default for
+    # exactly this reason, but a def map is built before cfg is applied.
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ubuntu-latest
