@@ -12,11 +12,13 @@
 use bevy::prelude::*;
 use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui};
 use bevy_inventory::{Inventory, ItemKind};
+use bevy_skills::SkillProfile;
 use combat::{AbilityBar, ActiveEffects, Casting, Combatant, Dead};
 
 use super::combat::{Faction, Target};
 use super::inventory::{Loot, SLOTS};
 use super::player::Player;
+use super::skills::combat_levels;
 use super::theme::ACTIVE;
 
 pub struct UiPlugin;
@@ -29,7 +31,14 @@ impl Plugin for UiPlugin {
             // in the context rather than in a resource, and a context can be
             // rebuilt -- a window change, a new primary camera -- so setting it
             // once at startup is a theme that silently reverts later.
-            (apply_theme, draw_frames, draw_inventory, draw_action_bar).chain(),
+            (
+                apply_theme,
+                draw_frames,
+                draw_inventory,
+                draw_skills,
+                draw_action_bar,
+            )
+                .chain(),
         );
     }
 }
@@ -192,6 +201,36 @@ fn draw_frames(
 ///
 /// Slots rather than a flat list, because a stack that split across two of them
 /// is the state a player needs to see; a summed total would hide it.
+fn draw_skills(mut contexts: EguiContexts, profile: Query<&SkillProfile, With<Player>>) -> Result {
+    let Ok(profile) = profile.single() else {
+        return Ok(());
+    };
+
+    egui::Window::new("skills")
+        .title_bar(false)
+        .resizable(false)
+        .anchor(egui::Align2::RIGHT_BOTTOM, [-16.0, -16.0])
+        .show(contexts.ctx_mut()?, |ui| {
+            ui.set_width(160.0);
+            ui.label(
+                egui::RichText::new("Skills")
+                    .strong()
+                    .color(ACTIVE.lavender),
+            );
+
+            for (name, level) in combat_levels(profile) {
+                ui.horizontal(|ui| {
+                    ui.label(name);
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(egui::RichText::new(format!("{level}")).color(ACTIVE.green));
+                    });
+                });
+            }
+        });
+
+    Ok(())
+}
+
 fn draw_inventory(mut contexts: EguiContexts, inventory: Res<Inventory<Loot>>) -> Result {
     egui::Window::new("inventory")
         .title_bar(false)
