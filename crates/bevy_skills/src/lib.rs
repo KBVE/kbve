@@ -85,6 +85,19 @@ mod plugin {
     use crate::registry::SkillRegistry;
     use crate::systems;
 
+    /// The plugin's two stages, in the order they run.
+    ///
+    /// Exported so a game can place its own systems around them: XP has to be
+    /// granted before [`Grants`](SkillSystems::Grants) reads it, or the grant
+    /// waits a frame.
+    #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+    pub enum SkillSystems {
+        /// Applies [`GrantXpMsg`] and recalculates levels.
+        Grants,
+        /// Answers [`SkillCheckMsg`] against the levels `Grants` just wrote.
+        Checks,
+    }
+
     /// Bevy plugin that registers the skill system.
     ///
     /// Adds the [`SkillRegistry`] resource, registers all four skill
@@ -99,13 +112,17 @@ mod plugin {
                 .add_message::<LevelUpMsg>()
                 .add_message::<SkillCheckMsg>()
                 .add_message::<SkillCheckResultMsg>()
+                .configure_sets(Update, (SkillSystems::Grants, SkillSystems::Checks).chain())
                 .add_systems(
                     Update,
-                    (systems::process_xp_grants, systems::process_skill_checks),
+                    (
+                        systems::process_xp_grants.in_set(SkillSystems::Grants),
+                        systems::process_skill_checks.in_set(SkillSystems::Checks),
+                    ),
                 );
         }
     }
 }
 
 #[cfg(feature = "bevy")]
-pub use plugin::BevySkillsPlugin;
+pub use plugin::{BevySkillsPlugin, SkillSystems};
