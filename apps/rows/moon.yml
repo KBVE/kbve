@@ -11,11 +11,13 @@ tasks:
         options:
             cache: false
     containerx:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load -f apps/rows/Dockerfile -t kbve/rows:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/rows:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/rows:buildcache,mode=max -f apps/rows/Dockerfile -t ghcr.io/kbve/rows:latest -t kbve/rows:latest .'
         options:
             runFromWorkspaceRoot: true

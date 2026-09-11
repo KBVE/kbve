@@ -36,6 +36,7 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
+        deps: ['protobuf:build']
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max -f apps/irc/api/Dockerfile -t ghcr.io/kbve/irc-gateway:latest -t kbve/irc-gateway:latest .'
         options:
             runFromWorkspaceRoot: true
