@@ -237,11 +237,22 @@ jobs:
             # rename dies with "component download failed". Doing it once here
             # leaves moon's calls as no-ops with nothing to download.
             #
+            # Unconditional, unlike every other rust step here. proto's rust
+            # plugin does not install a toolchain -- it locates the one rustup
+            # already has and then adds components and targets to it -- and
+            # `moon setup` below provisions every toolchain .moon/toolchains.yml
+            # declares, rust among them, whatever the shard was asked to run. So
+            # a shard with no rust task reached `moon setup` with no
+            # ~/.rustup/toolchains/<channel> to find and died on
+            # `proto::locate::missing_executable`, which is every push that
+            # touched no rust (#17139). The cost when nothing needs rust is the
+            # rustup call itself: a second, against the two minutes of disk
+            # clearing and cache restore that stay gated.
+            #
             # The target list is read from .moon/toolchains.yml rather than
             # repeated here, for the same reason setup-moon reads its version from
             # .prototools: a copy would drift from what moon actually provisions.
             - name: Preinstall the rust toolchain
-              if: env.NEEDS_RUST == 'true'
               run: |
                   rustup show active-toolchain || rustup toolchain install
                   TARGETS="$(node tools/moon/rust-targets.mjs)"
