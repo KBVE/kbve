@@ -8,7 +8,7 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 
 use super::river::{bank_wetness, river_at};
 use super::terrain_material::{
-    TerrainExtension, TerrainMaterial, TerrainParams, terrain_layer_image,
+    TerrainExtension, TerrainMaterial, TerrainParams, layer_array, load_ground_strips,
 };
 use super::water_material::{WaterMaterial, water_material};
 use super::world::{height_at, normal_at};
@@ -42,7 +42,7 @@ impl Plugin for TerrainPlugin {
             .add_plugins(MaterialPlugin::<WaterMaterial>::default())
             .init_resource::<ChunkMap>()
             .add_systems(Startup, seed_terrain)
-            .add_systems(Update, stream_chunks);
+            .add_systems(Update, (assemble_ground_layers, stream_chunks));
     }
 }
 
@@ -57,6 +57,14 @@ pub struct TerrainChunk {
 struct TerrainAssets {
     material: Handle<TerrainMaterial>,
     water: Handle<WaterMaterial>,
+}
+
+/// The stacked source strips, held until they have been sliced into arrays.
+#[derive(Resource)]
+struct GroundStrips {
+    albedo: Handle<Image>,
+    normal: Handle<Image>,
+    ready: bool,
 }
 
 /// Which chunk coordinates are currently spawned.
@@ -319,12 +327,12 @@ fn spawn_chunk(
 fn seed_terrain(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut images: ResMut<Assets<Image>>,
+    asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<TerrainMaterial>>,
     mut waters: ResMut<Assets<WaterMaterial>>,
     mut map: ResMut<ChunkMap>,
 ) {
-    let layers = images.add(terrain_layer_image());
+    let (albedo, normal) = load_ground_strips(&asset_server);
     let assets = TerrainAssets {
         material: materials.add(TerrainMaterial {
             base: StandardMaterial {
@@ -333,7 +341,8 @@ fn seed_terrain(
             },
             extension: TerrainExtension {
                 params: TerrainParams::default(),
-                layers,
+                layers: Handle::default(),
+                normals: Handle::default(),
             },
         }),
         water: waters.add(water_material()),
@@ -356,6 +365,43 @@ fn seed_terrain(
     }
 
     commands.insert_resource(assets);
+    commands.insert_resource(GroundStrips {
+        albedo,
+        normal,
+        ready: false,
+    });
+}
+
+/// Slices the loaded strips into the arrays the material samples, once, when both have arrived.
+fn assemble_ground_layers(
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<TerrainMaterial>>,
+    mut strips: ResMut<GroundStrips>,
+    assets: Res<TerrainAssets>,
+) {
+    if strips.ready {
+        return;
+    }
+    let Some(albedo) = images
+        .get(&strips.albedo)
+        .and_then(|s| layer_array(s, true))
+    else {
+        return;
+    };
+    let Some(normal) = images
+        .get(&strips.normal)
+        .and_then(|s| layer_array(s, false))
+    else {
+        return;
+    };
+    let albedo = images.add(albedo);
+    let normal = images.add(normal);
+    let Some(mut material) = materials.get_mut(&assets.material) else {
+        return;
+    };
+    material.extension.layers = albedo;
+    material.extension.normals = normal;
+    strips.ready = true;
 }
 
 fn stream_chunks(

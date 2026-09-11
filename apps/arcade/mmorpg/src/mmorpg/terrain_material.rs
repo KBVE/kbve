@@ -1,7 +1,9 @@
-//! Ground material: world-space tiling over a mipped layer array, blended by slope and height.
+//! Ground material: world-space tiling over mipped layer arrays, blended by slope and height.
 
 use bevy::asset::RenderAssetUsages;
-use bevy::image::{ImageAddressMode, ImageFilterMode, ImageSampler, ImageSamplerDescriptor};
+use bevy::image::{
+    ImageAddressMode, ImageFilterMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
+};
 use bevy::pbr::{ExtendedMaterial, MaterialExtension};
 use bevy::prelude::*;
 use bevy::render::render_resource::{
@@ -10,24 +12,17 @@ use bevy::render::render_resource::{
 };
 use bevy::shader::ShaderRef;
 
-use super::world::hash;
-
 /// Path of the fragment shader backing [`TerrainExtension`].
 pub const TERRAIN_SHADER: &str = "shaders/terrain.wgsl";
 
-/// Edge length in texels of every layer in the ground array.
-const LAYER_SIZE: u32 = 256;
+/// Strip of stacked ground colours, in the order the shader indexes them.
+pub const ALBEDO_STRIP: &str = "terrain/ground_albedo.png";
 
-/// Number of ground layers packed into the array texture.
-const LAYER_COUNT: u32 = 4;
+/// Strip of stacked ground normals, matching [`ALBEDO_STRIP`] layer for layer.
+pub const NORMAL_STRIP: &str = "terrain/ground_normal.png";
 
-/// Linear base colors for the grass, rock, sand and snow layers.
-const LAYER_COLORS: [[f32; 3]; LAYER_COUNT as usize] = [
-    [0.16, 0.30, 0.10],
-    [0.34, 0.33, 0.31],
-    [0.62, 0.55, 0.36],
-    [0.86, 0.88, 0.92],
-];
+/// Number of ground layers packed into each array texture.
+pub const LAYER_COUNT: u32 = 4;
 
 /// The ground material: a [`StandardMaterial`] with the splat blend layered on top.
 pub type TerrainMaterial = ExtendedMaterial<StandardMaterial, TerrainExtension>;
@@ -53,20 +48,29 @@ pub struct TerrainParams {
     pub wet_darkening: f32,
     /// Roughness of fully soaked ground.
     pub wet_roughness: f32,
+    /// How far the sampled normals tilt the surface.
+    pub normal_strength: f32,
+    /// Scale of the second, rotated sampling that regions are mixed toward.
+    pub variant_scale: f32,
+    /// How often the world switches between the two samplings, in cycles per meter.
+    pub variant_frequency: f32,
 }
 
 impl Default for TerrainParams {
     fn default() -> Self {
         Self {
-            tile_scale: 0.12,
+            tile_scale: 0.09,
             macro_scale: 0.045,
             rock_slope: 0.42,
             sand_level: -8.0,
             snow_level: 30.0,
             blend_range: 5.0,
-            macro_strength: 0.35,
+            macro_strength: 0.55,
             wet_darkening: 0.52,
             wet_roughness: 0.22,
+            normal_strength: 1.2,
+            variant_scale: 0.43,
+            variant_frequency: 0.012,
         }
     }
 }
@@ -79,6 +83,9 @@ pub struct TerrainExtension {
     #[texture(101, dimension = "2d_array")]
     #[sampler(102)]
     pub layers: Handle<Image>,
+    #[texture(103, dimension = "2d_array")]
+    #[sampler(104)]
+    pub normals: Handle<Image>,
 }
 
 impl MaterialExtension for TerrainExtension {
@@ -87,120 +94,155 @@ impl MaterialExtension for TerrainExtension {
     }
 }
 
-/// Value noise that wraps every `cells` lattice steps, so a tiled layer has no seam.
-fn tileable_noise(x: f32, y: f32, cells: i32, seed: u32) -> f32 {
-    let (xi, yi) = (x.floor(), y.floor());
-    let (xf, yf) = (x - xi, y - yi);
-    let u = xf * xf * (3.0 - 2.0 * xf);
-    let v = yf * yf * (3.0 - 2.0 * yf);
-    let at = |ox: i32, oy: i32| {
-        hash(
-            (xi as i32 + ox).rem_euclid(cells),
-            (yi as i32 + oy).rem_euclid(cells),
-            seed,
-        )
-    };
-    let a = at(0, 0) + (at(1, 0) - at(0, 0)) * u;
-    let b = at(0, 1) + (at(1, 1) - at(0, 1)) * u;
-    a + (b - a) * v
+/// Loads the two strips; normals must not be read as colour or the vectors are skewed by gamma.
+pub fn load_ground_strips(assets: &AssetServer) -> (Handle<Image>, Handle<Image>) {
+    (
+        assets.load(ALBEDO_STRIP),
+        assets
+            .load_builder()
+            .with_settings(|settings: &mut ImageLoaderSettings| settings.is_srgb = false)
+            .load(NORMAL_STRIP),
+    )
 }
 
-/// Grain for one texel of `layer`, as a linear-space multiplier around 1.0.
-fn layer_grain(layer: u32, x: u32, y: u32) -> f32 {
-    let seed = 0x9e37_79b9u32.wrapping_mul(layer + 1);
-    let mut grain = 0.0;
-    let mut amplitude = 0.5;
-    let mut cells = 16i32;
-    for octave in 0..3u32 {
-        let scale = cells as f32 / LAYER_SIZE as f32;
-        grain += tileable_noise(
-            x as f32 * scale,
-            y as f32 * scale,
-            cells,
-            seed ^ octave.wrapping_mul(0x85eb_ca6b),
-        ) * amplitude;
-        amplitude *= 0.5;
-        cells *= 2;
+/// Decode table for the strips, built once because the slicing does millions of these.
+fn srgb_table() -> [f32; 256] {
+    let mut table = [0.0; 256];
+    for (index, entry) in table.iter_mut().enumerate() {
+        let value = index as f32 / 255.0;
+        *entry = if value <= 0.040_45 {
+            value / 12.92
+        } else {
+            ((value + 0.055) / 1.055).powf(2.4)
+        };
     }
-    0.72 + grain * 0.56
+    table
 }
 
 fn linear_to_srgb(value: f32) -> u8 {
-    let clamped = value.clamp(0.0, 1.0);
-    let encoded = if clamped <= 0.003_130_8 {
-        clamped * 12.92
+    let value = value.clamp(0.0, 1.0);
+    let encoded = if value <= 0.003_130_8 {
+        value * 12.92
     } else {
-        1.055 * clamped.powf(1.0 / 2.4) - 0.055
+        1.055 * value.powf(1.0 / 2.4) - 0.055
     };
     (encoded * 255.0 + 0.5) as u8
 }
 
-/// Box-filters one linear-space level down to half resolution on each axis.
-fn downsample(level: &[[f32; 3]], size: u32) -> Vec<[f32; 3]> {
-    let half = size / 2;
+/// Averages one level down to half resolution on each axis.
+fn downsample(level: &[[f32; 4]], size: u32) -> Vec<[f32; 4]> {
+    let half = (size / 2).max(1);
     let mut next = Vec::with_capacity((half * half) as usize);
     for y in 0..half {
         for x in 0..half {
-            let mut sum = [0.0; 3];
+            let mut sum = [0.0; 4];
             for (dx, dy) in [(0, 0), (1, 0), (0, 1), (1, 1)] {
                 let texel = level[((y * 2 + dy) * size + (x * 2 + dx)) as usize];
-                for channel in 0..3 {
+                for channel in 0..4 {
                     sum[channel] += texel[channel];
                 }
             }
-            next.push([sum[0] * 0.25, sum[1] * 0.25, sum[2] * 0.25]);
+            next.push(sum.map(|total| total * 0.25));
         }
     }
     next
 }
 
-/// Builds the ground array with a full mip chain, which bevy 0.19 will not generate itself.
-pub fn terrain_layer_image() -> Image {
-    let mip_level_count = LAYER_SIZE.ilog2() + 1;
-    let mut data = Vec::new();
+fn encode(level: &[[f32; 4]], srgb: bool, into: &mut Vec<u8>) {
+    for texel in level {
+        if srgb {
+            into.extend_from_slice(&[
+                linear_to_srgb(texel[0]),
+                linear_to_srgb(texel[1]),
+                linear_to_srgb(texel[2]),
+                255,
+            ]);
+        } else {
+            let vector = Vec3::new(texel[0], texel[1], texel[2]) * 2.0 - Vec3::ONE;
+            let unit = vector.normalize_or(Vec3::Z) * 0.5 + Vec3::splat(0.5);
+            into.extend_from_slice(&[
+                (unit.x * 255.0 + 0.5) as u8,
+                (unit.y * 255.0 + 0.5) as u8,
+                (unit.z * 255.0 + 0.5) as u8,
+                255,
+            ]);
+        }
+    }
+}
 
+/// Slices a stacked strip into an array texture with a full mip chain.
+///
+/// Bevy 0.19 generates no mipmaps, and a ground plane at a grazing angle is the worst case for
+/// the shimmer you get without them, so the chain is built here rather than left to the loader.
+/// Colour is filtered in linear space and normals are re-normalised, because averaging either one
+/// in its stored encoding bends it.
+pub fn layer_array(strip: &Image, srgb: bool) -> Option<Image> {
+    let size = strip.texture_descriptor.size;
+    let (width, height) = (size.width, size.height);
+    if width == 0 || height != width * LAYER_COUNT {
+        return None;
+    }
+    let source = strip.data.as_ref()?;
+    if source.len() < (width * height * 4) as usize {
+        return None;
+    }
+
+    let decode = srgb_table();
+    let mip_level_count = width.ilog2() + 1;
+    let mut data = Vec::new();
     for layer in 0..LAYER_COUNT {
-        let base = LAYER_COLORS[layer as usize];
-        let mut level: Vec<[f32; 3]> = (0..LAYER_SIZE * LAYER_SIZE)
+        let mut level: Vec<[f32; 4]> = (0..width * width)
             .map(|index| {
-                let (x, y) = (index % LAYER_SIZE, index / LAYER_SIZE);
-                let grain = layer_grain(layer, x, y);
-                [base[0] * grain, base[1] * grain, base[2] * grain]
+                let x = index % width;
+                let y = layer * width + index / width;
+                let at = ((y * width + x) * 4) as usize;
+                if srgb {
+                    [
+                        decode[source[at] as usize],
+                        decode[source[at + 1] as usize],
+                        decode[source[at + 2] as usize],
+                        1.0,
+                    ]
+                } else {
+                    [
+                        source[at] as f32 / 255.0,
+                        source[at + 1] as f32 / 255.0,
+                        source[at + 2] as f32 / 255.0,
+                        1.0,
+                    ]
+                }
             })
             .collect();
 
-        let mut size = LAYER_SIZE;
+        let mut level_size = width;
         loop {
-            for texel in &level {
-                data.extend_from_slice(&[
-                    linear_to_srgb(texel[0]),
-                    linear_to_srgb(texel[1]),
-                    linear_to_srgb(texel[2]),
-                    255,
-                ]);
-            }
-            if size == 1 {
+            encode(&level, srgb, &mut data);
+            if level_size == 1 {
                 break;
             }
-            level = downsample(&level, size);
-            size /= 2;
+            level = downsample(&level, level_size);
+            level_size /= 2;
         }
     }
 
-    Image {
+    Some(Image {
         data: Some(data),
         data_order: TextureDataOrder::LayerMajor,
         texture_descriptor: TextureDescriptor {
             label: Some("terrain_layers"),
             size: Extent3d {
-                width: LAYER_SIZE,
-                height: LAYER_SIZE,
+                width,
+                height: width,
                 depth_or_array_layers: LAYER_COUNT,
             },
             mip_level_count,
             sample_count: 1,
             dimension: TextureDimension::D2,
-            format: TextureFormat::Rgba8UnormSrgb,
+            format: if srgb {
+                TextureFormat::Rgba8UnormSrgb
+            } else {
+                TextureFormat::Rgba8Unorm
+            },
             usage: TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST,
             view_formats: &[],
         },
@@ -218,5 +260,5 @@ pub fn terrain_layer_image() -> Image {
         texture_view_descriptor: None,
         asset_usage: RenderAssetUsages::RENDER_WORLD,
         copy_on_resize: false,
-    }
+    })
 }
