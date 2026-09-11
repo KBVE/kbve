@@ -311,6 +311,10 @@ Measured on the strafe `swap` autowalk at run (forward and backward flips every 
 
 Straight run, orbit strafe, zigzag turns, walk 180° reversals and terrain walking are unchanged by it (carry ≤ 0.07 m planted, same knee ranges, no new knee jumps over 25° in 50 ms).
 
+### The pose database is packed (2026-09-11)
+
+`neutral.pose.ron` had grown to 25 MB of text (159 clips, 18,040 frames, 1.4 KB a frame) and took 0.6 s to parse at boot. `kbve-pose-pack in.pose.ron out.pose.bin` (pure Python, no Blender) writes the same numbers as `neutral.pose.bin`: rotations and bone directions as signed 16-bit fractions, root, pelvis and clip metadata as float32, one contact byte, little-endian, magic `KPOS`. The bake writes the packed form directly when `--out` ends in `.bin`. The loader sniffs the magic and still reads RON. 5.5 MB, and the game reaches its first pose 0.46 s after launch instead of 0.98 s; run metrics are unchanged. Scripts that need clip names read the header with `pose_pack.read_names`.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

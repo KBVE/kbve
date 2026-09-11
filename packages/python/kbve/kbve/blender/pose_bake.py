@@ -1,4 +1,4 @@
-"""kbve-blender-pose --clip name=<fbx|glb> [...] --out <pose.ron>
+"""kbve-blender-pose --clip name=<fbx|glb> [...] --out <pose.bin|pose.ron>
 
 Bakes body joint rotations per frame into a rig-independent pose database:
 each bone's rotation as a delta from its own rest orientation, in a canonical
@@ -17,6 +17,7 @@ from mathutils import Matrix, Quaternion, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gait_bake import Clip, argv, contacts, load  # noqa: E402
+from pose_pack import write_bin  # noqa: E402
 
 ROLES = [
     "pelvis",
@@ -237,6 +238,9 @@ def fmt(v: float) -> str:
 
 
 def write(records: list[dict], out: Path) -> None:
+    if out.suffix == ".bin":
+        write_bin(ROLES, records, out)
+        return
     lines = ["(", f"    bones: [{', '.join(chr(34) + r + chr(34) for r in ROLES)}],", "    clips: ["]
     for r in records:
         lines.append("        (")

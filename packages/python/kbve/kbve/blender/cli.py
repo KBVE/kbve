@@ -84,7 +84,7 @@ def pose_main() -> None:
         prog="kbve-blender-pose", description="Bake rig-independent lower-body joint rotations from locomotion clips."
     )
     p.add_argument("--clip", action="append", required=True, help="name=<fbx|glb>, repeatable")
-    p.add_argument("--out", required=True, help="output pose.ron")
+    p.add_argument("--out", required=True, help="output pose.bin (or pose.ron for the text form)")
     p.add_argument("--blender", default=None, help="path to blender binary")
     a = p.parse_args()
     blender = find_blender(a.blender)

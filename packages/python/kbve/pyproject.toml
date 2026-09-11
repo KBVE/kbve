@@ -77,6 +77,7 @@ kbve-blender-which = "kbve.blender.cli:which_main"
 kbve-blender-render = "kbve.blender.cli:render_main"
 kbve-blender-export = "kbve.blender.cli:export_main"
 kbve-blender-batch-export = "kbve.blender.cli:batch_export_main"
+kbve-pose-pack = "kbve.blender.pose_pack:main"
 
 [dependency-groups]
 dev = [
