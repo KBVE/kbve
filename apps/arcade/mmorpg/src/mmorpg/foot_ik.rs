@@ -1073,11 +1073,26 @@ fn aim_feet(
                     .get(goal.character)
                     .ok()
                     .and_then(|lower| {
-                        let name = if goal.right { "ball_r" } else { "ball_l" };
-                        lower.roles.iter().find(|r| r.role == name).map(|r| r.bone)
+                        let (ball, foot) = if goal.right {
+                            ("ball_r", "foot_r")
+                        } else {
+                            ("ball_l", "foot_l")
+                        };
+                        let rest = |name: &str| {
+                            lower
+                                .roles
+                                .iter()
+                                .find(|r| r.role == name)
+                                .map(|r| (r.bone, r.rest.translation.y))
+                        };
+                        let (bone, ball_rest) = rest(ball)?;
+                        let (_, foot_rest) = rest(foot)?;
+                        Some((bone, goal.ankle_height + ball_rest - foot_rest))
                     })
-                    .and_then(|bone| bone_world_transform(bone, &pose.transforms, &pose.parents))
-                    .map(|t| t.translation);
+                    .and_then(|(bone, height)| {
+                        bone_world_transform(bone, &pose.transforms, &pose.parents)
+                            .map(|t| (t.translation, height.max(0.0)))
+                    });
                 let hip = bone_world_transform(bones.root, &pose.transforms, &pose.parents)
                     .map(|t| t.translation)
                     .unwrap_or(ankle + Vec3::Y * cadence.leg_length);
@@ -1308,7 +1323,7 @@ fn hold_foot(
     cadence: &Cadence,
     hip: Vec3,
     ankle: Vec3,
-    ball: Option<Vec3>,
+    ball: Option<(Vec3, f32)>,
     ground: &dyn Fn(Vec3) -> Option<(Vec3, Vec3)>,
     body: Option<Vec3>,
     body_floor: Option<f32>,
@@ -1320,7 +1335,10 @@ fn hold_foot(
     } else {
         cadence.contact.0
     } && full;
-    let ball = ball.unwrap_or(ankle);
+    let toe_lift = ball
+        .and_then(|(ball, height)| ground(ball).map(|(hit, n)| (hit + n * height).y - ball.y))
+        .unwrap_or(f32::MIN);
+    let ball = ball.map(|(ball, _)| ball).unwrap_or(ankle);
     let Some((hit, normal)) = ground(ankle) else {
         goal.grounded -= goal.grounded * step;
         goal.plant = None;
@@ -1378,7 +1396,7 @@ fn hold_foot(
             let foot = Quat::from_rotation_y(goal.plant_yaw - cadence.yaw) * (ankle - ball);
             Vec3::new(held.x, ball.y.max(pin.y), held.z) + foot
         } else {
-            let lift = (pin.y + goal.ankle_height - ankle.y).max(0.0);
+            let lift = (pin.y + goal.ankle_height - ankle.y).max(toe_lift).max(0.0);
             Vec3::new(held.x, ankle.y + lift, held.z)
         };
         let reach = (ankle - hip).length().max(cadence.leg_length * HOLD_REACH);
@@ -1449,9 +1467,9 @@ fn hold_foot(
         goal.rest = None;
         goal.carry *= (-cadence.frame_dt / CARRY_FADE).exp();
         let carried = ankle + goal.carry;
-        let sink = floor.y - carried.y;
+        let sink = (floor.y - carried.y).max(toe_lift - goal.carry.y);
         if sink > 0.0 {
-            limb.goal = Vec3::new(carried.x, floor.y, carried.z);
+            limb.goal = carried + Vec3::Y * sink;
             limb.weight = goal.grounded * cadence.weight;
         } else if goal.carry.length_squared() > 1e-6 {
             limb.goal = carried;
