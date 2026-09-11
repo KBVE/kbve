@@ -18,10 +18,10 @@ spec:
     template:
         metadata:
             annotations:
-                rollout-restart: '2026-04-03T22:24:57Z'
+                rollout-restart: '2026-09-11T18:00:16Z'
             labels:
                 app: herbmail
-                version: '0.1.2'
+                version: '0.1.3'
         spec:
             serviceAccountName: herbmail-sa
             automountServiceAccountToken: false
@@ -35,7 +35,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: herbmail
-                  image: ghcr.io/kbve/herbmail:0.1.2
+                  image: ghcr.io/kbve/herbmail:0.1.3
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 4321
