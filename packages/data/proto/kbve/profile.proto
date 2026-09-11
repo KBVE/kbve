@@ -8,6 +8,12 @@ import "kbve/common.proto";
 // Profile - User profile data for public display
 // =============================================================================
 
+// Profile link (social media, portfolio, etc.)
+message ProfileLink {
+  string kind = 1;  // "github", "linkedin", "website", "x", "itch", "artstation", "other"
+  string url = 2;   // HTTPS URL (max 2048 chars)
+}
+
 // Provider identity information (Discord, GitHub, etc.)
 message ProviderInfo {
   string provider = 1;        // "discord", "github", etc.
@@ -43,6 +49,16 @@ message GithubProfile {
   optional int32 following = 10;
 }
 
+// Extended profile data (identity fields, shared across apps)
+message ExtendedProfile {
+  string user_id = 1;                  // UUID from Supabase auth (PK)
+  optional string bio = 2;             // User bio (max 5000 chars)
+  optional string location = 3;        // Geographic location (max 120 chars)
+  optional string avatar_url = 4;      // Profile avatar URL (max 2048 chars, HTTPS)
+  repeated ProfileLink links = 5;      // Public profile links (max 20 items)
+  optional string updated_at = 6;      // Timestamp of last profile update
+}
+
 // Complete user profile
 message UserProfile {
   string user_id = 1;         // UUID from Supabase auth
@@ -65,6 +81,9 @@ message UserProfile {
   bool show_providers = 12;   // default: true
 
   reserved 13;  // was: RentEarth game data (removed)
+
+  // Extended profile data (centralized identity fields)
+  optional ExtendedProfile extended = 14;
 }
 
 // =============================================================================
