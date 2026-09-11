@@ -82,6 +82,12 @@ spec:
                                 name: stalwart-recovery-admin
                                 key: credentials
                                 optional: true
+                      - name: STALWART_HOOK_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: stalwart-hook-secret
+                                key: secret
+                                optional: true
                   ports:
                       - name: smtp
                         containerPort: 25
