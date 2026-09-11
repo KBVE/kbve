@@ -161,6 +161,8 @@ const REST_SPEED: f32 = 0.4;
 
 /// Below this ground speed a character is standing, and its feet follow the clip.
 const STEP_SPEED: f32 = 0.15;
+/// Seconds the ground probe may miss before the pose treats the body as airborne; a reversal drops a single hit.
+const AIR_GRACE: f32 = 0.1;
 
 /// Seconds over which a released foot sheds what the lock was holding it away from the pose.
 const CARRY_FADE: f32 = 0.08;
@@ -658,24 +660,34 @@ fn advance_stride(
         stride.turn += (rate - stride.turn) * (6.0 * dt).min(1.0);
         stride.yaw = yaw;
         let right = stride.forward.cross(Vec3::Y);
-        stride.direction =
-            if stride.speed > STEP_SPEED && (heading.0.is_some() || switches.playback.on) {
-                planar
-                    .dot(right)
-                    .atan2(planar.dot(stride.forward))
-                    .to_degrees()
-            } else {
-                0.0
-            };
         stride.locked = heading.0.is_some();
+        if stride.speed > STEP_SPEED {
+            stride.travel = planar / stride.speed;
+        }
+        let along = if stride.speed > STEP_SPEED {
+            Some(planar)
+        } else if stride.locked {
+            Some(stride.travel)
+        } else {
+            None
+        };
+        stride.direction = match along {
+            Some(along) if heading.0.is_some() || switches.playback.on => along
+                .dot(right)
+                .atan2(along.dot(stride.forward))
+                .to_degrees(),
+            _ => 0.0,
+        };
         if heading.0.is_none() {
             stride.velocity = stride.forward * stride.speed;
         }
-        let moving = grounded.0
+        stride.air = if grounded.0 { 0.0 } else { stride.air + dt };
+        let planted = grounded.0 || (stride.air < AIR_GRACE && stride.speed > 0.0);
+        let moving = planted
             && (stride.speed.max(stride.prior_speed) > STEP_SPEED
                 || stride.shot.is_some()
                 || stride.hold);
-        stride.grounded = grounded.0;
+        stride.grounded = planted;
         let chase = PACE_RATE * dt;
         stride.pace = if moving {
             stride.pace + (stride.speed - stride.pace).clamp(-chase, chase)

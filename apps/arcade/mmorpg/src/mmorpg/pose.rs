@@ -203,6 +203,20 @@ fn pick_lane(
     }
 }
 
+/// The fastest loop in a lane, in leg lengths per second.
+fn lane_top(set: &PoseSet, want_lane: &str) -> f32 {
+    set.clips
+        .iter()
+        .filter(|c| {
+            c.speed > 0.05
+                && lane(c.direction) == want_lane
+                && !c.name.contains("arc")
+                && !c.one_shot()
+        })
+        .map(|c| c.normalized())
+        .fold(0.0, f32::max)
+}
+
 /// The loops for a travel: the speed pair in the direction's lane and, when the facing is locked, the pair one lane on so the two can be mixed by angle. Walking forward round a bend picks the arc whose curvature is nearest the body's, left positive.
 fn pick(
     set: &PoseSet,
@@ -456,8 +470,18 @@ fn play_pose(
         let mut restart = false;
         let mut redirect = false;
         let mut released = false;
+        let mut swapped = false;
         let wish = intent.map(|i| i.wish).unwrap_or(Vec3::ZERO);
         let pushing = wish.length_squared() > 0.25;
+        cadence.lane_cap = if cadence.locked && pushing {
+            let forward = cadence.forward;
+            let aim = forward.cross(wish).y.atan2(forward.dot(wish)).to_degrees();
+            let (base, mix) = lane_split(-aim);
+            let (a, b) = (lane_top(set, lane(base)), lane_top(set, lane(base + 45.0)));
+            (a + (b - a) * mix) * cadence.leg_length
+        } else {
+            f32::INFINITY
+        };
         let span = set
             .clips
             .iter()
@@ -578,7 +602,7 @@ fn play_pose(
                 && lane_of(cadence.pair)
                     .is_some_and(|was| was != lane_of(loops.map(|(pair, _)| pair)).unwrap_or(was))
             {
-                cut = true;
+                swapped = true;
             }
             cadence.pair = loops.map(|(pair, _)| pair);
             cadence.pair2 = loops.and_then(|(_, second)| second);
@@ -674,7 +698,7 @@ fn play_pose(
         } else {
             (false, phase - 0.5)
         };
-        let running = intent.is_some_and(|i| i.run);
+        let running = intent.is_some_and(|i| i.run) || cadence.locked;
         let steer_to = |cadence: &mut Cadence, clip: &PoseClip, angle: f32| {
             if let Some(shot) = cadence.shot.as_mut() {
                 steer_shot(shot, clip, shot.start, angle);
@@ -728,7 +752,7 @@ fn play_pose(
                 cadence.shot_velocity = Vec3::ZERO;
             } else {
                 let lane = if locked {
-                    lane(angle).to_lowercase()
+                    lane(-angle).to_lowercase()
                 } else {
                     "f".into()
                 };
@@ -740,7 +764,8 @@ fn play_pose(
                         .map(|(i, c)| (i, c, c.start_window()))
                         .min_by_key(|(_, _, (start, end))| end - start)
                 };
-                if let Some((index, clip, (start, end))) = starts(&lane).or_else(|| starts("f")) {
+                let found = if locked { starts(&lane) } else { starts("f") };
+                if let Some((index, clip, (start, end))) = found {
                     moving = begin(index, start as f32, end, false, &mut cadence);
                     steer_to(&mut cadence, clip, if locked { 0.0 } else { angle });
                     cut = true;
@@ -754,7 +779,12 @@ fn play_pose(
             && !pushing
             && moving.is_some()
         {
-            let held = cadence.forward * cadence.prior_speed.max(cadence.speed);
+            let along = if cadence.locked {
+                cadence.travel
+            } else {
+                cadence.forward
+            };
+            let held = along * cadence.prior_speed.max(cadence.speed);
             let gait = if cadence.prior_speed.max(cadence.speed) > JOGGING {
                 "jog"
             } else {
@@ -772,11 +802,6 @@ fn play_pose(
                     "f".into()
                 };
                 let prefix = format!("{gait}_stop_{lane}_");
-                let prefix = if set.clips.iter().any(|c| c.name.starts_with(&prefix)) {
-                    prefix
-                } else {
-                    format!("{gait}_stop_f_")
-                };
                 let stops = set
                     .clips
                     .iter()
@@ -860,7 +885,7 @@ fn play_pose(
             contact,
         } = frame;
         if let Some(mut inertia) = inertia {
-            if cut {
+            if cut || swapped {
                 inertia.cut(pelvis, &rotations, &directions);
             }
             inertia.apply(dt, &mut pelvis, &mut rotations, &mut directions);

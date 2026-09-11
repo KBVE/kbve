@@ -268,6 +268,17 @@ Still open: jog stop cuts step the swing knee 22°/frame for three frames becaus
 
 Still open: strafe at run with 90° stick flips every 0.6 s shows 17° single-frame knee steps from the foot lock as lanes swap, and planted slide near 0.9 m/s; the jog set has no lane starts or stops; free-mode diagonals still slide on the loop steer.
 
+### Soft lock: the strafe runs at its own speed (2026-09-10, later still)
+
+The user's reminder that combat (a selected target, the hybrid soft lock) plays its own animations. Four things were wrong in that mode once the lanes blended.
+
+- The body ran at 5.5 m/s in every lane, but the captured sideways jog is 3.5 m/s and the backward one 3.0, so the strafe loops were overdriven and the planted feet slid 0.75 m/s. `Cadence.lane_cap` is the fastest loop of the lane the stick points down, in leg lengths per second times the rig's leg, mixed between neighbouring lanes; the movement caps a locked body's target speed by it. Sideways now runs 3.6, backward 3.1, planted slide 0.62.
+- Starts and stops played the forward walk clips under the lock because the gait came from the shift key, while a heading forces running. A locked body counts as running, uses the lane's own start and stop when the gait has one, and otherwise fades through the loops rather than playing a forward clip sideways.
+- A key gap during a strafe held the body along its *facing*, so a backpedal turned into a forward lunge for 0.13 s. `Cadence.travel` remembers the last direction the body actually moved at walking pace, and the hold and the lane pick use it while locked, since the velocity is already zero on the brake frame.
+- A 180° reversal under the lock drops the ground probe for one frame; the pose skipped that frame and the raw animation clip showed through (left knee 152°, foot at the hip, one frame). `Cadence.air` counts the miss and the pose stays grounded for 0.1 s of it.
+
+Measured with `MMORPG_STRAFE=1` and the `swap`, `stopgo`, `orbit` and `jitter` autowalks: no knee rate over 1500°/s on orbit or stop-go, jog start and stop clips on every stop, reversal cuts 4° or under; free-mode swap and stop-go unchanged.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.

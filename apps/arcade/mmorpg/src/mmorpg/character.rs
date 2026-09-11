@@ -356,10 +356,16 @@ pub struct Cadence {
     pub pair2: Option<(usize, usize)>,
     pub lane_base: f32,
     pub locked: bool,
+    /// Fastest ground speed the loops of the lane the stick points down actually cover, so a locked body is not driven faster than its strafe was captured.
+    pub lane_cap: f32,
+    /// Direction the body last travelled at walking pace, kept across a brake so a key gap holds the travel and not the facing.
+    pub travel: Vec3,
     /// How many stances have fed the floor fix, so early ones weigh more.
     pub floor_samples: u32,
     /// Whether the body stands on ground this frame, so the played pose may own the legs.
     pub grounded: bool,
+    /// Seconds since the ground probe last hit; a miss shorter than the grace keeps the pose on the ground.
+    pub air: f32,
     /// Where the baked idle loop is, in turns.
     pub idle_phase: f32,
     /// A turn, start or stop clip playing once through, which owns the facing and the velocity while it runs.
@@ -425,8 +431,11 @@ impl Cadence {
             pair2: None,
             lane_base: 0.0,
             locked: false,
+            lane_cap: f32::INFINITY,
+            travel: Vec3::NEG_Z,
             floor_samples: 0,
             grounded: false,
+            air: 0.0,
             idle_phase: 0.0,
             shot: None,
             shot_velocity: Vec3::ZERO,
@@ -1190,6 +1199,10 @@ fn apply_movement(
         });
 
         let speed = if retreating { base * BACKPEDAL } else { base };
+        let speed = match cadence {
+            Some(cadence) if stance => speed.min(cadence.lane_cap),
+            _ => speed,
+        };
         let wish = intent.wish * speed;
 
         let planar = Vec3::new(velocity.x, 0.0, velocity.z);
