@@ -122,7 +122,7 @@ tower = "0.5.3"
 tower-http = "0.7.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false }
-ulid = "1.2.1"
+ulid = { version = "1.2.1", default-features = false }
 url = "2.5"
 utoipa = "5"
 uuid = "1"
