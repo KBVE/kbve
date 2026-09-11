@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The isometric client's rust crate, as a project in its own right.
+#
+# It was invisible to the graph before. `isometric` is a TypeScript project, so
+# moon inferred no cargo dependencies for it and reported `Depends on: —`; a
+# change to a shared crate therefore never marked it affected, `moon ci` never
+# built it, and the crate sat broken on dev behind a green pipeline until a
+# release tried to build it. Registering the crate is what lets moon read
+# src-tauri/Cargo.toml and work the dependency out.
+#
+# Deliberately not tagged `web-game` or `tauri`: those lanes belong to the
+# TypeScript project, which owns the bundle. This one owns the compile.
+layer: 'application'
+language: 'rust'
+stack: 'frontend'
+tags: ['bevy', 'game']
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# The crate does not pass either gate yet -- 14 clippy warnings, nearly all
+# dead code, and 35 rustfmt hunks. Enabling them here would make this change
+# about cleaning up someone else's work in progress rather than about closing
+# the hole that let a broken crate through. `build` and `test` are what catch
+# that, and they run.
+workspace:
+    inheritedTasks:
+        exclude:
+            - 'lint'
+            - 'format'
