@@ -10,3 +10,4 @@ resources:
     - service-lb.yaml
     - certificate.yaml
     - externalsecret.yaml
+    - sealed-stalwart-recovery-admin.yaml
