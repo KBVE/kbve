@@ -63,7 +63,7 @@ lightyear_replication = { version = "0.29", default-features = false, features =
 bevy_kbve_net = { path = "../../../crates/bevy_kbve_net", features = ["npcdb", "creatures"] }
 bevy_inventory = { path = "../../../crates/bevy_inventory" }
 bevy_items = { path = "../../../crates/bevy_items", features = ["inventory"] }
-bevy_skills = { path = "../../../crates/bevy_skills" }
+bevy_skills = { path = "../../../crates/bevy_skills", features = ["professions"] }
 bevy_chat = { path = "../../../crates/bevy_chat" }
 bevy_dungeon = { path = "../../../crates/bevy_dungeon" }
 futures-util = { workspace = true, features = ["default"] }

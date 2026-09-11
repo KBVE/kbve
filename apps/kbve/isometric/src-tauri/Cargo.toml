@@ -61,7 +61,7 @@ bevy_cam = { path = "../../../../crates/bevy_cam" }
 bevy_kbve_net = { path = "../../../../crates/bevy_kbve_net", features = ["npcdb", "client", "creatures"] }
 bevy_behavior = { path = "../../../../crates/bevy_behavior" }
 bevy_pathfinder = { path = "../../../../crates/bevy_pathfinder" }
-bevy_skills = { path = "../../../../crates/bevy_skills" }
+bevy_skills = { path = "../../../../crates/bevy_skills", features = ["professions"] }
 bevy_db = { path = "../../../../crates/bevy_db" }
 bevy_chat = { path = "../../../../crates/bevy_chat", features = ["plugin"] }
 lightyear = { workspace = true, features = ["client", "replication", "prediction", "interpolation", "input_native", "websocket", "websocket_self_signed", "netcode", "webtransport"] }
