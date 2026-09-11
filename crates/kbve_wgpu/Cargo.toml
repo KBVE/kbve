@@ -22,7 +22,7 @@ wgpu = { workspace = true }
 raw-window-handle = { workspace = true }
 pollster = { workspace = true }
 log = { workspace = true }
-isometric-game = { path = "../../apps/kbve/isometric/src-tauri", optional = true, default-features = false, features = ["mobile"] }
+isometric-game = { path = "../../apps/arcade/isometric/src-tauri", optional = true, default-features = false, features = ["mobile"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 ndk = "0.9"

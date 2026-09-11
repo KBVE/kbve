@@ -7,7 +7,7 @@ set -euo pipefail
 # Usage: moon run isometric:quick
 
 REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
-ISO_DIR="$REPO_ROOT/apps/kbve/isometric"
+ISO_DIR="$REPO_ROOT/apps/arcade/isometric"
 CERT_DIR="$ISO_DIR/certificates"
 
 # ── Kill stale processes on our ports ──

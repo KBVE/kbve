@@ -7,7 +7,7 @@ compiles to a native binary and to a browser WebGPU bundle.
 
 | project               | camera                   | dimension                  |
 | --------------------- | ------------------------ | -------------------------- |
-| `apps/kbve/isometric` | orthographic             | 2.5D sprites               |
+| `apps/arcade/isometric` | orthographic             | 2.5D sprites               |
 | `apps/arcade/colony`  | orthographic             | 3D geometry, 2D billboards |
 | `apps/arcade/mmorpg`  | perspective third-person | 3D                         |
 

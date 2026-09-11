@@ -2,7 +2,7 @@
 #define RAREICON_HEX_MUSHROOM_INCLUDED
 
 // 1-3 pixel mushrooms per tile, mirroring the three species used by the
-// isometric meshes (apps/kbve/isometric/src-tauri/src/game/mushrooms.rs):
+// isometric meshes (apps/arcade/isometric/src-tauri/src/game/mushrooms.rs):
 //
 //   kind 0 — Porcini:     brown-shifted dome, short visible stem.
 //   kind 1 — Chanterelle: gold-shifted wider cap, 1-row pedestal.

@@ -7,7 +7,7 @@ License: <https://kbve.com/legal/>
 ## Project Layout
 
 ```
-apps/kbve/isometric/
+apps/arcade/isometric/
 ├── src-tauri/                 # Rust crate (isometric-game)
 │   ├── src/
 │   │   ├── lib.rs             # WASM entry point (wasm_main)
@@ -83,7 +83,7 @@ Items are defined as MDX files in `docs/itemdb/` and baked into the binary at co
 To regenerate after adding or changing items:
 
 ```sh
-node apps/kbve/isometric/scripts/sync-itemdb.mjs
+node apps/arcade/isometric/scripts/sync-itemdb.mjs
 ```
 
 This reads MDX frontmatter and writes `src-tauri/src/data/itemdb.json`.
@@ -117,7 +117,7 @@ GAME_SERVER_URL=wss://kbve.com/ws cargo run -p isometric-game
 ### Manual WASM build
 
 ```sh
-cd apps/kbve/isometric/src-tauri
+cd apps/arcade/isometric/src-tauri
 wasm-pack build --target web --out-dir ../wasm-pkg --out-name isometric_game
 ```
 

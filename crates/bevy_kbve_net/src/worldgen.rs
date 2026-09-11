@@ -56,7 +56,7 @@ pub struct TileKey {
 // Subkind → item_ref resolution
 //
 // Deterministic per-subkind buckets — mirror the client-side resolvers in
-// `apps/kbve/isometric/src-tauri/src/game/rocks.rs::rock_kind_from_hash`,
+// `apps/arcade/isometric/src-tauri/src/game/rocks.rs::rock_kind_from_hash`,
 // `mushrooms.rs::mushroom_kind_from_hash`, and the inline flower-archetype
 // bucket in `tilemap.rs`. Server resolves item_ref directly so the wire
 // protocol can carry the canonical ref string back to clients.
