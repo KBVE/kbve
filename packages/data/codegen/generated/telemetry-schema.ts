@@ -7,6 +7,95 @@
 
 import { z } from 'zod';
 
+// EventCount
+export const EventCountSchema = z.object({
+	project: z.string(),
+	name: z.string(),
+	events: z.string(),
+	sessions: z.string(),
+	users: z.string(),
+	first_seen: z.string(),
+	last_seen: z.string(),
+});
+
+export type EventCount = z.infer<typeof EventCountSchema>;
+
+// EventCountList
+export const EventCountListSchema = z.object({
+	counts: z.array(EventCountSchema).optional(),
+});
+
+export type EventCountList = z.infer<typeof EventCountListSchema>;
+
+// PerfSummary
+export const PerfSummarySchema = z.object({
+	project: z.string(),
+	metric: z.string(),
+	samples: z.string(),
+	sessions: z.string(),
+	p50: z.string(),
+	p75: z.string(),
+	p95: z.string(),
+	first_seen: z.string(),
+	last_seen: z.string(),
+});
+
+export type PerfSummary = z.infer<typeof PerfSummarySchema>;
+
+// PerfSummaryList
+export const PerfSummaryListSchema = z.object({
+	summaries: z.array(PerfSummarySchema).optional(),
+});
+
+export type PerfSummaryList = z.infer<typeof PerfSummaryListSchema>;
+
+// ProductEvent
+export const ProductEventSchema = z.object({
+	project: z.string(),
+	platform: z.string(),
+	release: z.string(),
+	environment: z.string(),
+	name: z.string(),
+	url: z.string(),
+	user_id: z.string(),
+	session_id: z.string(),
+	extra: z.record(z.string(), z.unknown()).nullable().optional(),
+});
+
+export type ProductEvent = z.infer<typeof ProductEventSchema>;
+
+// ProductBatch
+export const ProductBatchSchema = z.object({
+	events: z.array(ProductEventSchema).optional(),
+});
+
+export type ProductBatch = z.infer<typeof ProductBatchSchema>;
+
+// PerfEvent
+export const PerfEventSchema = z.object({
+	project: z.string(),
+	platform: z.string(),
+	release: z.string(),
+	environment: z.string(),
+	metric: z.string(),
+	value: z.number(),
+	rating: z.string(),
+	navigation_type: z.string(),
+	url: z.string(),
+	user_id: z.string(),
+	session_id: z.string(),
+	extra: z.record(z.string(), z.unknown()).nullable().optional(),
+});
+
+export type PerfEvent = z.infer<typeof PerfEventSchema>;
+
+// PerfBatch
+export const PerfBatchSchema = z.object({
+	events: z.array(PerfEventSchema).optional(),
+});
+
+export type PerfBatch = z.infer<typeof PerfBatchSchema>;
+
 // ErrorGroup
 export const ErrorGroupSchema = z.object({
 	project: z.string(),

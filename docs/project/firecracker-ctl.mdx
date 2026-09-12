@@ -13,9 +13,9 @@ key: firecracker_ctl
 pipeline: docker
 app_name: firecracker-ctl
 version: "0.1.42"
-source_path: apps/vm/firecracker-ctl
-version_toml: apps/vm/firecracker-ctl/version.toml
-version_target: apps/vm/firecracker-ctl/Cargo.toml
+source_path: services/firecracker
+version_toml: services/firecracker/version.toml
+version_target: services/firecracker/Cargo.toml
 runner: arc-runner-set
 image: kbve/firecracker-ctl
 deployment_yaml: apps/kube/firecracker/manifests/firecracker-deployment.yaml
@@ -55,7 +55,7 @@ bento:
         per-VM TAP networking across two trust-scoped deployments.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/vm/firecracker-ctl
+          href: https://github.com/KBVE/kbve/tree/main/services/firecracker
           primary: true
           external: true
         - label: Overview
@@ -128,7 +128,7 @@ Rust Axum REST API for managing Firecracker microVMs. Provides VM lifecycle mana
 | **Language** | Rust (Axum) |
 | **Service** | ClusterIP :9001 |
 | **License** | KBVE |
-| **Source** | [`apps/vm/firecracker-ctl`](https://github.com/KBVE/kbve/tree/main/apps/vm/firecracker-ctl) |
+| **Source** | [`services/firecracker`](https://github.com/KBVE/kbve/tree/main/services/firecracker) |
 | **Requires** | `/dev/kvm`, `kvm=true` node selector |
 
 ## Features

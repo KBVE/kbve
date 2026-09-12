@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    container:
+        args: ['-t', 'kbve/mail:latest']
+
+    # The registry build, which is CI's. It loads rather than pushing -- the
+    # workflow pushes afterwards -- but carries the buildcache and the ghcr tag.
+    containerx-publish:
+        deps: ['protobuf:build']
+        script: >-
+            docker buildx build --load
+            --cache-from=type=registry,ref=ghcr.io/kbve/mail:buildcache
+            --cache-to=type=registry,ref=ghcr.io/kbve/mail:buildcache,mode=max
+            -f $projectSource/Dockerfile
+            -t ghcr.io/kbve/mail:latest
+            -t kbve/mail:latest
+            .
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+
+    containerx:
+        deps: ['protobuf:build']
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/mail:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

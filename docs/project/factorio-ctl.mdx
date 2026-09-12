@@ -14,9 +14,9 @@ key: factorio_ctl
 pipeline: docker
 app_name: factorio-ctl
 version: "0.0.1"
-source_path: apps/vm/factorio-ctl
-version_toml: apps/vm/factorio-ctl/version.toml
-version_target: apps/vm/factorio-ctl/Cargo.toml
+source_path: apps/agones/factorio/ctl
+version_toml: apps/agones/factorio/ctl/version.toml
+version_target: apps/agones/factorio/ctl/Cargo.toml
 runner: ubuntu-latest
 image: kbve/factorio-ctl
 deployment_yaml: apps/kube/agones/factorio/manifests/factorio-ctl.yaml
@@ -55,7 +55,7 @@ bento:
         proxy.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/vm/factorio-ctl
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/factorio/ctl
           primary: true
           external: true
         - label: Overview

@@ -1,0 +1,36 @@
+[package]
+name = "mail"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+rust-version.workspace = true
+publish = false
+description = "Mail — shared inbox/send API over the mail schema and the stalwart relay"
+
+[dependencies]
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+axum = { workspace = true, features = ["default", "macros"] }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+reqwest = { workspace = true, features = ["json"] }
+mail-send = { workspace = true }
+mail-builder = { workspace = true }
+mail-parser = { workspace = true }
+
+uuid = { workspace = true, features = ["v4", "serde"] }
+
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "json"] }
+
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+dotenvy = { workspace = true }
+
+jedi = { path = "../../crates/jedi" }
+
+[dev-dependencies]
+http-body-util = { workspace = true }

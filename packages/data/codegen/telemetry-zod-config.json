@@ -3,8 +3,19 @@
 		"kbve.telemetry.ErrorEvent",
 		"kbve.telemetry.ErrorBatch",
 		"kbve.telemetry.ErrorGroup",
-		"kbve.telemetry.ErrorGroupList"
+		"kbve.telemetry.ErrorGroupList",
+		"kbve.telemetry.PerfEvent",
+		"kbve.telemetry.PerfBatch",
+		"kbve.telemetry.ProductEvent",
+		"kbve.telemetry.ProductBatch",
+		"kbve.telemetry.PerfSummary",
+		"kbve.telemetry.PerfSummaryList",
+		"kbve.telemetry.EventCount",
+		"kbve.telemetry.EventCountList"
 	],
-
-	"nullable": ["kbve.telemetry.ErrorEvent.extra"]
+	"nullable": [
+		"kbve.telemetry.ErrorEvent.extra",
+		"kbve.telemetry.PerfEvent.extra",
+		"kbve.telemetry.ProductEvent.extra"
+	]
 }

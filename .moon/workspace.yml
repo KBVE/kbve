@@ -153,6 +153,7 @@ projects:
 
         # Rust services still under apps/; the libraries moved to crates/.
         agones-shim: 'apps/agones/shim'
+        mail: 'services/mail'
         met: 'services/metrics'
         agones-factorio-relay: 'apps/agones/factorio/relay'
         agones-palworld-relay: 'apps/agones/palworld/relay'
@@ -167,15 +168,15 @@ projects:
         axum-rentearth: 'apps/rentearth/axum-rentearth'
         cryptothrone-server: 'apps/cryptothrone/gameserver'
         discordsh-bot: 'apps/discordsh/bot'
-        factorio-ctl: 'apps/vm/factorio-ctl'
-        firecracker-ctl: 'apps/vm/firecracker-ctl'
+        factorio-ctl: 'apps/agones/factorio/ctl'
+        firecracker-ctl: 'services/firecracker'
         friendslop-server: 'apps/agones/friendslop/server'
         kbve-mmorpg-server: 'apps/agones/kbve-mmorpg/server'
         herbmail-server: 'apps/agones/herbmail/server'
         irc-gateway: 'apps/irc/api'
         jobboard: 'apps/jobboard'
         kbve-gate: 'apps/kbve/kbve-gate'
-        kbve-kubectl: 'apps/vm/kubectl'
+        kbve-kubectl: 'services/kubectl'
         kilobase: 'apps/kbve/kilobase'
         reel: 'apps/media/reel'
         rows: 'apps/rows'
@@ -206,7 +207,7 @@ projects:
 
         # Other apps
         chuckrpg-server: 'apps/chuckrpg/gameserver'
-        aria2-proxy: 'apps/vm/aria2-proxy'
+        aria2-proxy: 'services/aria2'
         arpg-web: 'apps/agones/arpg/web'
         herbmail-game: 'apps/herbmail/game'
         rentearth-web: 'apps/rentearth/axum-rentearth/web'
@@ -222,7 +223,7 @@ projects:
 
         # Suites
         arc-runner-e2e: 'packages/docker/arc-runner-e2e'
-        aria2-proxy-e2e: 'apps/vm/aria2-proxy-e2e'
+        aria2-proxy-e2e: 'services/aria2/e2e'
         arpg-e2e: 'apps/agones/arpg/arpg-e2e'
         astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
         axum-chuckrpg-e2e: 'apps/chuckrpg/api/e2e'
@@ -232,9 +233,9 @@ projects:
         devops-e2e: 'packages/npm/devops-e2e'
         discordsh-bot-e2e: 'apps/discordsh/bot/e2e'
         droid-e2e: 'packages/npm/droid-e2e'
-        firecracker-ctl-e2e: 'apps/vm/firecracker-ctl-e2e'
+        firecracker-ctl-e2e: 'services/firecracker/e2e'
         khashvault-e2e: 'packages/npm/khashvault-e2e'
-        kubectl-e2e: 'apps/vm/kubectl-e2e'
+        kubectl-e2e: 'services/kubectl/e2e'
         laser-e2e: 'packages/npm/laser-e2e'
 
         # Shared data and schemas
@@ -267,7 +268,7 @@ projects:
         unreal-rentearth: 'apps/rentearth/unreal-rentearth'
 
         # Remaining
-        iot-edge-worker: 'apps/vm/iot/edge-worker'
+        iot-edge-worker: 'services/iot'
         metrics-e2e: 'services/metrics/e2e'
 
         # Services: deployed infrastructure that is configured here rather than
