@@ -1,7 +1,7 @@
 [package]
 name = "herbmail-api"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 rust-version.workspace = true
 publish = false
@@ -19,6 +19,9 @@ tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 axum = { workspace = true, features = ["default", "ws", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
 reqwest = { workspace = true, features = ["json"] }
+mail-send = { workspace = true }
+mail-builder = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
 askama = { workspace = true }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }

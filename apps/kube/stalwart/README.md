@@ -79,6 +79,29 @@ they persist in postgres, not on the PVC.
 6. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
    `/opt/stalwart-tls`; point the TLS cert/key paths there in admin.
 
+## Outbound (reply-only)
+
+herbmail-api `POST /mail/send` (Supabase JWT) is the only sender. The
+`From` is forced to `$username@herbmail.com`, `public.herbmail_outbound_prepare`
+enforces reply-only (the recipient must have written to that user before) and a
+daily cap, and the message is relayed to Stalwart's internal listener, which
+DKIM-signs and delivers via MX. Registry objects, applied over `/jmap`:
+
+- `x:NetworkListener` `relay`: bind `[::]:2525`, protocol `smtp`, `useTls` off.
+  Exposed on the ClusterIP service only, never on `stalwart-lb`, so only pods
+  can reach it.
+- `x:MtaStageAuth` `require`: `local_port != 25 && local_port != 2525`.
+- `x:MtaStageRcpt` `allowRelaying`: `!is_empty(authenticated_as) || local_port == 2525`.
+- `x:MtaStageMail` `isSenderAllowed`: first match
+  `local_port == 2525 && sender_domain != 'herbmail.com'` → `false`, then the
+  default, so the relay port can only originate `@herbmail.com`.
+- `x:MtaOutboundThrottle`: one keyed on `sender` (30 per hour) and one keyed on
+  `sender_domain` (500 per hour), so an API bug cannot burn the domain's
+  reputation past these.
+
+SPF `ip4:` of the LB, PTR `mail.herbmail.com`, DKIM and DMARC are already in
+DNS.
+
 ## Local lab (dry-run the whole thing)
 
 ```sh
