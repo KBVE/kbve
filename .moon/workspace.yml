@@ -224,6 +224,7 @@ projects:
         # Suites
         arc-runner-e2e: 'packages/docker/arc-runner-e2e'
         aria2-proxy-e2e: 'services/aria2/e2e'
+        mail-e2e: 'services/mail/e2e'
         arpg-e2e: 'apps/agones/arpg/arpg-e2e'
         astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
         axum-chuckrpg-e2e: 'apps/chuckrpg/api/e2e'
