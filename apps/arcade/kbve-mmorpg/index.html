@@ -3,45 +3,277 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>MMORPG</title>
+		<title>KBVE MMORPG</title>
 		<style>
+			/* Catppuccin Mocha, the same values src/mmorpg/theme.rs applies to
+			   egui, so the boot screen and the in-game UI are one palette. */
+			:root {
+				--base: #1e1e2e;
+				--mantle: #181825;
+				--crust: #11111b;
+				--surface0: #313244;
+				--surface1: #45475a;
+				--text: #cdd6f4;
+				--subtext0: #a6adc8;
+				--overlay0: #6c7086;
+				--red: #f38ba8;
+				--peach: #fab387;
+				--green: #a6e3a1;
+				--blue: #89b4fa;
+				--mauve: #cba6f7;
+			}
+
 			html,
 			body {
 				margin: 0;
 				height: 100%;
-				background: #0b1220;
+				background: var(--base);
 				overflow: hidden;
 			}
+
 			canvas {
 				display: block;
 				width: 100%;
 				height: 100%;
 				outline: none;
 			}
-			#unsupported {
+
+			#boot {
 				position: fixed;
 				inset: 0;
-				display: none;
+				display: grid;
 				place-content: center;
+				justify-items: center;
+				gap: 1rem;
 				padding: 2rem;
-				color: #dbe4f5;
-				font: 16px/1.6 system-ui, sans-serif;
+				background: var(--base);
+				color: var(--text);
+				font: 16px/1.6 ui-sans-serif, system-ui, sans-serif;
 				text-align: center;
+			}
+
+			#boot[hidden] {
+				display: none;
+			}
+
+			#title {
+				margin: 0;
+				font-size: 1.5rem;
+				font-weight: 600;
+				letter-spacing: 0.02em;
+				color: var(--mauve);
+			}
+
+			#detail {
+				margin: 0;
+				max-width: 46ch;
+				color: var(--subtext0);
+			}
+
+			#hint {
+				margin: 0;
+				max-width: 46ch;
+				font-size: 0.875rem;
+				color: var(--overlay0);
+			}
+
+			#bar {
+				width: min(28rem, 70vw);
+				height: 0.5rem;
+				border-radius: 999px;
+				background: var(--surface0);
+				overflow: hidden;
+			}
+
+			#bar[hidden] {
+				display: none;
+			}
+
+			#fill {
+				height: 100%;
+				width: 0;
+				border-radius: 999px;
+				background: var(--blue);
+				transition: width 0.2s ease-out;
+			}
+
+			.error #title {
+				color: var(--red);
+			}
+
+			.warn #title {
+				color: var(--peach);
+			}
+
+			.ready #title {
+				color: var(--green);
 			}
 		</style>
 	</head>
 	<body>
 		<canvas id="mmorpg"></canvas>
-		<div id="unsupported">
-			<p>This build renders through WebGPU. Use Chrome 113+, Edge 113+, or Safari 26+.</p>
+
+		<div id="boot">
+			<h1 id="title">Loading</h1>
+			<p id="detail">Starting up.</p>
+			<div id="bar" hidden><div id="fill"></div></div>
+			<p id="hint"></p>
 		</div>
+
 		<script type="module">
-			if (!navigator.gpu) {
-				document.getElementById('mmorpg').remove();
-				document.getElementById('unsupported').style.display = 'grid';
-			} else {
-				const init = (await import('./pkg/mmorpg.js')).default;
-				await init();
+			const boot = document.getElementById('boot');
+			const title = document.getElementById('title');
+			const detail = document.getElementById('detail');
+			const hint = document.getElementById('hint');
+			const bar = document.getElementById('bar');
+			const fill = document.getElementById('fill');
+
+			let reported = false;
+
+			function show(kind, heading, body, note = '') {
+				boot.hidden = false;
+				boot.className = kind;
+				title.textContent = heading;
+				detail.textContent = body;
+				hint.textContent = note;
+			}
+
+			function stop(heading, body, note) {
+				reported = true;
+				bar.hidden = true;
+				show('error', heading, body, note);
+				document.getElementById('mmorpg')?.remove();
+			}
+
+			function progress(loaded, total) {
+				bar.hidden = false;
+				fill.style.width = `${Math.round((loaded / total) * 100)}%`;
+				const mb = (n) => (n / 1024 / 1024).toFixed(0);
+				detail.textContent = `Downloading the game — ${mb(loaded)} of ${mb(total)} MB.`;
+			}
+
+			// A panic in the wasm arrives as an uncaught error long after boot,
+			// and without this the player watches a frozen canvas and never
+			// learns why. The console is not somewhere a player looks.
+			function watchForCrashes() {
+				const crashed = (why) => {
+					if (reported) return;
+					stop(
+						'The game stopped',
+						'Something went wrong while running. Reloading usually clears it.',
+						String(why ?? '').slice(0, 300),
+					);
+				};
+				addEventListener('error', (e) => crashed(e.message));
+				addEventListener('unhandledrejection', (e) => crashed(e.reason?.message ?? e.reason));
+			}
+
+			addEventListener('offline', () => {
+				if (!reported) {
+					show(
+						'warn',
+						'Connection lost',
+						'The game needs the network to finish loading its assets.',
+					);
+				}
+			});
+
+			// Streams the module so the progress bar is real, and hands the
+			// Response straight to wasm-bindgen so it still instantiates by
+			// streaming and still builds its own shared memory.
+			async function fetchModule(url) {
+				const res = await fetch(url);
+				if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+				const total = Number(res.headers.get('content-length'));
+				if (!res.body || !total) return res;
+
+				let loaded = 0;
+				const body = new ReadableStream({
+					start(controller) {
+						const reader = res.body.getReader();
+						const pump = () =>
+							reader
+								.read()
+								.then(({ done, value }) => {
+									if (done) return controller.close();
+									loaded += value.byteLength;
+									progress(loaded, total);
+									controller.enqueue(value);
+									pump();
+								})
+								.catch((e) => controller.error(e));
+						pump();
+					},
+				});
+				return new Response(body, { headers: res.headers });
+			}
+
+			async function preflight() {
+				if (!navigator.onLine) {
+					stop(
+						'You are offline',
+						'This game downloads about 130 MB the first time. Reconnect and reload.',
+					);
+					return false;
+				}
+
+				// The bundle is built with shared memory and has no
+				// single-threaded fallback, so without cross-origin isolation
+				// it cannot even instantiate.
+				if (typeof SharedArrayBuffer === 'undefined' || !self.crossOriginIsolated) {
+					stop(
+						'This page is missing a required setting',
+						'The game needs SharedArrayBuffer, which the page must enable through its cross-origin isolation headers.',
+						'On itch.io this is the "SharedArrayBuffer support" option on the game page.',
+					);
+					return false;
+				}
+
+				if (!navigator.gpu) {
+					stop(
+						'Your browser cannot run this game',
+						'It renders through WebGPU. Chrome 113+, Edge 113+, or Safari 26+ will work.',
+						'Firefox does not enable WebGPU by default yet.',
+					);
+					return false;
+				}
+
+				// Present and still unusable is the common case on older
+				// hardware and in remote sessions, so ask for the adapter
+				// rather than trusting navigator.gpu to exist.
+				let adapter = null;
+				try {
+					adapter = await navigator.gpu.requestAdapter();
+				} catch {
+					adapter = null;
+				}
+				if (!adapter) {
+					stop(
+						'No graphics adapter available',
+						'Your browser supports WebGPU but could not reach the GPU.',
+						'Hardware acceleration may be switched off, or the GPU may be blocked in this session.',
+					);
+					return false;
+				}
+
+				return true;
+			}
+
+			watchForCrashes();
+
+			if (await preflight()) {
+				try {
+					detail.textContent = 'Downloading the game.';
+					const init = (await import('./pkg/mmorpg.js')).default;
+					await init({ module_or_path: fetchModule('./pkg/mmorpg_bg.wasm') });
+					boot.hidden = true;
+				} catch (err) {
+					stop(
+						'The game could not start',
+						'The download finished but the game failed to launch.',
+						String(err?.message ?? err).slice(0, 300),
+					);
+				}
 			}
 		</script>
 	</body>
