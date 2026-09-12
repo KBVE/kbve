@@ -97,9 +97,12 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 10
         outputs:
-            rust: ${{ steps.detect.outputs.rust }}
-            python: ${{ steps.detect.outputs.python }}
-            targets: ${{ steps.detect.outputs.targets }}
+            # One entry per shard: its index, its share of the target list, and
+            # the toolchains that share needs. An empty array means nothing is
+            # affected and no shard runs at all.
+            shards: ${{ steps.detect.outputs.shards }}
+            # The same plan read as "which Godot projects does this reach".
+            godot: ${{ steps.detect.outputs.godot }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -129,19 +132,21 @@ jobs:
         name: ci (${{ matrix.index }}/${{ matrix.total }})
         runs-on: ubuntu-latest
         needs: [toolchains]
+        # A plan with nothing in it used to start three runners to say so.
+        if: ${{ needs.toolchains.outputs.shards != '[]' }}
         timeout-minutes: 120
         strategy:
             fail-fast: false
             matrix:
-                index: [0, 1, 2]
-                total: [3]
+                include: ${{ fromJSON(needs.toolchains.outputs.shards) }}
         env:
-            NEEDS_RUST: ${{ needs.toolchains.outputs.rust != 'false' }}
-            NEEDS_PYTHON: ${{ needs.toolchains.outputs.python != 'false' }}
-            # Every `project:task` the plan job resolved, newline separated. No
-            # base or head here on purpose: affectedness was decided once, up
-            # there, and these are explicit targets.
-            CI_TARGETS: ${{ needs.toolchains.outputs.targets }}
+            NEEDS_RUST: ${{ matrix.rust }}
+            NEEDS_PYTHON: ${{ matrix.python }}
+            # This shard's share of the target list, newline separated, as the
+            # plan job assigned it. No base or head here on purpose, and no
+            # slicing either: affectedness and the assignment were both decided
+            # once, up there, and these are explicit targets.
+            CI_TARGETS: ${{ matrix.targets }}
         steps:
             # Two minutes of deleting preinstalled SDKs, for the target
             # directory of a cargo build. A shard with no rust task fits on the
@@ -300,19 +305,38 @@ jobs:
             # defaulting to runInCI.
             #
             # Sharded round-robin over the sorted list rather than by
-            # `moon ci --job`, which has no `moon run` counterpart. Deterministic
-            # for a given plan, which is what matters -- a target must land on
-            # exactly one shard.
+            # `moon ci --job`, which has no `moon run` counterpart -- but in the
+            # plan job now, not here. The slicing was an awk expression over the
+            # whole list on every shard, which meant a shard could only find out
+            # it had drawn nothing after paying the entire preamble to find out.
             - name: Run the planned lint and test
               run: |
-                  TARGETS="$(printf '%s\n' "$CI_TARGETS" | awk 'NF' | awk -v i=${{ matrix.index }} -v n=${{ matrix.total }} '(NR - 1) % n == i')"
-                  if [ -z "$TARGETS" ]; then
-                    echo "nothing planned for this shard"
-                    exit 0
-                  fi
-                  echo "$TARGETS"
+                  echo "$CI_TARGETS"
                   # shellcheck disable=SC2086
-                  moon run $TARGETS
+                  moon run $CI_TARGETS
+
+    # The suite ci-godot-tests.yml used to own. Its discover job asked the
+    # project graph which Godot projects a change reaches -- a full-history
+    # checkout and a `moon setup` to open a graph this workflow's plan job had
+    # open ninety seconds earlier, for the same range. The answer is "none" for
+    # every change that is not a Godot one, which is nearly all of them, and
+    # the job queued for it is a job some other run is waiting behind.
+    #
+    # Kept out of the `ci` shards rather than folded into them: it wants a
+    # Godot container, the Forgejo LFS credentials and an hour, none of which
+    # the lint and test lane has any use for. That is the rule this repository
+    # applies to workflows, applied to a job.
+    godot:
+        name: Godot
+        needs: [toolchains]
+        if: ${{ needs.toolchains.outputs.godot != '[]' }}
+        permissions:
+            contents: read
+            actions: read
+        uses: ./.github/workflows/utils-godot-tests.yml
+        with:
+            matrix: ${{ needs.toolchains.outputs.godot }}
+        secrets: inherit
 
     # ci.yml runs on every push and pull request and was the only high-traffic
     # workflow with no failure tracker, so a broken dev sat unreported until
@@ -333,6 +357,12 @@ jobs:
     # from this list is invisible to `needs.*.result`, so its failure is
     # reported here as a success and closes the open issue. It also gates the
     # shards, so its failure skips them and leaves nothing else to notice.
+    #
+    # `godot` is deliberately not, and the same rule says what that costs: its
+    # failure is invisible here. It was invisible before too -- ci-godot-tests.yml
+    # never had a tracker -- and the alternative is worse, because this tracker
+    # reports under one job_name and a red Godot suite would open and close an
+    # issue titled `ci`. A tracker of its own is the fix, not this list.
     track:
         name: Track Failures
         if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
