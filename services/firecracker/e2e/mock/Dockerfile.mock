@@ -19,6 +19,7 @@ COPY crates/kbve crates/kbve
 COPY crates/bevy_supa crates/bevy_supa
 COPY crates/jedi crates/jedi
 COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 
@@ -59,6 +60,7 @@ COPY crates/kbve crates/kbve
 COPY crates/bevy_supa crates/bevy_supa
 COPY crates/jedi crates/jedi
 COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
 COPY packages/proto packages/proto
 COPY crates/holy crates/holy
 

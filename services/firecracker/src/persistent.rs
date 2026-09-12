@@ -206,6 +206,65 @@ mod tests {
     use super::*;
 
     #[test]
+    fn pool_error_display_names_the_cause() {
+        assert_eq!(
+            PoolError::Exhausted {
+                used: 4,
+                capacity: 4
+            }
+            .to_string(),
+            "IP pool exhausted (4 / 4)"
+        );
+        assert_eq!(
+            PoolError::InvalidPrefix(31).to_string(),
+            "invalid prefix /31 — must be <= 30"
+        );
+        assert_eq!(
+            PoolError::UnalignedBase(Ipv4Addr::new(172, 18, 0, 1), 30).to_string(),
+            "base 172.18.0.1 is not aligned to prefix /30"
+        );
+    }
+
+    #[test]
+    fn from_cidr_parses_and_rejects() {
+        let pool = Ipv4Pool::from_cidr("172.18.0.0/16").unwrap();
+        assert_eq!(
+            pool.capacity(),
+            Ipv4Pool::new(Ipv4Addr::new(172, 18, 0, 0), 16)
+                .unwrap()
+                .capacity()
+        );
+
+        // No slash at all.
+        assert!(matches!(
+            Ipv4Pool::from_cidr("172.18.0.0"),
+            Err(PoolError::InvalidPrefix(0))
+        ));
+        // Address half does not parse.
+        assert!(matches!(
+            Ipv4Pool::from_cidr("not-an-ip/16"),
+            Err(PoolError::UnalignedBase(_, 0))
+        ));
+        // Prefix half does not parse.
+        assert!(matches!(
+            Ipv4Pool::from_cidr("172.18.0.0/xx"),
+            Err(PoolError::InvalidPrefix(0))
+        ));
+        // Parses, but the prefix itself is out of range.
+        assert!(matches!(
+            Ipv4Pool::from_cidr("172.18.0.0/31"),
+            Err(PoolError::InvalidPrefix(31))
+        ));
+    }
+
+    /// A /0 pool is the one input for which every address is aligned, so it is
+    /// the only way to reach the early return in `is_aligned`.
+    #[test]
+    fn prefix_zero_is_always_aligned() {
+        assert!(is_aligned(Ipv4Addr::new(203, 0, 113, 7), 0));
+    }
+
+    #[test]
     fn rejects_prefix_greater_than_30() {
         assert!(matches!(
             Ipv4Pool::new(Ipv4Addr::new(172, 18, 0, 0), 31),

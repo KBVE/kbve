@@ -45,6 +45,21 @@ if [[ -n "$CACHE_PATH" && -f "$CACHE_PATH" ]]; then
 fi
 
 # Read the code content (strip null padding added by firecracker-ctl)
-tr -d '\0' < "$CODE_PATH"
+CODE=$(tr -d '\0' < "$CODE_PATH")
+
+# Dwell control. The real VMM runs for as long as the guest does; this mock
+# otherwise exits in milliseconds, which makes anything about a *running* VM
+# -- the concurrency cap, DELETE of a live VM, the reaper's active/finished
+# split -- a race the test can only hedge around. A test that wants a VM to
+# stay up asks for it by putting MOCK_SLEEP=<seconds> in the code drive
+# (`env: { CODE: 'MOCK_SLEEP=10' }`), and firecracker-ctl's own timeout and
+# kill paths then have something real to act on.
+if [[ "$CODE" =~ MOCK_SLEEP=([0-9]+) ]]; then
+    echo "$CODE"
+    sleep "${BASH_REMATCH[1]}"
+    exit 0
+fi
+
+printf '%s' "$CODE"
 
 exit 0
