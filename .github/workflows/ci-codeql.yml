@@ -67,8 +67,19 @@ jobs:
     # only counts extensions in is not worth fetching the history for. Both
     # endpoints cap -- pulls/files at 3000 files, compare at 300 -- and a diff
     # at the cap is one this job cannot describe, so it runs everything.
+    # Not on the dev->main release pull request. Its head branch is dev, so its
+    # head sha is a commit that was already pushed to dev -- and this workflow
+    # ran on that push, for that same sha. GitHub keys check runs to the sha
+    # rather than to the run that made them, so the release pull request shows
+    # the push's results either way; running again only queues a second copy of
+    # work whose answer is already attached to the commit.
+    #
+    # It is also the widest possible copy: on a pull request the diff is
+    # measured against the base, so the release pull request asks for every
+    # language touched since the last release rather than since the last merge.
     languages:
         name: Pick languages
+        if: github.head_ref != 'dev'
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
