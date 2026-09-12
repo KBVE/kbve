@@ -554,7 +554,30 @@ jobs:
             - desktop
             - web-game
             - notes
-        if: ${{ always() && github.event_name == 'push' && contains(needs.*.result, 'failure') }}
+        # Not `contains(needs.*.result, 'failure')`. That reads every lane,
+        # including `notes`, which writes a markdown page and publishes nothing
+        # -- so one ECONNRESET while it drafted herbmail-api@0.1.3 withdrew a
+        # tag whose image was already in the registry and whose deployment was
+        # already pinned (#17144). Withdrawal is about whether the version
+        # shipped, so it asks only the lanes that can answer that: the two
+        # gates, and the lanes that publish or pin. A lane that failed after
+        # the artifact was out is `settle`'s business, not this job's.
+        if: >-
+            ${{ always() && github.event_name == 'push' && (
+            needs.verify.result == 'failure'
+            || needs.test.result == 'failure'
+            || needs.docker.result == 'failure'
+            || needs.crates.result == 'failure'
+            || needs.npm.result == 'failure'
+            || needs.python.result == 'failure'
+            || needs.external.result == 'failure'
+            || needs.deploy.result == 'failure'
+            || needs.godot.result == 'failure'
+            || needs['unreal-game'].result == 'failure'
+            || needs.unity.result == 'failure'
+            || needs.desktop.result == 'failure'
+            || needs['web-game'].result == 'failure'
+            ) }}
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -670,13 +693,30 @@ jobs:
                     } > body.md
                   fi
 
+                  # Matched on the tag, not on the whole title. The title
+                  # carries the failure mode, and one version can fail two ways:
+                  # herbmail-api@0.1.3 failed before publishing, was retagged,
+                  # and then failed after the image was published -- two titles,
+                  # so the second attempt opened a sibling issue instead of
+                  # speaking up in the first. One version, one ticket; the title
+                  # is rewritten when the mode changes so it never describes an
+                  # older attempt.
+                  #
+                  # jq rather than --jq, so the tag arrives as an argument. It
+                  # contains `@` and `.` and interpolating it into a filter
+                  # would be quoting by luck.
                   existing=$(gh issue list --repo "$REPO" \
-                    --label release-failure --state open \
+                    --label release-failure --state open --limit 100 \
                     --json number,title \
-                    --jq "map(select(.title == \"$title\")) | first | .number // empty")
+                    | jq -r --arg tag "$TAG" '
+                        map(select(.title | startswith("Release " + $tag + " ")
+                          or startswith("Release " + $tag + ":")))
+                        | first | .number // empty')
 
                   if [ -n "$existing" ]; then
+                    gh issue edit "$existing" --repo "$REPO" --title "$title"
                     gh issue comment "$existing" --repo "$REPO" --body-file body.md
+                    echo "updated #$existing"
                   else
                     gh issue create --repo "$REPO" --title "$title" \
                       --label release-failure --body-file body.md
@@ -756,15 +796,92 @@ jobs:
                     gh release create "$TAG" --draft --title "$TAG" --notes-file notes.md
                   fi
 
-            # A shipped project settles every failure issue still open against
-            # it, not only the one for this tag. The two ways a release fails
-            # end in different tags: `failed before publishing` says to retag
-            # the same version, `version spent` says to bump past it. Closing
-            # only `$TAG` would leave every spent version open forever, since
-            # the tag named in that issue is the one that must never run again.
-            # The project shipping is the fact that makes the older attempts
-            # moot, so that is what this matches on.
+    # Settle the tickets a shipped version has outgrown.
+    #
+    # This lived as the last step of `notes`, which made the only thing that
+    # ever closes a `release-failure` issue a step inside the lane most likely
+    # to fail -- and gated, through that job's own `if`, on no lane having
+    # failed at all. herbmail-api@0.1.3 published its image, pinned its
+    # deployment, lost `notes` to a network reset, and left both of its tickets
+    # open with nothing in the repository able to close them: the CI failure
+    # tracker only settles issues it opened itself. A closer downstream of the
+    # thing it reports on cannot report on that thing.
+    #
+    # So it is its own job, `always()`, and it asks the same question `cleanup`
+    # asks and gets the opposite answer: did this version ship. Gates green,
+    # no publishing or pinning lane failed, and at least one of them actually
+    # ran. `notes` is not in that list -- a missing draft page is not a missing
+    # release.
+    #
+    # A shipped project settles every failure issue still open against it, not
+    # only the one for this tag. The two ways a release fails end in different
+    # instructions: `failed before publishing` says to retag the same version,
+    # `version spent` says to bump past it. Closing only `$TAG` would leave
+    # every spent version open forever, since the tag named in that issue is
+    # the one that must never run again. The project shipping is the fact that
+    # makes the older attempts moot, so that is what this matches on.
+    settle:
+        name: Settle the release failures
+        needs:
+            - verify
+            - test
+            - docker
+            - crates
+            - npm
+            - python
+            - external
+            - deploy
+            - godot
+            - unreal-game
+            - unity
+            - desktop
+            - web-game
+            - notes
+        if: ${{ always() && github.event_name == 'push' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            issues: write
+        outputs:
+            shipped: ${{ steps.shipped.outputs.shipped }}
+        steps:
+            - name: Decide whether this version shipped
+              id: shipped
+              env:
+                  VERIFY: ${{ needs.verify.result }}
+                  TEST: ${{ needs.test.result }}
+                  LANES: >-
+                      ${{ needs.docker.result }} ${{ needs.crates.result }}
+                      ${{ needs.npm.result }} ${{ needs.python.result }}
+                      ${{ needs.external.result }} ${{ needs.deploy.result }}
+                      ${{ needs.godot.result }} ${{ needs['unreal-game'].result }}
+                      ${{ needs.unity.result }} ${{ needs.desktop.result }}
+                      ${{ needs['web-game'].result }}
+              run: |
+                  set -euo pipefail
+
+                  shipped=true
+                  for gate in "$VERIFY" "$TEST"; do
+                    if [ "$gate" != 'success' ]; then shipped=false; fi
+                  done
+
+                  # Most lanes skip on any given tag, so a skip is not a verdict.
+                  # A failure is, and so is the absence of any success: a run
+                  # where every lane skipped published nothing to settle.
+                  ran=false
+                  for lane in $LANES; do
+                    case "$lane" in
+                      success) ran=true ;;
+                      failure|cancelled) shipped=false ;;
+                    esac
+                  done
+                  if [ "$ran" != 'true' ]; then shipped=false; fi
+
+                  echo "shipped=$shipped" >> "$GITHUB_OUTPUT"
+                  echo "shipped=$shipped (verify=$VERIFY test=$TEST lanes=$LANES)"
+
             - name: Close release failures this project has outgrown
+              if: ${{ steps.shipped.outputs.shipped == 'true' }}
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   TAG: ${{ github.ref_name }}
@@ -782,7 +899,9 @@ jobs:
                   stale=$(gh issue list --repo "$REPO" \
                     --label release-failure --state open --limit 100 \
                     --json number,title \
-                    --jq "map(select(.title | startswith(\"Release $PROJECT@\"))) | .[].number")
+                    | jq -r --arg project "$PROJECT" '
+                        map(select(.title | startswith("Release " + $project + "@")))
+                        | .[].number')
 
                   if [ -z "$stale" ]; then
                     echo "no open release failures for $PROJECT"
@@ -791,6 +910,37 @@ jobs:
 
                   for number in $stale; do
                     gh issue close "$number" --repo "$REPO" --reason completed \
-                      --comment "\`$TAG\` released cleanly, so this attempt is settled. Run: $RUN_URL"
+                      --comment "\`$TAG\` shipped, so this attempt is settled. Run: $RUN_URL"
                     echo "closed #$number"
                   done
+
+    # The lane that failed after the version shipped still has to be reported,
+    # and `release-failure` is the wrong label for it: the release is not what
+    # broke. The ordinary CI tracker owns "this job is failing", opens one issue
+    # per job rather than per run, and closes it when the job goes green again --
+    # which is exactly the shape of a `notes` lane that loses a network fetch.
+    #
+    # Only when the version shipped. A `notes` that was skipped because nothing
+    # published is not a broken lane, and the tracker no-ops on any status but
+    # failure and success anyway.
+    #
+    # Recovery for a lane that failed on a shipped version is "Re-run failed
+    # jobs" on the run, not a retag: the tag now survives, so pushing it again
+    # is rejected, and a re-run keeps `github.event_name` as `push` where a
+    # workflow_dispatch would skip every job gated on it. A green re-run drafts
+    # the notes and closes the tracker's issue in the same pass.
+    track-notes:
+        name: Track the release notes lane
+        needs: [notes, settle]
+        if: ${{ always() && github.event_name == 'push' && needs.settle.outputs.shipped == 'true' }}
+        permissions:
+            actions: read
+            issues: write
+            contents: read
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        with:
+            workflow_name: 'Release'
+            job_name: 'Draft the release notes'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.notes.result }}
