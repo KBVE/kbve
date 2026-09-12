@@ -22,12 +22,11 @@ import { authBridge, initSupa } from '../../lib/supa';
 import {
 	Home,
 	BookOpen,
-	LayoutDashboard,
+	Inbox,
 	LogIn,
 	LogOut,
 	X,
 	User,
-	Settings,
 	UserCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -44,13 +43,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
 	{ label: 'Home', href: '/', icon: Home },
 	{ label: 'Docs', href: '/guides/getting-started', icon: BookOpen },
-	{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+	{ label: 'Inbox', href: '/inbox', icon: Inbox },
 ];
 
 const USER_MENU_ITEMS: NavItem[] = [
-	{ label: 'Profile', href: '/profile', icon: UserCircle },
-	{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-	{ label: 'Settings', href: '/settings', icon: Settings },
+	{ label: 'Inbox', href: '/inbox', icon: Inbox },
+	{ label: 'Your address', href: '/profile', icon: UserCircle },
 ];
 
 function isActive(href: string, path: string): boolean {

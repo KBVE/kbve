@@ -1,0 +1,25 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ReactProfile from '../components/mail/ReactProfile.tsx';
+import '../styles/mail.css';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Your address',
+    description: 'Your herbmail address, usage and limits.',
+    template: 'splash',
+    tableOfContents: false,
+  }}
+>
+  <div class="not-content hm-page">
+    <ReactProfile client:only="react" />
+  </div>
+</StarlightPage>
+
+<style>
+  .hm-page {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+</style>

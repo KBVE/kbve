@@ -1,12 +1,34 @@
 ---
 title: Herbmail
-description: Herbal Email Solutions
+description: A mailbox for your KBVE username. Receive anywhere, reply from the web.
 template: splash
 hero:
-  title: Herbmail
-  tagline: Herbal Email Solutions
+  title: Your username is your inbox.
+  tagline: Every KBVE account gets <strong>username@herbmail.com</strong>. Mail lands here within seconds. Reply from the browser, no client to set up.
   actions:
-    - text: Get Started
-      link: /guides/getting-started/
+    - text: Open inbox
+      link: /inbox/
       icon: right-arrow
+      variant: primary
+    - text: How it works
+      link: /guides/getting-started/
+      icon: open-book
+      variant: minimal
 ---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="One address, no setup" icon="email">
+    Sign in with GitHub, Discord or Twitch. Your KBVE username becomes your address the moment it exists. Nothing to configure, nothing to forward.
+  </Card>
+  <Card title="Reply-only by design" icon="approve-check">
+    You can answer anyone who wrote to you. You cannot cold-email strangers from here, so the domain stays clean and your mail keeps landing in inboxes.
+  </Card>
+  <Card title="Authenticated end to end" icon="seti:lock">
+    SPF, DKIM and DMARC on every message out. Inbound mail is checked the same way before it reaches you.
+  </Card>
+  <Card title="Kept 90 days" icon="seti:clock">
+    Mail is stored for ninety days, then purged. Twenty replies per rolling day. Plain text, no tracking pixels.
+  </Card>
+</CardGrid>

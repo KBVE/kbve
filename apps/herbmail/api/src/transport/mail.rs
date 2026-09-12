@@ -2,12 +2,14 @@ use std::{sync::OnceLock, time::Duration};
 
 use axum::{
     Json, Router,
+    extract::{Path, Query},
     http::{HeaderMap, StatusCode, header},
     response::{IntoResponse, Response},
-    routing::post,
+    routing::{get, post},
 };
 use jedi::jwt_cache::{JwtCacheError, TokenInfo, get_jwt_cache};
 use mail_builder::MessageBuilder;
+use mail_parser::{MessageParser, MimeHeaders};
 use mail_send::{SmtpClientBuilder, smtp::message::Message};
 use serde::Deserialize;
 use serde_json::{Value, json};
@@ -16,6 +18,7 @@ use tracing::{info, warn};
 const MAX_SUBJECT: usize = 998;
 const MAX_BODY: usize = 64 * 1024;
 const MAX_RECIPIENT: usize = 254;
+const MAX_RENDERED_BODY: usize = 256 * 1024;
 
 fn scrub_header(value: &str) -> String {
     value
@@ -47,20 +50,33 @@ pub struct SendRequest {
     pub in_reply_to: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct InboxQuery {
+    #[serde(default)]
+    pub limit: Option<u32>,
+    #[serde(default)]
+    pub before: Option<String>,
+}
+
 pub fn router() -> Router {
-    Router::new().route("/mail/send", post(send)).layer(
-        tower::ServiceBuilder::new()
-            .layer(
-                tower_http::trace::TraceLayer::new_for_http().make_span_with(
-                    tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
-                ),
-            )
-            .layer(tower_http::timeout::TimeoutLayer::with_status_code(
-                StatusCode::REQUEST_TIMEOUT,
-                Duration::from_secs(30),
-            ))
-            .layer(tower_http::limit::RequestBodyLimitLayer::new(128 * 1024)),
-    )
+    Router::new()
+        .route("/mail/send", post(send))
+        .route("/mail/inbox", get(inbox))
+        .route("/mail/messages/{id}", get(message))
+        .route("/mail/me", get(me))
+        .layer(
+            tower::ServiceBuilder::new()
+                .layer(
+                    tower_http::trace::TraceLayer::new_for_http().make_span_with(
+                        tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
+                    ),
+                )
+                .layer(tower_http::timeout::TimeoutLayer::with_status_code(
+                    StatusCode::REQUEST_TIMEOUT,
+                    Duration::from_secs(30),
+                ))
+                .layer(tower_http::limit::RequestBodyLimitLayer::new(128 * 1024)),
+        )
 }
 
 fn http_client() -> &'static reqwest::Client {
@@ -201,6 +217,182 @@ fn policy_status(reason: &str) -> StatusCode {
     }
 }
 
+/// Inbound rows hold the raw MIME body Stalwart handed the hook. Outbound
+/// rows hold the plain text the user typed. Either way the client gets
+/// `text` (and `html` when the sender only supplied HTML), never the
+/// undecoded MIME.
+fn render_body(direction: &str, raw: &str) -> Value {
+    if direction != "in" {
+        return json!({ "text": truncate(raw), "html": Value::Null, "attachments": [] });
+    }
+    let Some(parsed) = MessageParser::default().parse(raw.as_bytes()) else {
+        return json!({ "text": truncate(raw), "html": Value::Null, "attachments": [] });
+    };
+    let text = parsed.body_text(0).map(|t| truncate(&t));
+    let html = parsed.body_html(0).map(|h| truncate(&h));
+    let attachments: Vec<Value> = parsed
+        .attachments()
+        .map(|a| {
+            json!({
+                "name": a.attachment_name().map(scrub_header),
+                "content_type": a.content_type().map(|c| match c.subtype() {
+                    Some(sub) => format!("{}/{sub}", c.ctype()),
+                    None => c.ctype().to_string(),
+                }),
+                "size": a.contents().len(),
+            })
+        })
+        .collect();
+    let text = match (text, &html) {
+        (Some(t), _) if !t.trim().is_empty() => Some(t),
+        (_, Some(h)) => Some(truncate(&html_to_text(h))),
+        (t, None) => t,
+    };
+    json!({ "text": text, "html": html, "attachments": attachments })
+}
+
+fn truncate(value: &str) -> String {
+    if value.len() <= MAX_RENDERED_BODY {
+        return value.to_string();
+    }
+    let mut end = MAX_RENDERED_BODY;
+    while !value.is_char_boundary(end) {
+        end -= 1;
+    }
+    format!("{}\n[truncated]", &value[..end])
+}
+
+fn html_to_text(html: &str) -> String {
+    let mut out = String::with_capacity(html.len());
+    let mut in_tag = false;
+    let mut tag = String::new();
+    for c in html.chars() {
+        match c {
+            '<' => {
+                in_tag = true;
+                tag.clear();
+            }
+            '>' if in_tag => {
+                in_tag = false;
+                let name = tag.trim_start_matches('/').to_ascii_lowercase();
+                let name = name
+                    .split(|c: char| c.is_whitespace() || c == '/')
+                    .next()
+                    .unwrap_or("");
+                if matches!(
+                    name,
+                    "br" | "p" | "div" | "tr" | "li" | "h1" | "h2" | "h3" | "blockquote"
+                ) {
+                    out.push('\n');
+                }
+            }
+            _ if in_tag => tag.push(c),
+            _ => out.push(c),
+        }
+    }
+    out.replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#39;", "'")
+}
+
+fn parse_uuid(value: &str) -> Option<uuid::Uuid> {
+    uuid::Uuid::parse_str(value.trim()).ok()
+}
+
+async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
+    let user = match authenticate(&headers).await {
+        Ok(u) => u,
+        Err(r) => return r.into_response(),
+    };
+    let db = match supabase() {
+        Ok(db) => db,
+        Err(r) => return r.into_response(),
+    };
+    let limit = q.limit.unwrap_or(50).clamp(1, 200);
+    let before = q
+        .before
+        .as_deref()
+        .map(str::trim)
+        .filter(|b| !b.is_empty() && b.len() <= 40 && b.chars().all(|c| c.is_ascii_graphic()));
+    let rows = match rpc(
+        &db,
+        "herbmail_inbox_list",
+        json!({ "p_user_id": user.user_id, "p_limit": limit, "p_before": before }),
+    )
+    .await
+    {
+        Ok(v) => v,
+        Err(r) => return r.into_response(),
+    };
+    let messages = if rows.is_array() { rows } else { json!([]) };
+    (StatusCode::OK, Json(json!({ "messages": messages }))).into_response()
+}
+
+async fn message(headers: HeaderMap, Path(id): Path<String>) -> Response {
+    let user = match authenticate(&headers).await {
+        Ok(u) => u,
+        Err(r) => return r.into_response(),
+    };
+    let Some(id) = parse_uuid(&id) else {
+        return error(StatusCode::NOT_FOUND, "not found").into_response();
+    };
+    let db = match supabase() {
+        Ok(db) => db,
+        Err(r) => return r.into_response(),
+    };
+    let row = match rpc(
+        &db,
+        "herbmail_message_get",
+        json!({ "p_user_id": user.user_id, "p_id": id }),
+    )
+    .await
+    {
+        Ok(v) => v,
+        Err(r) => return r.into_response(),
+    };
+    let Some(row) = row.as_object() else {
+        return error(StatusCode::NOT_FOUND, "not found").into_response();
+    };
+    let direction = row.get("direction").and_then(Value::as_str).unwrap_or("in");
+    let raw = row.get("body").and_then(Value::as_str).unwrap_or("");
+    let rendered = render_body(direction, raw);
+    let mut out = row.clone();
+    out.remove("body");
+    out.remove("headers");
+    out.insert("body".into(), rendered);
+    (StatusCode::OK, Json(Value::Object(out))).into_response()
+}
+
+async fn me(headers: HeaderMap) -> Response {
+    let user = match authenticate(&headers).await {
+        Ok(u) => u,
+        Err(r) => return r.into_response(),
+    };
+    let db = match supabase() {
+        Ok(db) => db,
+        Err(r) => return r.into_response(),
+    };
+    let stats = match rpc(
+        &db,
+        "herbmail_mailbox_stats",
+        json!({ "p_user_id": user.user_id }),
+    )
+    .await
+    {
+        Ok(v) => v,
+        Err(r) => return r.into_response(),
+    };
+    let mut out = stats.as_object().cloned().unwrap_or_default();
+    out.insert("user_id".into(), json!(user.user_id));
+    if !out.contains_key("username") || out["username"].is_null() {
+        out.insert("username".into(), json!(user.kbve_username));
+    }
+    (StatusCode::OK, Json(Value::Object(out))).into_response()
+}
+
 async fn send(headers: HeaderMap, Json(req): Json<SendRequest>) -> Response {
     let user = match authenticate(&headers).await {
         Ok(u) => u,
@@ -313,6 +505,26 @@ mod tests {
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
 
+    #[tokio::test]
+    async fn read_routes_reject_without_bearer() {
+        for uri in [
+            "/mail/inbox",
+            "/mail/me",
+            "/mail/messages/0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e",
+        ] {
+            let response = router()
+                .oneshot(
+                    axum::extract::Request::builder()
+                        .uri(uri)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::UNAUTHORIZED, "{uri}");
+        }
+    }
+
     #[test]
     fn policy_reasons_map_to_statuses() {
         assert_eq!(policy_status("not_a_reply"), StatusCode::FORBIDDEN);
@@ -340,5 +552,61 @@ mod tests {
         let (host, port) = relay_target();
         assert!(host.ends_with("svc.cluster.local"));
         assert_eq!(port, 2525);
+    }
+
+    #[test]
+    fn inbound_mime_is_decoded_to_text() {
+        let raw = concat!(
+            "From: a@example.com\r\n",
+            "To: b@herbmail.com\r\n",
+            "Subject: hi\r\n",
+            "MIME-Version: 1.0\r\n",
+            "Content-Type: multipart/alternative; boundary=\"xyz\"\r\n",
+            "\r\n",
+            "--xyz\r\n",
+            "Content-Type: text/plain; charset=\"UTF-8\"\r\n",
+            "Content-Transfer-Encoding: quoted-printable\r\n",
+            "\r\n",
+            "Why do I need to reply=3F\r\n",
+            "--xyz\r\n",
+            "Content-Type: text/html; charset=\"UTF-8\"\r\n",
+            "\r\n",
+            "<div>Why do I need to reply?</div>\r\n",
+            "--xyz--\r\n",
+        );
+        let body = render_body("in", raw);
+        assert_eq!(
+            body["text"].as_str().unwrap().trim(),
+            "Why do I need to reply?"
+        );
+        assert!(body["html"].as_str().unwrap().contains("<div>"));
+        assert_eq!(body["attachments"].as_array().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn html_only_inbound_falls_back_to_stripped_text() {
+        let raw = concat!(
+            "From: a@example.com\r\n",
+            "Content-Type: text/html; charset=\"UTF-8\"\r\n",
+            "\r\n",
+            "<p>Hello &amp; welcome</p><p>Bye</p>\r\n",
+        );
+        let body = render_body("in", raw);
+        let text = body["text"].as_str().unwrap();
+        assert!(text.contains("Hello & welcome"));
+        assert!(text.contains("Bye"));
+    }
+
+    #[test]
+    fn outbound_rows_are_plain_text_already() {
+        let body = render_body("out", "typed by the user");
+        assert_eq!(body["text"], "typed by the user");
+        assert!(body["html"].is_null());
+    }
+
+    #[test]
+    fn message_ids_must_be_uuids() {
+        assert!(parse_uuid("0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e").is_some());
+        assert!(parse_uuid("../etc").is_none());
     }
 }
