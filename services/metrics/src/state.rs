@@ -15,10 +15,20 @@ use crate::config::Config;
 const LIMITER_SHARDS: usize = 32;
 const WINDOW: Duration = Duration::from_secs(60);
 
+/// One queue per destination table. A single shared queue would have worked
+/// only until the first table-specific failure: a rejected insert takes its
+/// whole batch with it, so mixing lenses in one buffer lets a broken perf
+/// sample drop the errors queued beside it.
+pub struct Sinks {
+    pub errors: mpsc::Sender<String>,
+    pub perf: mpsc::Sender<String>,
+    pub events: mpsc::Sender<String>,
+}
+
 pub struct AppState {
     pub cfg: Config,
     pub ch: ClickHouseConfig,
-    pub tx: mpsc::Sender<String>,
+    pub sinks: Sinks,
     pub auth: Option<StaffAuth>,
     pub started_at: Instant,
     ip_limiter: Sharded,
@@ -91,13 +101,13 @@ impl AppState {
     pub fn new(
         cfg: Config,
         ch: ClickHouseConfig,
-        tx: mpsc::Sender<String>,
+        sinks: Sinks,
         auth: Option<StaffAuth>,
     ) -> Self {
         Self {
             cfg,
             ch,
-            tx,
+            sinks,
             auth,
             started_at: Instant::now(),
             ip_limiter: Sharded::new(),
@@ -108,7 +118,7 @@ impl AppState {
         }
     }
 
-    /// Whether the errors table actually exists.
+    /// Whether every table ingest writes to actually exists.
     ///
     /// `SELECT 1` passes against a ClickHouse with no telemetry schema at all,
     /// which is how a wedged setup job stayed invisible: ingest answered 202,
@@ -125,9 +135,21 @@ impl AppState {
         if last != 0 && now_ms.saturating_sub(last) < self.cfg.schema_recheck_ms {
             return true;
         }
-        // LIMIT 0 so this stays a metadata check rather than reading rows.
-        let sql = format!("SELECT 1 FROM {} LIMIT 0", self.cfg.errors_table);
-        let ok = self.ch.execute_select(&sql).await.is_ok();
+        // LIMIT 0 so this stays a metadata check rather than reading rows. All
+        // three lenses are checked: a half-applied schema is the case where the
+        // service accepts one kind of event and silently discards another.
+        let mut ok = true;
+        for table in [
+            &self.cfg.errors_table,
+            &self.cfg.perf_table,
+            &self.cfg.events_table,
+        ] {
+            let sql = format!("SELECT 1 FROM {table} LIMIT 0");
+            if self.ch.execute_select(&sql).await.is_err() {
+                ok = false;
+                break;
+            }
+        }
         self.schema_checked_ms
             .store(if ok { now_ms } else { 0 }, Ordering::Relaxed);
         ok
@@ -166,12 +188,15 @@ impl AppState {
     }
 }
 
+/// One flusher per table. `table` is passed rather than read off the config so
+/// the three instances differ only in the queue they drain and the table they
+/// write, with no branch inside the loop.
 pub fn spawn_flusher(
     state: Arc<AppState>,
     mut rx: mpsc::Receiver<String>,
+    table: String,
     mut shutdown: oneshot::Receiver<()>,
 ) -> JoinHandle<()> {
-    let table = state.cfg.errors_table.clone();
     let flush_rows = state.cfg.flush_rows;
     let interval = Duration::from_millis(state.cfg.flush_interval_ms);
     let timeout = Duration::from_millis(state.cfg.insert_timeout_ms);
@@ -275,7 +300,9 @@ mod tests {
     /// unroutable rather than merely closed, which keeps the test off the network
     /// stack's slow path.
     fn unreachable_state() -> AppState {
-        let (tx, _rx) = mpsc::channel(8);
+        let (errors, _e) = mpsc::channel(8);
+        let (perf, _p) = mpsc::channel(8);
+        let (events, _v) = mpsc::channel(8);
         AppState::new(
             Config::from_env(),
             ClickHouseConfig {
@@ -284,7 +311,11 @@ mod tests {
                 password: String::new(),
                 database: "telemetry".to_string(),
             },
-            tx,
+            Sinks {
+                errors,
+                perf,
+                events,
+            },
             None,
         )
     }

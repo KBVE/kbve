@@ -16,7 +16,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::auth::StaffAuth;
 use crate::config::Config;
-use crate::state::{AppState, spawn_flusher};
+use crate::state::{AppState, Sinks, spawn_flusher};
 
 fn origin_allowed(allowed: &[String], origin: &str) -> bool {
     allowed.iter().any(|entry| {
@@ -68,7 +68,10 @@ async fn main() -> anyhow::Result<()> {
     let auth = StaffAuth::from_env();
     tracing::info!(read_api = auth.is_some(), "staff read api");
 
-    let (tx, rx) = mpsc::channel(cfg.channel_capacity);
+    // One queue and one flusher per lens; see Sinks.
+    let (errors_tx, errors_rx) = mpsc::channel(cfg.channel_capacity);
+    let (perf_tx, perf_rx) = mpsc::channel(cfg.channel_capacity);
+    let (events_tx, events_rx) = mpsc::channel(cfg.channel_capacity);
     let max_body = cfg.max_body_bytes;
     let metrics_port = cfg.metrics_port;
     let cors = cors_layer(&cfg);
@@ -86,9 +89,39 @@ async fn main() -> anyhow::Result<()> {
         metric_handle,
     ));
 
-    let (shutdown_tx, shutdown_rx) = oneshot::channel();
-    let state = Arc::new(AppState::new(cfg, ch, tx, auth));
-    let flusher = spawn_flusher(state.clone(), rx, shutdown_rx);
+    let (errors_shutdown_tx, errors_shutdown_rx) = oneshot::channel();
+    let (perf_shutdown_tx, perf_shutdown_rx) = oneshot::channel();
+    let (events_shutdown_tx, events_shutdown_rx) = oneshot::channel();
+    let state = Arc::new(AppState::new(
+        cfg,
+        ch,
+        Sinks {
+            errors: errors_tx,
+            perf: perf_tx,
+            events: events_tx,
+        },
+        auth,
+    ));
+    let flushers = vec![
+        spawn_flusher(
+            state.clone(),
+            errors_rx,
+            state.cfg.errors_table.clone(),
+            errors_shutdown_rx,
+        ),
+        spawn_flusher(
+            state.clone(),
+            perf_rx,
+            state.cfg.perf_table.clone(),
+            perf_shutdown_rx,
+        ),
+        spawn_flusher(
+            state.clone(),
+            events_rx,
+            state.cfg.events_table.clone(),
+            events_shutdown_rx,
+        ),
+    ];
 
     let app = rest::router(state)
         .layer(cors)
@@ -103,9 +136,13 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     // Drain buffered telemetry before exit.
-    tracing::info!("shutdown signal received; draining telemetry buffer");
-    let _ = shutdown_tx.send(());
-    let _ = flusher.await;
+    tracing::info!("shutdown signal received; draining telemetry buffers");
+    let _ = errors_shutdown_tx.send(());
+    let _ = perf_shutdown_tx.send(());
+    let _ = events_shutdown_tx.send(());
+    for flusher in flushers {
+        let _ = flusher.await;
+    }
     Ok(())
 }
 

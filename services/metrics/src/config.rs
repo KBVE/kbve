@@ -5,6 +5,8 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub errors_table: String,
+    pub perf_table: String,
+    pub events_table: String,
     pub groups_view: String,
     pub allowed_origins: Vec<String>,
     pub max_body_bytes: usize,
@@ -39,6 +41,8 @@ impl Config {
             host: get("HTTP_HOST", "0.0.0.0"),
             port: get("HTTP_PORT", "5500").parse().unwrap_or(5500),
             errors_table: get("METRICS_ERRORS_TABLE", "errors_distributed"),
+            perf_table: get("METRICS_PERF_TABLE", "perf_distributed"),
+            events_table: get("METRICS_EVENTS_TABLE", "events_distributed"),
             // Configurable alongside the table it aggregates: the read path used
             // to hardcode both names while ingest and the readiness probe honoured
             // METRICS_ERRORS_TABLE, so pointing ingest elsewhere left reads
