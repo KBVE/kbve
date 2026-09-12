@@ -6922,7 +6922,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0656a7530b9e2841ee7a5f983965bdd9840c32f4012f759cfd44b912cced6b34"
 dependencies = [
  "bytemuck",
- "emath",
+ "emath 0.36.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "ecolor"
+version = "0.36.2"
+source = "git+https://github.com/KBVE/egui?branch=kbve-base#cddea128ae187f9d2c3b23b73579806e65348514"
+dependencies = [
+ "bytemuck",
+ "emath 0.36.2 (git+https://github.com/KBVE/egui?branch=kbve-base)",
  "serde",
 ]
 
@@ -7001,14 +7010,13 @@ dependencies = [
 [[package]]
 name = "egui"
 version = "0.36.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc938cc27cd911415e1e4d151bc56ff9df063d8db081374e87aeb805ea74b2ba"
+source = "git+https://github.com/KBVE/egui?branch=kbve-base#cddea128ae187f9d2c3b23b73579806e65348514"
 dependencies = [
  "accesskit",
  "ahash 0.8.12",
  "bitflags 2.13.1",
- "emath",
- "epaint",
+ "emath 0.36.2 (git+https://github.com/KBVE/egui?branch=kbve-base)",
+ "epaint 0.36.2 (git+https://github.com/KBVE/egui?branch=kbve-base)",
  "itertools 0.15.0",
  "log",
  "nohash-hasher",
@@ -7030,7 +7038,7 @@ dependencies = [
  "bytemuck",
  "document-features",
  "egui",
- "epaint",
+ "epaint 0.36.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
  "profiling",
  "thiserror 2.0.19",
@@ -7134,6 +7142,14 @@ name = "emath"
 version = "0.36.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52c8d4141cf0f60fb2f7aefaf352d3ffa5171ef0ab09731c64391801e95e48f1"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
+name = "emath"
+version = "0.36.2"
+source = "git+https://github.com/KBVE/egui?branch=kbve-base#cddea128ae187f9d2c3b23b73579806e65348514"
 dependencies = [
  "bytemuck",
  "serde",
@@ -7388,8 +7404,31 @@ checksum = "a0ec0308dc23130fc1a7d4623a8534c2ed069c6dc84e258ee4f3de99615aa1a3"
 dependencies = [
  "ahash 0.8.12",
  "bytemuck",
- "ecolor",
- "emath",
+ "ecolor 0.36.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "emath 0.36.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "font-types 0.12.5",
+ "harfrust 0.12.0",
+ "log",
+ "nohash-hasher",
+ "parking_lot",
+ "profiling",
+ "self_cell",
+ "skrifa 0.44.0",
+ "smallvec",
+ "unicode-general-category",
+ "unicode-segmentation",
+ "vello_cpu",
+]
+
+[[package]]
+name = "epaint"
+version = "0.36.2"
+source = "git+https://github.com/KBVE/egui?branch=kbve-base#cddea128ae187f9d2c3b23b73579806e65348514"
+dependencies = [
+ "ahash 0.8.12",
+ "bytemuck",
+ "ecolor 0.36.2 (git+https://github.com/KBVE/egui?branch=kbve-base)",
+ "emath 0.36.2 (git+https://github.com/KBVE/egui?branch=kbve-base)",
  "epaint_default_fonts",
  "font-types 0.12.5",
  "harfrust 0.12.0",
@@ -7409,8 +7448,7 @@ dependencies = [
 [[package]]
 name = "epaint_default_fonts"
 version = "0.36.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "773fa9c96dd0dbef887e39d0ed6177f141cce4d68e6041df77570aa3702dfa13"
+source = "git+https://github.com/KBVE/egui?branch=kbve-base#cddea128ae187f9d2c3b23b73579806e65348514"
 
 [[package]]
 name = "equivalent"

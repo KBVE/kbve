@@ -77,7 +77,15 @@ const server = createServer(async (req, res) => {
 	coiHeaders(res);
 	const hit = await resolveFile(req.url ?? '/');
 	if (!hit) {
-		const fallback = await resolveFile('/index.html');
+		// Only a navigation gets index.html. Falling back for everything meant
+		// a missing file answered 200 with a page of HTML, and bevy's asset
+		// server -- which probes for a `<asset>.meta` beside every asset and
+		// expects a 404 when there is none -- parsed that HTML as RON and
+		// logged "Failed to deserialize meta" for every texture and shader in
+		// the game. itch answers 404 there, so the bundle was fine and only
+		// the local server lied about it.
+		const wantsHtml = (req.headers.accept ?? '').includes('text/html');
+		const fallback = wantsHtml ? await resolveFile('/index.html') : null;
 		if (fallback) {
 			res.writeHead(200, { 'Content-Type': MIME['.html'] });
 			res.end(fallback.body);

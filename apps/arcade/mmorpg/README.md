@@ -47,26 +47,36 @@ channel. The version on the channel is the tag's.
 
 The itch page itself has to be set to an HTML game whose viewport matches the
 canvas, with **This file will be played in the browser** on the `html5` upload.
-Leave **SharedArrayBuffer support** off while the shipping bundle is the
-single-threaded one -- it sets COOP/COEP, which costs a cross-origin isolation
-the bundle does not need yet.
+**SharedArrayBuffer support** must be on: it is what makes itch send COOP/COEP,
+and the bundle's shared memory does not instantiate without cross-origin
+isolation.
 
 ## Threads
 
-`build-web-threaded` is the shared-memory build: `+atomics`, `--shared-memory`,
-and std rebuilt with `-Z build-std`. It is not what ships, because it does not
-compile today:
+The browser bundle is built with shared memory: `+atomics,+bulk-memory`,
+`--shared-memory` over an imported memory, and std rebuilt with `-Z build-std`
+on nightly. The module's memory is a `SharedArrayBuffer` at runtime, so the page
+must be cross-origin isolated or it will not instantiate at all -- `serve-web`
+sends COOP/COEP locally, and **SharedArrayBuffer support** must be switched on
+for the game on itch.
 
-- `+atomics` makes wasm32 a threaded target, so bevy_ecs requires `Send + Sync`
-  where it did not, and `bevy_egui` 0.42 fails on every system holding an
-  `EguiContext` (`the trait Send is not implemented for HashMap<ViewportId,
-  ViewportState, ...>`). egui is this game's UI, so there is nothing to gate off.
-- bevy 0.19 disables `multi_threaded` on wasm regardless -- `bevy_tasks` gates
-  it `cfg(all(not(target_arch = "wasm32"), feature = "multi_threaded"))` -- so
-  the schedule would stay single-threaded even with shared memory.
+This costs one fork. egui dropped `Send + Sync` from `DroppedFileHandle` on
+`wasm32 + atomics` in [#8354](https://github.com/emilk/egui/pull/8354), because
+the `web_sys::File` it started storing there is not thread-safe. `egui::Context`
+holds one transitively, a non-`Send` `Context` cannot be a bevy `Component`, and
+`bevy_egui` stops compiling -- 326 errors. `bevy_egui` never stores a
+`web_sys::File` (its `BevyDroppedFile` is a `PathBuf`), so the root `Cargo.toml`
+patches `egui` to [KBVE/egui](https://github.com/KBVE/egui) `kbve-base`, one
+commit off the `0.36.2` tag restoring the bound. Upstream:
+[emilk/egui#8401](https://github.com/emilk/egui/issues/8401),
+[vladbat00/bevy_egui#498](https://github.com/vladbat00/bevy_egui/issues/498).
+Drop the patch and the fork when #8401 lands.
 
-When both clear, the switch is `WEB_GAME_TASK` in `moon.yml` and the
-SharedArrayBuffer checkbox on the itch page.
+What this does **not** give you is a threaded bevy schedule. bevy 0.19 gates
+`multi_threaded` off on wasm32 regardless -- `cfg(all(not(target_arch =
+"wasm32"), feature = "multi_threaded"))` in `bevy_tasks` -- so the ECS still runs
+on one thread. What it gives is a module that can share memory with a worker,
+which is the half that cannot be added afterwards without rebuilding std.
 
 ## Browser limits
 
