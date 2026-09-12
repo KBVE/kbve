@@ -12723,6 +12723,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "mmorpg"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_battle",
+ "bevy_behavior",
+ "bevy_cam",
+ "bevy_chat",
+ "bevy_inventory",
+ "bevy_items",
+ "bevy_npc",
+ "bevy_player",
+ "bevy_quests",
+ "bevy_skills",
+ "bevy_statemachine",
+ "mmorpg_net",
+]
+
+[[package]]
 name = "mmorpg_net"
 version = "0.1.0"
 dependencies = [

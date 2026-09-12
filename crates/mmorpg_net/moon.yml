@@ -1,0 +1,16 @@
+# Wire protocol shared by the kbve-mmorpg client and its dedicated server.
+#
+# Linked by a headless server and by a wasm client, so it carries no renderer
+# and no default features beyond what both halves need.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: a `mmorpg_net@<semver>` tag publishes this to
+# crates.io. The `mmorpg` umbrella depends on the published version, so this
+# crate has to land on the registry before that one can.
+tags: ['crates']

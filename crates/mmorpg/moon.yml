@@ -1,0 +1,17 @@
+# The MMORPG umbrella. Re-exports the bevy_* subsystem crates and mmorpg_net
+# behind features so a game takes one dependency instead of eleven.
+#
+# No sources of its own beyond lib.rs: everything here is a re-export, and the
+# per-feature build is what proves the cfg gates line up.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: a `mmorpg@<semver>` tag publishes this to
+# crates.io. Tag mmorpg_net first -- cargo refuses to package a crate whose
+# path dependency is not on the registry yet.
+tags: ['crates']
