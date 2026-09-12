@@ -30,3 +30,7 @@ avian3d = { workspace = true, default-features = false, features = [
 	"serialize",
 ] }
 serde = { workspace = true, features = ["derive"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
