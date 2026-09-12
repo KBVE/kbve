@@ -2,6 +2,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
 <title>herbmail</title>
 <rect width="512" height="512" fill="#0f2a1d"/>
-<path d="M256 96c-88 0-152 66-152 156 0 74 46 132 116 156 6-42 22-84 52-122-18 52-26 96-24 132 2 0 5 0 8 0 88 0 152-66 152-156S344 96 256 96z" fill="#7ed957"/>
-<path d="M248 328c22-66 60-116 112-152" fill="none" stroke="#0f2a1d" stroke-width="14" stroke-linecap="round"/>
+<g transform="translate(64 64) scale(16)"><path fill="#7ed957" fill-rule="evenodd" d="M12 22c-4.418 0-8-3.646-8-8.143c0-4.462 2.553-9.67 6.537-11.531A3.45 3.45 0 0 1 12 2z" clip-rule="evenodd"/><path fill="#305e2e" d="M13.463 2.326A3.45 3.45 0 0 0 12 2v7l4.432-4.432c-.863-.947-1.86-1.724-2.97-2.242"/><path fill="#3b7034" d="M12 9v5.5l6.614-6.614c-.572-1.22-1.308-2.357-2.182-3.318z"/><path fill="#529340" d="m12 19.5l7.811-7.811a15 15 0 0 0-1.197-3.803L12 14.5z"/><path fill="#5da446" d="M19.811 11.689L12 19.5V22c4.418 0 8-3.646 8-8.143c0-.71-.064-1.438-.189-2.168"/></g>
 </svg>
