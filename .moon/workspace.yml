@@ -153,6 +153,7 @@ projects:
 
         # Rust services still under apps/; the libraries moved to crates/.
         agones-shim: 'apps/agones/shim'
+        mail: 'services/mail'
         met: 'services/metrics'
         agones-factorio-relay: 'apps/agones/factorio/relay'
         agones-palworld-relay: 'apps/agones/palworld/relay'

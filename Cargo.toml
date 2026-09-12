@@ -18,6 +18,7 @@ members = [
 	'apps/cryptothrone/api',
 	'apps/rows',
 	'apps/jobboard',
+	'services/mail',
 	'services/metrics',
 	'apps/arcade/isometric/src-tauri',
 	'apps/vm/firecracker-ctl',
