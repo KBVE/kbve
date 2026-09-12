@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: mail
+
+# No httproute.yaml / certificate.yaml on purpose. herbmail.com still
+# resolves to herbmail-service; this service is reachable only in-cluster
+# at mail-service.mail.svc.cluster.local:5600 until the cutover flips
+# that route's backendRef. Nothing comes down to stand this up.
+resources:
+    - mail-serviceaccount.yaml
+    - mail-externalsecret.yaml
+    - mail-deployment.yaml
