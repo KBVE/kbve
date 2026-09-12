@@ -9,6 +9,7 @@ use bevy::prelude::*;
 use bevy::transform::TransformSystems;
 use kinetree::{IkLimb, IkLimbBones, KinetreeSystems, bone_world_transform};
 
+use super::action::Frozen;
 use super::character::{Cadence, Character, Flight, Grounded, Heading, LowerBody};
 use super::pose::{PosePlayback, PoseSystems};
 use super::rig::{GaitBlend, GaitSet, Rig, at};
@@ -649,6 +650,19 @@ fn note_support(mut support: ResMut<Support>, goals: Query<&FootGoal>, cadences:
     }
 }
 
+/// What the stride reads and writes on a body that is still standing.
+type Striding = (
+    Entity,
+    &'static mut Cadence,
+    &'static LinearVelocity,
+    &'static LowerBody,
+    &'static Grounded,
+    &'static Heading,
+);
+
+/// A corpse keeps the pose its death clip put it in, so the stride skips it.
+type Standing = Without<Frozen>;
+
 fn advance_stride(
     time: Res<Time>,
     rig: Res<Rig>,
@@ -656,14 +670,7 @@ fn advance_stride(
     support: Res<Support>,
     sets: Res<Assets<GaitSet>>,
     transforms: Query<&Transform>,
-    mut characters: Query<(
-        Entity,
-        &mut Cadence,
-        &LinearVelocity,
-        &LowerBody,
-        &Grounded,
-        &Heading,
-    )>,
+    mut characters: Query<Striding, Standing>,
 ) {
     let set = rig.gaits.as_ref().and_then(|handle| sets.get(handle));
     let dt = time.delta_secs();
@@ -785,7 +792,7 @@ fn advance_stride(
 
 fn pose_lower_body(
     playback: Res<PosePlayback>,
-    characters: Query<(&Cadence, &LowerBody)>,
+    characters: Query<(&Cadence, &LowerBody), Standing>,
     mut transforms: Query<&mut Transform>,
 ) {
     for (cadence, lower) in &characters {
@@ -996,7 +1003,7 @@ fn aim_feet(
     spatial: SpatialQuery,
     camera: Single<&GlobalTransform, With<Camera3d>>,
     pose: Pose,
-    walkers: Query<(), With<Character>>,
+    walkers: Query<(), (With<Character>, Standing)>,
     mut limbs: Query<(&mut IkLimb, &IkLimbBones, &mut FootGoal)>,
 ) {
     let step = (BLEND_RATE * time.delta_secs()).min(1.0);
@@ -1563,7 +1570,7 @@ fn report(
 /// Logs each time a character's right foot lands left of its left foot, with what the stride was doing.
 fn detect_crossing(
     mut crossed: Local<bevy::platform::collections::HashSet<Entity>>,
-    bodies: Query<(Entity, &GlobalTransform, &Cadence), With<Character>>,
+    bodies: Query<(Entity, &GlobalTransform, &Cadence), (With<Character>, Standing)>,
     globals: Query<&GlobalTransform>,
     limbs: Query<(&IkLimbBones, &FootGoal)>,
 ) {
