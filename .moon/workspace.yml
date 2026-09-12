@@ -170,6 +170,7 @@ projects:
         factorio-ctl: 'apps/vm/factorio-ctl'
         firecracker-ctl: 'apps/vm/firecracker-ctl'
         friendslop-server: 'apps/agones/friendslop/server'
+        mmorpg-server: 'apps/agones/mmorpg/server'
         herbmail-server: 'apps/agones/herbmail/server'
         irc-gateway: 'apps/irc/api'
         jobboard: 'apps/jobboard'

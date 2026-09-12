@@ -12684,13 +12684,52 @@ dependencies = [
  "bevy_egui",
  "bevy_gltf",
  "bevy_inventory",
+ "bevy_kbve_net",
  "bevy_pathfinder",
  "bevy_skills",
  "combat",
+ "ehttp",
  "kinetree",
+ "lightyear",
+ "mmorpg_net",
  "ron",
  "serde",
+ "serde_json",
  "thiserror 2.0.19",
+]
+
+[[package]]
+name = "mmorpg-server"
+version = "0.0.1"
+dependencies = [
+ "agones",
+ "avian3d",
+ "axum 0.8.9",
+ "bevy",
+ "bevy_kbve_net",
+ "jedi",
+ "jsonwebtoken",
+ "lightyear",
+ "lightyear_avian3d",
+ "mmorpg_net",
+ "rand 0.10.2",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http 0.7.0",
+ "tracing",
+ "tracing-subscriber",
+ "ulid",
+]
+
+[[package]]
+name = "mmorpg_net"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+ "lightyear",
+ "serde",
 ]
 
 [[package]]
