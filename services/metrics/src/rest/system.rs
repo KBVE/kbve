@@ -8,6 +8,8 @@ use axum::response::{Html, IntoResponse, Redirect};
 use serde_json::json;
 
 use crate::state::AppState;
+#[cfg(test)]
+use crate::state::Sinks;
 
 const READINESS_TIMEOUT: Duration = Duration::from_secs(2);
 const TELEMETRY_DASHBOARD: &str = "https://kbve.com/dashboard/telemetry";
@@ -104,7 +106,9 @@ mod tests {
     }
 
     fn state_against(url: String) -> Arc<AppState> {
-        let (tx, _rx) = mpsc::channel(8);
+        let (errors, _e) = mpsc::channel(8);
+        let (perf, _p) = mpsc::channel(8);
+        let (events, _v) = mpsc::channel(8);
         Arc::new(AppState::new(
             Config::from_env(),
             ClickHouseConfig {
@@ -113,7 +117,11 @@ mod tests {
                 password: String::new(),
                 database: "telemetry".to_string(),
             },
-            tx,
+            Sinks {
+                errors,
+                perf,
+                events,
+            },
             None,
         ))
     }

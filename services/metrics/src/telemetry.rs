@@ -21,6 +21,23 @@ const ENVIRONMENTS: &[&str] = &[
     "local",
 ];
 
+/// Web Vitals and the handful of navigation timings worth keeping. An unknown
+/// metric is DROPPED rather than defaulted: `metric` is a LowCardinality column
+/// and the read path groups by it, so coercing junk to "lcp" would quietly
+/// poison a quantile rather than lose one row.
+const PERF_METRICS: &[&str] = &["lcp", "inp", "cls", "fcp", "ttfb", "fid", "tti", "load"];
+/// The browser's own verdict; anything else is recorded as unrated rather than
+/// guessed at, since the thresholds move between spec revisions.
+const RATINGS: &[&str] = &["good", "needs-improvement", "poor"];
+const NAV_TYPES: &[&str] = &["navigate", "reload", "back-forward", "prerender", "restore"];
+
+/// Upper bound on a perf sample, matching the CHECK constraint on perf_raw.
+/// An hour is far past anything a real vital reports, so a value above it is a
+/// broken client rather than a slow one -- and one such sample drags every
+/// quantile it lands in.
+const MAX_PERF_VALUE: f64 = 3_600_000.0;
+const MAX_EVENT_NAME: usize = 128;
+
 const NOISE: &[&str] = &[
     "ResizeObserver loop limit exceeded",
     "ResizeObserver loop completed with undelivered notifications",
@@ -189,7 +206,11 @@ impl ErrorEvent {
         if message.is_empty() || is_noise(&message) {
             return None;
         }
-        let project = sanitize(self.project, 128, false);
+        // Trimmed before the emptiness test: whitespace survives sanitize, and a
+        // project of "  " is long enough to satisfy the CHECK constraint on the
+        // column. It would become its own LowCardinality value and its own
+        // rate-limit bucket, neither of which corresponds to anything.
+        let project = sanitize(self.project, 128, false).trim().to_string();
         if project.is_empty() {
             return None;
         }
@@ -215,6 +236,172 @@ impl ErrorEvent {
             extra: sanitize_extra(self.extra),
         };
 
+        let line = serde_json::to_string(&row).ok()?;
+        Some(PreparedRow { project, line })
+    }
+}
+
+/// A Web Vitals sample. Separate from ErrorEvent rather than a variant of it:
+/// it shares no required field beyond the routing ones, and folding them into
+/// one type would mean a row shape where half the columns are always empty.
+#[derive(Debug, Deserialize)]
+pub struct PerfEvent {
+    pub project: String,
+    #[serde(default)]
+    pub platform: Option<String>,
+    #[serde(default)]
+    pub release: Option<String>,
+    #[serde(default)]
+    pub environment: Option<String>,
+    pub metric: String,
+    pub value: f64,
+    #[serde(default)]
+    pub rating: Option<String>,
+    #[serde(default)]
+    pub navigation_type: Option<String>,
+    #[serde(default)]
+    pub url: Option<String>,
+    #[serde(default)]
+    pub user_id: Option<String>,
+    #[serde(default)]
+    pub session_id: Option<String>,
+    #[serde(default)]
+    pub extra: Option<Map<String, Value>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PerfBatch {
+    pub events: Vec<PerfEvent>,
+}
+
+#[derive(Serialize)]
+struct PerfRow {
+    project: String,
+    platform: String,
+    release: String,
+    environment: String,
+    metric: String,
+    value: f64,
+    rating: String,
+    navigation_type: String,
+    url: String,
+    user_id: String,
+    session_id: String,
+    user_agent: String,
+    extra: String,
+}
+
+impl PerfEvent {
+    pub fn into_row(self, user_agent: &str) -> Option<PreparedRow> {
+        // Trimmed before the emptiness test: whitespace survives sanitize, and a
+        // project of "  " is long enough to satisfy the CHECK constraint on the
+        // column. It would become its own LowCardinality value and its own
+        // rate-limit bucket, neither of which corresponds to anything.
+        let project = sanitize(self.project, 128, false).trim().to_string();
+        if project.is_empty() {
+            return None;
+        }
+        let metric = self.metric.trim().to_lowercase();
+        if !PERF_METRICS.contains(&metric.as_str()) {
+            return None;
+        }
+        // NaN and infinity serialize to JSON `null`, which ClickHouse rejects for
+        // a Float64 column -- one such sample would fail the whole insert batch
+        // it lands in, taking every good row with it.
+        if !self.value.is_finite() || self.value < 0.0 || self.value > MAX_PERF_VALUE {
+            return None;
+        }
+
+        let row = PerfRow {
+            project: project.clone(),
+            platform: allow_enum(self.platform, PLATFORMS, "web"),
+            release: sanitize(self.release.unwrap_or_default(), 64, false),
+            environment: allow_enum(self.environment, ENVIRONMENTS, "production"),
+            metric,
+            value: self.value,
+            rating: allow_enum(self.rating, RATINGS, ""),
+            navigation_type: allow_enum(self.navigation_type, NAV_TYPES, ""),
+            url: self.url.map(strip_query).unwrap_or_default(),
+            user_id: sanitize(self.user_id.unwrap_or_default(), 128, false),
+            session_id: sanitize(self.session_id.unwrap_or_default(), 128, false),
+            user_agent: sanitize(user_agent.to_string(), 512, false),
+            extra: sanitize_extra(self.extra),
+        };
+        let line = serde_json::to_string(&row).ok()?;
+        Some(PreparedRow { project, line })
+    }
+}
+
+/// A named product event. `name` is free-form by necessity but length-capped
+/// and lower-cased, so the LowCardinality column sees one spelling per event.
+#[derive(Debug, Deserialize)]
+pub struct ProductEvent {
+    pub project: String,
+    #[serde(default)]
+    pub platform: Option<String>,
+    #[serde(default)]
+    pub release: Option<String>,
+    #[serde(default)]
+    pub environment: Option<String>,
+    pub name: String,
+    #[serde(default)]
+    pub url: Option<String>,
+    #[serde(default)]
+    pub user_id: Option<String>,
+    #[serde(default)]
+    pub session_id: Option<String>,
+    #[serde(default)]
+    pub extra: Option<Map<String, Value>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ProductBatch {
+    pub events: Vec<ProductEvent>,
+}
+
+#[derive(Serialize)]
+struct ProductRow {
+    project: String,
+    platform: String,
+    release: String,
+    environment: String,
+    name: String,
+    url: String,
+    user_id: String,
+    session_id: String,
+    user_agent: String,
+    extra: String,
+}
+
+impl ProductEvent {
+    pub fn into_row(self, user_agent: &str) -> Option<PreparedRow> {
+        // Trimmed before the emptiness test: whitespace survives sanitize, and a
+        // project of "  " is long enough to satisfy the CHECK constraint on the
+        // column. It would become its own LowCardinality value and its own
+        // rate-limit bucket, neither of which corresponds to anything.
+        let project = sanitize(self.project, 128, false).trim().to_string();
+        if project.is_empty() {
+            return None;
+        }
+        let name = sanitize(self.name, MAX_EVENT_NAME, false)
+            .trim()
+            .to_lowercase();
+        if name.is_empty() {
+            return None;
+        }
+
+        let row = ProductRow {
+            project: project.clone(),
+            platform: allow_enum(self.platform, PLATFORMS, "web"),
+            release: sanitize(self.release.unwrap_or_default(), 64, false),
+            environment: allow_enum(self.environment, ENVIRONMENTS, "production"),
+            name,
+            url: self.url.map(strip_query).unwrap_or_default(),
+            user_id: sanitize(self.user_id.unwrap_or_default(), 128, false),
+            session_id: sanitize(self.session_id.unwrap_or_default(), 128, false),
+            user_agent: sanitize(user_agent.to_string(), 512, false),
+            extra: sanitize_extra(self.extra),
+        };
         let line = serde_json::to_string(&row).ok()?;
         Some(PreparedRow { project, line })
     }
@@ -281,6 +468,119 @@ mod tests {
     fn empty_and_noise_dropped() {
         assert!(event("").into_row("ua").is_none());
         assert!(event("Script error.").into_row("ua").is_none());
+    }
+
+    fn perf(metric: &str, value: f64) -> PerfEvent {
+        PerfEvent {
+            project: "kbve".into(),
+            platform: None,
+            release: None,
+            environment: None,
+            metric: metric.into(),
+            value,
+            rating: None,
+            navigation_type: None,
+            url: None,
+            user_id: None,
+            session_id: None,
+            extra: None,
+        }
+    }
+
+    fn product(name: &str) -> ProductEvent {
+        ProductEvent {
+            project: "kbve".into(),
+            platform: None,
+            release: None,
+            environment: None,
+            name: name.into(),
+            url: None,
+            user_id: None,
+            session_id: None,
+            extra: None,
+        }
+    }
+
+    #[test]
+    fn perf_metric_is_normalized_and_unknown_is_dropped() {
+        let row = perf("  LCP ", 1200.0).into_row("ua").unwrap();
+        let v: Value = serde_json::from_str(&row.line).unwrap();
+        assert_eq!(v["metric"], "lcp");
+        // Not defaulted to a real metric: a bogus name would poison the quantile
+        // of whichever metric it was coerced into.
+        assert!(perf("made_up", 1.0).into_row("ua").is_none());
+    }
+
+    #[test]
+    fn perf_rejects_values_clickhouse_would_choke_on() {
+        // NaN and infinity serialize to JSON null, which fails the insert for
+        // the whole batch they are in -- not just for the offending row.
+        assert!(perf("lcp", f64::NAN).into_row("ua").is_none());
+        assert!(perf("lcp", f64::INFINITY).into_row("ua").is_none());
+        assert!(perf("lcp", -1.0).into_row("ua").is_none());
+        assert!(perf("lcp", MAX_PERF_VALUE + 1.0).into_row("ua").is_none());
+        // The bounds themselves are valid; CLS is a ratio, so 0 is a real value.
+        assert!(perf("cls", 0.0).into_row("ua").is_some());
+        assert!(perf("lcp", MAX_PERF_VALUE).into_row("ua").is_some());
+    }
+
+    #[test]
+    fn perf_clamps_rating_and_navigation_type() {
+        let mut ev = perf("inp", 40.0);
+        ev.rating = Some("GOOD".into());
+        ev.navigation_type = Some("teleport".into());
+        ev.url = Some("https://kbve.com/x?token=secret".into());
+        let v: Value = serde_json::from_str(&ev.into_row("ua").unwrap().line).unwrap();
+        assert_eq!(v["rating"], "good");
+        assert_eq!(v["navigation_type"], "", "an unknown verdict is left unrated");
+        assert_eq!(v["url"], "https://kbve.com/x", "query string is dropped");
+    }
+
+    #[test]
+    fn a_whitespace_only_project_is_not_a_project() {
+        let mut ev = perf("lcp", 1.0);
+        ev.project = "   ".into();
+        assert!(ev.into_row("ua").is_none());
+        // Same rule on the errors lens, which had the same hole: "  " is
+        // non-empty after sanitize and passes the column's length CHECK.
+        let mut err = event("boom");
+        err.project = "  ".into();
+        assert!(err.into_row("ua").is_none());
+        let mut prod = product("click");
+        prod.project = " ".into();
+        assert!(prod.into_row("ua").is_none());
+    }
+
+    #[test]
+    fn product_name_is_normalized_and_required() {
+        let row = product("  Signup_Completed ").into_row("ua").unwrap();
+        let v: Value = serde_json::from_str(&row.line).unwrap();
+        assert_eq!(v["name"], "signup_completed");
+        assert!(product("").into_row("ua").is_none());
+        assert!(product("\u{0}\u{1}").into_row("ua").is_none());
+    }
+
+    #[test]
+    fn product_name_is_length_capped() {
+        let row = product(&"n".repeat(MAX_EVENT_NAME * 2))
+            .into_row("ua")
+            .unwrap();
+        let v: Value = serde_json::from_str(&row.line).unwrap();
+        assert_eq!(v["name"].as_str().unwrap().len(), MAX_EVENT_NAME);
+    }
+
+    #[test]
+    fn product_carries_the_same_sanitizing_as_errors() {
+        let mut ev = product("click");
+        ev.platform = Some("HACKER".into());
+        let mut map = Map::new();
+        map.insert("k\u{0}".into(), Value::String("v\u{1b}".into()));
+        ev.extra = Some(map);
+        let v: Value = serde_json::from_str(&ev.into_row("ua\u{0}").unwrap().line).unwrap();
+        assert_eq!(v["platform"], "web", "unknown platform falls back");
+        assert_eq!(v["user_agent"], "ua");
+        let extra: Value = serde_json::from_str(v["extra"].as_str().unwrap()).unwrap();
+        assert_eq!(extra["k"], "v");
     }
 
     #[test]
