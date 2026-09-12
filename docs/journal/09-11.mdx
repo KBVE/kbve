@@ -5,7 +5,7 @@ date: 2026-09-11 12:00:00
 client: Self
 unsplash: 1692653055277-acb45c75f1f
 img: https://images.unsplash.com/photo-1692653055277-acb45c75f1f?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: September 11th. 
+description: September 11th.
 tags:
   - daily
 template: splash
@@ -56,6 +56,20 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### Nvidia 225 Put Assignment
+
+-   11:15PM
+
+    Looks like I am wheeling around another couple hundred shares, so I will have an interesting week looking at trying to off load those.
+    However the couple grand from the whole swing was worth it.
+
+### MMORPG Bevy WebGPU
+
+-   09:00PM
+
+    We will have to fork the egui under KBVE, just to resolve that wasm build failure.
+    I found that it is a bit annoying that we have to do this, just to get the wasm to actually be multi threaded.
+
 - [ ]
 
 </BentoProse>
@@ -71,9 +85,9 @@ import BentoProse from '@/components/hero/BentoProse.astro';
     Having my personal profile be the graveyard of the older projects would be an interesting take.
     This could also be a security concern that we can address, making sure that nothing just suddenly breaks or have a risk of leaking our keys/tokens.
 
--   11:45PM 
+-   11:45PM
 
-    The global auth might be an issue that we need to address, ideally the global auth logout system. 
+    The global auth might be an issue that we need to address, ideally the global auth logout system.
     Currently we are using the `GlobalLogout.tsx` but I did want it to be just all within the same instance, ugh.
     Having the logout be in multiple locations might be a pain, whereas, having a shared library would make things easier.
     What we could do is that instead of a shared Astro library, we go ahead and do a shared tsx library, with the core logic that is within the package.
@@ -108,7 +122,7 @@ We want to go ahead and shift this over to a nx run command.
     "options": {
         "cwd": "apps/kilobase",
         "commands": [
-          
+
           "cargo pgrx run"
         ],
         "parallel": false
@@ -171,9 +185,9 @@ Granted it might be located in a different location, this was the location for m
 
 <BentoProse id="2023" heading="2023">
 
-- 6:30am - Preparing the morning minutes and general stand-in protocols, honestly I forget that I am muted way too long during them anyhow, should just ask if I am needed before I stay in the call. 
+- 6:30am - Preparing the morning minutes and general stand-in protocols, honestly I forget that I am muted way too long during them anyhow, should just ask if I am needed before I stay in the call.
 - 11:00am - Excited to see a quick surge in TSLA stock value, I am waiting to sell about 500 shares for $270/$275 each, so I can turn around and sell puts against TSLA.
-- 1:00pm - Meetings went great so far, but there are ways 
+- 1:00pm - Meetings went great so far, but there are ways
 - 10:37pm - Fixing up the parcel packager and it looks like the Yorha UI Widget is nearing production level, I just need to test case a couple integrations from a couple older widgets.
 
 </BentoProse>

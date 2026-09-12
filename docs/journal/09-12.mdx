@@ -5,7 +5,7 @@ date: 2026-09-12 12:00:00
 client: Self
 unsplash: 1691862867327-d07c3fe827f5
 img: https://images.unsplash.com/photo-1691862867327-d07c3fe827f5?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: September 12th. 
+description: September 12th.
 tags:
   - daily
 template: splash
@@ -55,6 +55,15 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 <BentoDoc data={frontmatter.bento}>
 
 <BentoProse id="2026" heading="2026">
+
+### MMORPG Itch Build
+
+-   04:16PM
+
+    The first v0.1.0 was shipped, now the main issue is that the assets seem to 404.
+    What we can do first is clear up the action router, so that we can speed up builds.
+    My plan for this weekend is to get a functional mmorpg under lightyear that we can play on itch.
+    Afterwards we can handle the auth sessions, using something similar to the bbs style.
 
 - [ ]
 
@@ -161,7 +170,7 @@ After updating those categories, we can pull in a quick ai magic too and give us
 - 8:49am - Backend updates should be automated but I am running into a couple different issues, including the backups and data management. The next move would be to build out self-hosted Github runners that we could call within the repo? They would handle the migration of data but outside the scope or control of Github. Furthermore, I think there should be a backup plan for the Github repos themselves, which I have noted.
 - 11:30am - First time in a while where we had a solid lunch with the co-workers, I am always excited to hear the interesting hobbies that people are involved in! I did not know that you could easily build your own in-house hardware because circuit boards can be printed on demand per unit?! I knew it was a service but never realized that it is not just a B2B but a growing B2C operations.
 - 1:09pm - Watching the Apple event! It makes me want to make apps for their products a bit more, its like a motivational speech for tech nerds.
-- 1:36pm - Adding Scene management into virtual engine file, I am also thinking of just making the whole VE file be something that I can reference almost anywhere in the future. It feels weird to merge everything into just one file but slowly it just seems to make more sense as I am going through it. 
+- 1:36pm - Adding Scene management into virtual engine file, I am also thinking of just making the whole VE file be something that I can reference almost anywhere in the future. It feels weird to merge everything into just one file but slowly it just seems to make more sense as I am going through it.
 
 </BentoProse>
 
