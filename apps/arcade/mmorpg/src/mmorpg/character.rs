@@ -1187,6 +1187,9 @@ pub fn find_bone(
 }
 
 /// Every character the mover drives, with the ground contact and cadence that decide whether it drives at all.
+/// A frozen body has stopped driving itself; the death clip owns it from then on.
+type Driven = (With<Character>, Without<super::action::Frozen>);
+
 type MovingCharacters<'w, 's> = Query<
     'w,
     's,
@@ -1200,7 +1203,7 @@ type MovingCharacters<'w, 's> = Query<
         &'static ShapeHits,
         Option<&'static mut Cadence>,
     ),
-    With<Character>,
+    Driven,
 >;
 
 fn apply_movement(time: Res<Time>, spatial: SpatialQuery, mut characters: MovingCharacters) {
@@ -1563,6 +1566,21 @@ fn drive_gait(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `Driven` is what keeps `apply_movement` off a corpse; without it the
+    /// controller kept steering a dead body at running speed, uphill.
+    #[test]
+    fn a_frozen_body_is_no_longer_driven() {
+        let mut world = World::new();
+        let living = world.spawn(Character).id();
+        let corpse = world.spawn((Character, super::super::action::Frozen)).id();
+
+        let mut driven = world.query_filtered::<Entity, Driven>();
+        let matched: Vec<Entity> = driven.iter(&world).collect();
+
+        assert!(matched.contains(&living));
+        assert!(!matched.contains(&corpse));
+    }
 
     #[test]
     fn every_gait_can_return_to_idle() {
