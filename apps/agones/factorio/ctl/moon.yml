@@ -7,13 +7,13 @@ tags: ['rust', 'docker']
 tasks:
     containerx:
         deps: ['protobuf:build']
-        script: 'docker buildx build --load -f apps/agones/factorio/ctl/Dockerfile -t kbve/factorio-ctl:latest .'
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/factorio-ctl:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
         deps: ['protobuf:build']
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache,mode=max -f apps/agones/factorio/ctl/Dockerfile -t ghcr.io/kbve/factorio-ctl:latest -t kbve/factorio-ctl:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache,mode=max -f $projectSource/Dockerfile -t ghcr.io/kbve/factorio-ctl:latest -t kbve/factorio-ctl:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

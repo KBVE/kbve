@@ -4,8 +4,29 @@ layer: 'application'
 language: 'typescript'
 
 tasks:
+    # Was one script that docker-ran pipelinecomponents/yamllint and ended in
+    # `|| true`, so the task reported green whether the template parsed or not
+    # -- and on a runner with no docker daemon it reported green having run
+    # nothing at all. Split in two so each half can fail.
+    #
+    # yamllint arrives through uvx rather than a container: ci-plan.mjs decides
+    # whether to provision python by looking at whether a CI task's *command*
+    # starts with `uv`, so this has to be `command` and it has to be the whole
+    # of it. `relaxed` because a cloud-init template is not ours to reformat,
+    # and line-length off because the placeholder lines are long.
     lint:
-        script: "sh -n services/iot/bootstrap.sh && docker run --rm -v $PWD/services/iot:/work pipelinecomponents/yamllint:latest yamllint -d '{extends: relaxed, rules: {line-length: disable}}' /work/cloud-init.yaml.tmpl || true"
+        command: >-
+            uvx yamllint
+            -d '{extends: relaxed, rules: {line-length: disable}}'
+            $projectSource/cloud-init.yaml.tmpl
+        options:
+            runFromWorkspaceRoot: true
+
+    # The bootstrap is what fills the template's placeholders in. `sh -n`
+    # parses without executing, which is all that can be checked here: the
+    # script talks to a live cluster.
+    check:
+        script: 'sh -n $projectSource/bootstrap.sh'
         options:
             runFromWorkspaceRoot: true
 
