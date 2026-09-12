@@ -185,8 +185,7 @@ def main() -> None:
         json.dump(overview, fh, separators=(",", ":"))
     meta = overview["meta"]
     print(
-        f"enriched {out}: {meta['nxProjects']} nx projects, "
-        f"{meta['nxEdges']} depends-edges, {meta['docRefs']} doc refs"
+        f"enriched {out}: {meta['nxProjects']} nx projects, {meta['nxEdges']} depends-edges, {meta['docRefs']} doc refs"
     )
 
 

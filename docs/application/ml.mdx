@@ -645,7 +645,7 @@ The KBVE monorepo integrates Graphify across three layers:
 
 ```
 packages/python/graphify-wrapper/   # Python wrapper package
-packages/data/graph/              # Graph data storage
+packages/data/graph/              # Graph data storage (generated artifacts only)
 apps/kbve/astro-kbve/src/pages/api/graphify/  # API endpoints
 ```
 
@@ -704,7 +704,7 @@ Before installing Graphify, ensure you have:
 **uv Version Mismatch**: If you encounter version conflicts (workspace requires `uv==0.11.28` but system has newer):
 
 **Workarounds**:
-1. Use shell script directly: `./packages/data/graph/scripts/build-monorepo-graph.sh`
+1. Use shell script directly: `./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh`
 2. Install globally: `pip install graphifyy`
 3. Use uvx: `uvx --from graphifyy graphify`
 4. Update workspace uv version or downgrade system uv
@@ -715,7 +715,7 @@ Before installing Graphify, ensure you have:
 
 ```bash
 # Build entire monorepo
-./packages/data/graph/scripts/build-monorepo-graph.sh
+./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh
 
 # View results
 open packages/data/graph/output/monorepo/graph.html
@@ -741,14 +741,14 @@ uv run kbve-graph-build --scope package --name rust/jedi --output ../../../packa
 ```bash
 graphify . \
   --output packages/data/graph/output/monorepo \
-  --config packages/data/graph/configs/.graphify.yml \
+  --config packages/python/graphify-wrapper/configs/.graphify.yml \
   --no-semantic
 ```
 
 **With Semantic Analysis** (thorough, uses LLM):
 
 ```bash
-./packages/data/graph/scripts/build-monorepo-graph.sh --semantic
+./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh --semantic
 ```
 
 ### Querying Graphs
@@ -766,7 +766,7 @@ graphify explain packages/data/graph/output/monorepo/graph.json "packages/rust/j
 
 ### LLM Backend Configuration
 
-Edit `packages/data/graph/configs/.graphify.yml` to choose your LLM backend:
+Edit `packages/python/graphify-wrapper/configs/.graphify.yml` to choose your LLM backend:
 
 **Ollama (Local, Free)**:
 

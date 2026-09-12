@@ -35,6 +35,11 @@ exclude_lines = ['if TYPE_CHECKING:']
 show_missing = true
 
 [tool.pytest.ini_options]
+# The graph build steps live in scripts/ (they are invoked as files by
+# build-tiered-graph.sh, not imported as a package), so their tests import them
+# by module name. Without this they were only runnable by hand from that
+# directory, and `uv run pytest tests/` never touched them.
+pythonpath = ["scripts"]
 addopts = "--cov --cov-report html:'../../../coverage/packages/python/graphify-wrapper/html' --cov-report xml:'../../../coverage/packages/python/graphify-wrapper/coverage.xml'"
 
 [tool.ruff]

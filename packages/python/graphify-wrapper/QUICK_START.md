@@ -33,12 +33,12 @@ uvx --from graphifyy graphify --help
 
 ```bash
 # Using the shell script (doesn't require Python package)
-./packages/data/graph/scripts/build-monorepo-graph.sh
+./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh
 
 # Or directly with Graphify CLI
 graphify . \
   --output packages/data/graph/output/monorepo \
-  --config packages/data/graph/configs/.graphify.yml \
+  --config packages/python/graphify-wrapper/configs/.graphify.yml \
   --no-semantic  # AST-only mode (fast)
 ```
 
@@ -48,7 +48,7 @@ graphify . \
 # Example: herbmail
 graphify apps/herbmail \
   --output packages/data/graph/output/apps/herbmail \
-  --config packages/data/graph/configs/.graphify.yml
+  --config packages/python/graphify-wrapper/configs/.graphify.yml
 ```
 
 ###Query Graph
@@ -62,7 +62,7 @@ graphify query packages/data/graph/output/monorepo/graph.json \
 ## Next Steps
 
 1. **Fix uv version**: Align workspace uv version
-2. **Run first build**: `./packages/data/graph/scripts/build-monorepo-graph.sh`
+2. **Run first build**: `./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh`
 3. **View results**: Open `packages/data/graph/output/monorepo/graph.html`
 4. **Test API**: Start dev server and visit `/api/graphify/monorepo.json`
 

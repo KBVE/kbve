@@ -8,10 +8,12 @@ packages/data/graph/
 │   ├── projects.json       # moon project graph — {graph: {nodes, dependencies}}
 │   ├── overview.json       # graphify tiered overview: directory bubbles, edges, meta
 │   └── dir/<top-level>.json  # per-directory file→symbol chunks (LOD tier 2/3)
-├── configs/.graphify.yml   # graphify CLI configuration
-├── scripts/                # the tiered build + the unified enrichment step
 └── output/                 # raw graphify export, git-ignored and rebuildable
 ```
+
+This directory is data. What produces it is code, and lives with the rest of the
+code: `packages/python/graphify-wrapper` holds the CLI wrapper, the build
+scripts (`scripts/`) and the graphify config (`configs/.graphify.yml`).
 
 ## What writes what
 
@@ -23,7 +25,7 @@ packages/data/graph/
 Both run from `ci-daily-content.yml` and open their own PR. Nothing here is
 hand-edited.
 
-`build-tiered-graph.sh` ends by fusing the two: `enrich_unified.py` folds moon
+`scripts/build-tiered-graph.sh` ends by fusing the two: `enrich_unified.py` folds moon
 project identity and project→project edges onto the directory bubbles, and
 attaches a `ref` — the doc that documents that code area — to each node. It
 walks **both** docs roots (`docs/` and what remains in

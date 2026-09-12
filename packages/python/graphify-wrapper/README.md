@@ -49,7 +49,7 @@ Copies to: `packages/data/graph/monorepo/graphify-export.json`
 
 ## Configuration
 
-Edit `packages/data/graph/configs/.graphify.yml` to customize:
+Edit `packages/python/graphify-wrapper/configs/.graphify.yml` to customize:
 
 - LLM backend (Ollama, Anthropic, etc.)
 - File ignore patterns

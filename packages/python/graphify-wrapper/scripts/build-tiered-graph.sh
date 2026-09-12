@@ -14,6 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# scripts/ -> graphify-wrapper -> python -> packages -> repo root.
 GRAPH="$ROOT/graphify-out/graph.json"
 OUT="$ROOT/packages/data/graph/monorepo"
 # Staged beside the real output and swapped in only once every step has passed.
