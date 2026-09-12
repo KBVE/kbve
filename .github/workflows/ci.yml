@@ -101,6 +101,8 @@ jobs:
             # the toolchains that share needs. An empty array means nothing is
             # affected and no shard runs at all.
             shards: ${{ steps.detect.outputs.shards }}
+            # The same plan read as "which Godot projects does this reach".
+            godot: ${{ steps.detect.outputs.godot }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -313,6 +315,29 @@ jobs:
                   # shellcheck disable=SC2086
                   moon run $CI_TARGETS
 
+    # The suite ci-godot-tests.yml used to own. Its discover job asked the
+    # project graph which Godot projects a change reaches -- a full-history
+    # checkout and a `moon setup` to open a graph this workflow's plan job had
+    # open ninety seconds earlier, for the same range. The answer is "none" for
+    # every change that is not a Godot one, which is nearly all of them, and
+    # the job queued for it is a job some other run is waiting behind.
+    #
+    # Kept out of the `ci` shards rather than folded into them: it wants a
+    # Godot container, the Forgejo LFS credentials and an hour, none of which
+    # the lint and test lane has any use for. That is the rule this repository
+    # applies to workflows, applied to a job.
+    godot:
+        name: Godot
+        needs: [toolchains]
+        if: ${{ needs.toolchains.outputs.godot != '[]' }}
+        permissions:
+            contents: read
+            actions: read
+        uses: ./.github/workflows/utils-godot-tests.yml
+        with:
+            matrix: ${{ needs.toolchains.outputs.godot }}
+        secrets: inherit
+
     # ci.yml runs on every push and pull request and was the only high-traffic
     # workflow with no failure tracker, so a broken dev sat unreported until
     # someone opened a pull request and read the log themselves. A stale proto
@@ -332,6 +357,12 @@ jobs:
     # from this list is invisible to `needs.*.result`, so its failure is
     # reported here as a success and closes the open issue. It also gates the
     # shards, so its failure skips them and leaves nothing else to notice.
+    #
+    # `godot` is deliberately not, and the same rule says what that costs: its
+    # failure is invisible here. It was invisible before too -- ci-godot-tests.yml
+    # never had a tracker -- and the alternative is worse, because this tracker
+    # reports under one job_name and a red Godot suite would open and close an
+    # issue titled `ci`. A tracker of its own is the fix, not this list.
     track:
         name: Track Failures
         if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}

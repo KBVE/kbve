@@ -35,6 +35,8 @@
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
 
+import { godotMatrix } from '../release/godot-matrix.mjs';
+
 // The static-analysis lane. Everything else -- e2e, container, containerx,
 // publish -- has a workflow of its own with the registry credentials, the
 // docker daemon or the Playwright browsers it needs.
@@ -185,4 +187,17 @@ for (const s of shards) {
 }
 if (!shards.length) console.log('nothing affected; no shard will run');
 
-emit({ shards: JSON.stringify(shards) });
+// The Godot suite asked this same question in a job of its own -- a
+// full-history checkout and a `moon setup` to reach the graph that is already
+// open here, ninety seconds after this job answered it for the shards. It is
+// the same range and the same --downstream deep; only the projection differs,
+// so it is a second reading of one plan rather than a second plan.
+//
+// An unresolvable range is `null` here, which godotMatrix reads as "run
+// everything" -- the same fail-open the suite has always had, for the same
+// reason: a narrowed guess skips the suite silently, and a skipped suite looks
+// exactly like a passing one.
+const godot = godotMatrix(scoped ? base : null, scoped ? head : null);
+console.log(`godot: ${godot.map((g) => g.app_name).join(', ') || 'none'}`);
+
+emit({ shards: JSON.stringify(shards), godot: JSON.stringify(godot) });

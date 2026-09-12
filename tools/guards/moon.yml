@@ -30,16 +30,12 @@ tasks:
             python3 tools/guards/sync-cargo-workspace-stubs.py --check
             && ./tools/guards/kong-config-hash.sh --check
             && python3 tools/guards/validate-vector-config.py
-            && python3 tools/guards/check-godot-paths.py
         inputs:
             - '/Cargo.toml'
             - '/apps/**/Cargo.workspace.toml'
             - '/tools/guards/sync-cargo-workspace-stubs.py'
             - '/tools/guards/kong-config-hash.sh'
             - '/tools/guards/validate-vector-config.py'
-            - '/tools/guards/check-godot-paths.py'
-            - '/.github/workflows/ci-godot-tests.yml'
-            - '/apps/**/moon.yml'
             - '/apps/kube/kong/manifests/kong-config.yaml'
             - '/apps/kube/kong/manifests/kong-deployment.yaml'
             - '/apps/kube/vector/manifests/vector-config.yaml'
