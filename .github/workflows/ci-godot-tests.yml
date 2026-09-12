@@ -3,10 +3,22 @@ name: CI - Godot Tests
 on:
     workflow_dispatch:
     pull_request:
+        # Discover is the authority on which projects a change reaches -- it
+        # asks moon rather than comparing paths -- but it only gets to answer
+        # if the workflow runs at all, and `apps/**` ran it for every change in
+        # the tree. A rust file under apps/arcade cannot reach a Godot project
+        # that no moon edge connects it to, and the job queued for it is a job
+        # some other PR is waiting behind.
+        #
+        # The apps entries are the Godot project directories; crates stays
+        # whole because a gdextension crate's cargo dependencies are not moon
+        # edges, so narrowing it would drop changes Discover would have caught.
+        # guards:lint fails if a Godot project lands outside this list.
         paths:
-            - 'apps/**'
+            - 'apps/friendslop/godot-friendslop/**'
             - 'crates/**'
             - '.github/workflows/ci-godot-tests.yml'
+            - 'tools/guards/check-godot-paths.py'
             - 'tools/release/godot-matrix.mjs'
 
 permissions: {}
