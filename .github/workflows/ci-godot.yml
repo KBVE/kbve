@@ -294,7 +294,7 @@ jobs:
                       apps/cryptothrone/api
                       apps/rows
                       apps/jobboard
-                      apps/metrics
+                      services/metrics
                       apps/vm
                       apps/mc/behavior_statetree
                       apps/mc/mc_auth

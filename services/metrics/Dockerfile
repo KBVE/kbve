@@ -8,14 +8,14 @@ ENV CARGO_INCREMENTAL=0
 # `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
 # before a single crate is compiled.
 COPY Cargo.toml /tmp/workspace-root.toml
-RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/metrics", "crates/jedi", "crates/holy", "crates/kbve"]' \
+RUN sed -e '/^members = \[/,/^\]/c\members = ["services/metrics", "crates/jedi", "crates/holy", "crates/kbve"]' \
         /tmp/workspace-root.toml > Cargo.toml
 
 # Pin dependency resolution to the committed lockfile — without it cargo-chef
 # resolves fresh and can pick an uncompilable pairing (e.g. time/time-macros).
 COPY Cargo.lock Cargo.lock
 
-COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
+COPY services/metrics/Cargo.toml services/metrics/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
@@ -23,7 +23,7 @@ COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
 COPY crates/bevy_supa/Cargo.toml crates/bevy_supa/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
-COPY apps/metrics/src/ apps/metrics/src/
+COPY services/metrics/src/ services/metrics/src/
 COPY crates/jedi/src/ crates/jedi/src/
 COPY crates/holy/src/ crates/holy/src/
 COPY crates/kbve-proto/src/ crates/kbve-proto/src/
@@ -42,12 +42,12 @@ ENV CARGO_INCREMENTAL=0
 # `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
 # before a single crate is compiled.
 COPY Cargo.toml /tmp/workspace-root.toml
-RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/metrics", "crates/jedi", "crates/holy", "crates/kbve"]' \
+RUN sed -e '/^members = \[/,/^\]/c\members = ["services/metrics", "crates/jedi", "crates/holy", "crates/kbve"]' \
         /tmp/workspace-root.toml > Cargo.toml
 
 COPY Cargo.lock Cargo.lock
 
-COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
+COPY services/metrics/Cargo.toml services/metrics/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
@@ -63,7 +63,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM cook AS builder
 
-COPY apps/metrics/Cargo.toml apps/metrics/Cargo.toml
+COPY services/metrics/Cargo.toml services/metrics/Cargo.toml
 COPY crates/jedi/ crates/jedi/
 COPY crates/holy/ crates/holy/
 COPY crates/kbve-proto/ crates/kbve-proto/
@@ -71,10 +71,10 @@ COPY packages/proto packages/proto
 COPY crates/holy-derive/ crates/holy-derive/
 COPY crates/kbve/ crates/kbve/
 COPY crates/bevy_supa/ crates/bevy_supa/
-COPY apps/metrics/src/ apps/metrics/src/
+COPY services/metrics/src/ services/metrics/src/
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    touch apps/metrics/src/main.rs && \
+    touch services/metrics/src/main.rs && \
     cargo build --release -p met && \
     strip target/release/met
 

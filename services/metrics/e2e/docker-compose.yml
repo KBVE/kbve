@@ -21,7 +21,7 @@ services:
     metrics:
         build:
             context: ../../..
-            dockerfile: apps/metrics/Dockerfile
+            dockerfile: services/metrics/Dockerfile
         depends_on:
             clickhouse:
                 condition: service_healthy

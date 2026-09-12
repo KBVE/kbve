@@ -2,7 +2,7 @@
 -- AUTHZ SCHEMA — PostgREST-exposed bitwise permission predicates
 --
 -- Parametric, service-callable predicates over staff.members for
--- gating upstreams (kbve-gate, apps/metrics) at different privilege
+-- gating upstreams (kbve-gate, services/metrics) at different privilege
 -- levels. They take an explicit p_user_id because callers hit them
 -- as service_role, where auth.uid() is NULL.
 --
