@@ -31,22 +31,3 @@ jobs:
               with:
                   fail-on-severity: high
                   comment-summary-in-pr: always
-
-    # One job rather than a failure/success pair. The pair reported the same
-    # five inputs twice and differed only in a status string, and their two
-    # conditions had to stay each other's exact complement by hand.
-    track:
-        name: Track Failures
-        if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
-        needs: [dependency-review]
-        permissions:
-            actions: read
-            issues: write
-            contents: read
-        uses: ./.github/workflows/utils-ci-failure-tracker.yml
-        with:
-            workflow_name: 'CI - Security'
-            job_name: 'dependency-review'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
