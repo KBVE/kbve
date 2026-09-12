@@ -1,24 +1,24 @@
 #![allow(dead_code, clippy::too_many_arguments, clippy::assertions_on_constants)]
 
 use axum::{
-    Json, Router,
     body::Body,
     extract::{Path, Request, State},
-    http::{HeaderMap, HeaderValue, StatusCode, header},
+    http::{header, HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     routing::{delete, get, post},
+    Json, Router,
 };
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::{
     net::SocketAddr,
     sync::{
-        Arc, OnceLock,
         atomic::{AtomicI64, AtomicU64, Ordering},
+        Arc, OnceLock,
     },
     time::{Duration, Instant},
 };
-use tokio::sync::Notify;
+use tokio::sync::{Notify, Semaphore};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::ToSchema;
@@ -139,6 +139,12 @@ struct AppState {
     vms: Arc<DashMap<String, VmRecord>>,
     rootfs_dir: String,
     max_concurrent_vms: usize,
+    /// One permit per in-flight ephemeral VM. Counting `vms` for entries in
+    /// Creating or Running cannot enforce the cap: the scan and the insert are
+    /// two steps, so N concurrent /vm/create calls all read the same
+    /// under-limit count and all proceed. A permit is taken before the record
+    /// exists and released when the lifecycle task ends, however it ends.
+    vm_slots: Arc<Semaphore>,
     jailer: Option<Arc<JailerConfig>>,
     /// Populated only when the binary runs as the networked deployment
     /// (firecracker-ctl-net). When `None`, all /fc/* handlers return 503.
@@ -715,27 +721,25 @@ async fn create_vm(
         );
     }
 
-    // Enforce max concurrent VMs to prevent resource exhaustion
-    let active_count = state
-        .vms
-        .iter()
-        .filter(|e| {
-            matches!(
-                e.value().info.status,
-                VmStatus::Creating | VmStatus::Running
-            )
-        })
-        .count();
-    if active_count >= state.max_concurrent_vms {
-        return (
-            StatusCode::TOO_MANY_REQUESTS,
-            Json(serde_json::json!({
-                "error": "Too many concurrent VMs",
-                "active": active_count,
-                "limit": state.max_concurrent_vms,
-            })),
-        );
-    }
+    // Enforce max concurrent VMs to prevent resource exhaustion. The permit is
+    // the reservation: it is taken here, before the record exists, and moved
+    // into the lifecycle task below so it is returned however that task ends --
+    // including a panic. Scanning `vms` for Creating/Running instead would not
+    // enforce anything, because the scan and the insert are separate steps and
+    // concurrent callers all read the same under-limit count.
+    let slot = match state.vm_slots.clone().try_acquire_owned() {
+        Ok(permit) => permit,
+        Err(_) => {
+            return (
+                StatusCode::TOO_MANY_REQUESTS,
+                Json(serde_json::json!({
+                    "error": "Too many concurrent VMs",
+                    "active": state.max_concurrent_vms - state.vm_slots.available_permits(),
+                    "limit": state.max_concurrent_vms,
+                })),
+            );
+        }
+    };
 
     let vm_id = format!("fc-{}", Uuid::new_v4().as_simple());
     let now = iso8601_now();
@@ -828,6 +832,7 @@ async fn create_vm(
             billing_account_id,
         )
         .await;
+        drop(slot);
     });
 
     (StatusCode::CREATED, Json(serde_json::json!(info)))
@@ -1135,6 +1140,7 @@ async fn fc_deploy(
         Ok(a) => a,
         Err(e) => {
             tracing::warn!("fc_deploy: pool allocation failed: {e}");
+            void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
             return (
                 StatusCode::INSUFFICIENT_STORAGE,
                 Json(serde_json::json!({
@@ -1151,6 +1157,7 @@ async fn fc_deploy(
         Err(e) => {
             tracing::error!("fc_deploy: TAP creation failed: {e}");
             persistent.pool.release(&allocation);
+            void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(serde_json::json!({
@@ -1170,6 +1177,7 @@ async fn fc_deploy(
         // between our first check and the TAP creation. Clean up.
         let _ = persistent.tap_manager.destroy_tap(&tap).await;
         persistent.pool.release(&allocation);
+        void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
         return (
             StatusCode::CONFLICT,
             Json(serde_json::json!({
@@ -1189,6 +1197,7 @@ async fn fc_deploy(
                 tracing::error!("fc_deploy: VM spawn failed for {}: {e}", req.name);
                 let _ = persistent.tap_manager.destroy_tap(&tap).await;
                 persistent.pool.release(&allocation);
+                void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
                 return (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(serde_json::json!({
@@ -2288,6 +2297,26 @@ struct NetworkLease {
     allocation: persistent::IpAllocation,
 }
 
+impl NetworkLease {
+    /// Hand the TAP device and the pool address back.
+    ///
+    /// Neither `TapDevice` nor `IpAllocation` implements Drop, and neither
+    /// could usefully: the tap is a host netdev that has to be torn down with
+    /// an await, and the address is a slot in a pool the value does not own. So
+    /// dropping a lease frees nothing, and every path that takes one has to
+    /// reach this.
+    async fn release(self, vm_id: &str) {
+        if let Err(e) = self.persistent.tap_manager.destroy_tap(&self.tap).await {
+            tracing::warn!(
+                "VM {} TAP teardown failed for {}: {e}",
+                vm_id,
+                self.tap.name
+            );
+        }
+        self.persistent.pool.release(&self.allocation);
+    }
+}
+
 async fn run_vm_lifecycle(
     vms: Arc<DashMap<String, VmRecord>>,
     vm_id: String,
@@ -2374,39 +2403,42 @@ async fn run_vm_lifecycle(
                     Err(e) => {
                         ps.pool.release(&allocation);
                         tracing::error!("VM {} TAP creation failed: {e}", vm_id);
-                        set_vm_failed(
+                        fail_and_void_hold(
                             &vms,
                             &vm_id,
                             start,
-                            -1,
-                            "".into(),
                             format!("TAP creation failed: {e}"),
-                        );
+                            billing.as_deref(),
+                            billing_account_id,
+                        )
+                        .await;
                         return;
                     }
                 },
                 Err(e) => {
                     tracing::warn!("VM {} pool allocation failed: {e}", vm_id);
-                    set_vm_failed(
+                    fail_and_void_hold(
                         &vms,
                         &vm_id,
                         start,
-                        -1,
-                        "".into(),
                         format!("IP pool exhausted: {e}"),
-                    );
+                        billing.as_deref(),
+                        billing_account_id,
+                    )
+                    .await;
                     return;
                 }
             },
             None => {
-                set_vm_failed(
+                fail_and_void_hold(
                     &vms,
                     &vm_id,
                     start,
-                    -1,
-                    "".into(),
                     "network=true requires the networked deployment".into(),
-                );
+                    billing.as_deref(),
+                    billing_account_id,
+                )
+                .await;
                 return;
             }
         }
@@ -2459,7 +2491,15 @@ async fn run_vm_lifecycle(
         Ok(pair) => pair,
         Err(e) => {
             tracing::error!("VM {} spawn failed: {}", vm_id, e);
-            set_vm_failed(&vms, &vm_id, start, -1, "".into(), e);
+            fail_and_void_hold(
+                &vms,
+                &vm_id,
+                start,
+                e,
+                billing.as_deref(),
+                billing_account_id,
+            )
+            .await;
             return;
         }
     };
@@ -2570,14 +2610,7 @@ async fn run_vm_lifecycle(
                 let _ = tokio::fs::remove_file(&p).await;
             }
             if let Some(lease) = network {
-                if let Err(e) = lease.persistent.tap_manager.destroy_tap(&lease.tap).await {
-                    tracing::warn!(
-                        "VM {} TAP teardown failed for {}: {e}",
-                        vm_id,
-                        lease.tap.name
-                    );
-                }
-                lease.persistent.pool.release(&lease.allocation);
+                lease.release(&vm_id).await;
             }
         }
         VmCleanup::Jailed { jail_dir, vm_id } => {
@@ -2598,6 +2631,22 @@ async fn run_vm_lifecycle(
 // Direct spawn (no jailer) — original path
 // ---------------------------------------------------------------------------
 
+/// The scratch files a direct spawn leaves behind for the caller to clean up.
+struct DirectPaths {
+    config_path: String,
+    socket_path: String,
+    code_path: String,
+    pkg_manifest_path: Option<String>,
+}
+
+/// Wraps [`spawn_direct_inner`] to own the failure path.
+///
+/// The inner function borrows the lease, so every way out of it -- four `?`
+/// exits before the child is spawned -- used to drop a `NetworkLease` on the
+/// floor. Nothing is freed by that: the host tap stays up and the pool address
+/// stays marked taken, so a run of failing spawns exhausts the pool and leaves
+/// one dead netdev per attempt behind. The scratch files it may have written
+/// are removed here for the same reason.
 async fn spawn_direct(
     vm_id: &str,
     rootfs_path: &str,
@@ -2609,6 +2658,54 @@ async fn spawn_direct(
     pkg_cache_path: Option<&str>,
     network_lease: Option<NetworkLease>,
 ) -> Result<(tokio::process::Child, VmCleanup), String> {
+    let spawned = spawn_direct_inner(
+        vm_id,
+        rootfs_path,
+        rootfs_dir,
+        code_buf,
+        boot_args,
+        req,
+        pkg_buf,
+        pkg_cache_path,
+        network_lease.as_ref(),
+    )
+    .await;
+
+    match spawned {
+        Ok((child, paths)) => Ok((
+            child,
+            VmCleanup::Direct {
+                config_path: paths.config_path,
+                socket_path: paths.socket_path,
+                code_path: paths.code_path,
+                pkg_manifest_path: paths.pkg_manifest_path,
+                network: network_lease,
+            },
+        )),
+        Err(e) => {
+            if let Some(lease) = network_lease {
+                lease.release(vm_id).await;
+            }
+            let scratch_dir = "/var/lib/firecracker/scratch";
+            for ext in ["code", "sock", "json", "pkgs"] {
+                let _ = tokio::fs::remove_file(format!("{}/{}.{}", scratch_dir, vm_id, ext)).await;
+            }
+            Err(e)
+        }
+    }
+}
+
+async fn spawn_direct_inner(
+    vm_id: &str,
+    rootfs_path: &str,
+    rootfs_dir: &str,
+    code_buf: &[u8],
+    boot_args: &str,
+    req: &CreateVmRequest,
+    pkg_buf: Option<&[u8]>,
+    pkg_cache_path: Option<&str>,
+    network_lease: Option<&NetworkLease>,
+) -> Result<(tokio::process::Child, DirectPaths), String> {
     let scratch_dir = "/var/lib/firecracker/scratch";
     let code_path = format!("{}/{}.code", scratch_dir, vm_id);
     let socket_path = format!("{}/{}.sock", scratch_dir, vm_id);
@@ -2676,7 +2773,7 @@ async fn spawn_direct(
         },
     });
 
-    if let Some(ref lease) = network_lease {
+    if let Some(lease) = network_lease {
         config["network-interfaces"] = serde_json::json!([{
             "iface_id": "eth0",
             "host_dev_name": lease.tap.name,
@@ -2696,12 +2793,11 @@ async fn spawn_direct(
 
     Ok((
         child,
-        VmCleanup::Direct {
+        DirectPaths {
             config_path,
             socket_path,
             code_path,
             pkg_manifest_path,
-            network: network_lease,
         },
     ))
 }
@@ -3052,6 +3148,38 @@ async fn init_jailer(
 // Shared helpers
 // ---------------------------------------------------------------------------
 
+/// Hand back the credits a `place_hold` reserved, for a VM or endpoint that
+/// never came up.
+///
+/// The hold is placed by the request handler; `settle` ran only at the far end
+/// of a successful lifecycle. Every failure in between left the reservation
+/// standing against an account with nothing to show for it. A settle of 0
+/// debits nothing and releases the whole hold, and its idempotency key is
+/// derived from the id, so it is safe whether or not the far end also runs.
+async fn void_hold(
+    billing: Option<&billing_wallet::BillingContext>,
+    id: &str,
+    billing_account_id: Option<Uuid>,
+) {
+    if billing_account_id.is_some() {
+        let _ = billing_wallet::settle(billing, id, 0).await;
+    }
+}
+
+/// [`set_vm_failed`] plus [`void_hold`], for the ephemeral lifecycle's early
+/// returns.
+async fn fail_and_void_hold(
+    vms: &DashMap<String, VmRecord>,
+    vm_id: &str,
+    start: Instant,
+    stderr: String,
+    billing: Option<&billing_wallet::BillingContext>,
+    billing_account_id: Option<Uuid>,
+) {
+    set_vm_failed(vms, vm_id, start, -1, String::new(), stderr);
+    void_hold(billing, vm_id, billing_account_id).await;
+}
+
 fn set_vm_failed(
     vms: &DashMap<String, VmRecord>,
     vm_id: &str,
@@ -3342,6 +3470,7 @@ async fn main() {
         vms,
         rootfs_dir,
         max_concurrent_vms,
+        vm_slots: Arc::new(Semaphore::new(max_concurrent_vms)),
         jailer,
         persistent: persistent.clone(),
         billing,
@@ -3989,12 +4118,10 @@ mod tests {
         let v: serde_json::Value =
             serde_json::from_str(&serde_json::to_string(&body.0).unwrap()).unwrap();
         assert!(v["error"].as_str().unwrap().contains("not enabled"));
-        assert!(
-            v["hint"]
-                .as_str()
-                .unwrap()
-                .contains("FC_PERSISTENT_ENDPOINTS_ENABLED")
-        );
+        assert!(v["hint"]
+            .as_str()
+            .unwrap()
+            .contains("FC_PERSISTENT_ENDPOINTS_ENABLED"));
     }
 
     // -- Handler integration tests -----------------------------------------
@@ -4004,6 +4131,7 @@ mod tests {
             vms: Arc::new(DashMap::new()),
             rootfs_dir,
             max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
             persistent,
             billing: None,
@@ -4579,6 +4707,7 @@ mod tests {
             vms: Arc::new(DashMap::new()),
             rootfs_dir: "/tmp".into(),
             max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
             persistent: Some(persistent),
             billing: None,
@@ -5002,14 +5131,18 @@ mod tests {
         let tmp = tempfile::tempdir().unwrap();
         std::fs::write(tmp.path().join("alpine.ext4"), b"").unwrap();
 
-        // Build state with max=1 and seed one running VM so the next create
-        // hits the cap before it spawns any real lifecycle.
+        // Build state with max=1 and hold the single slot, which is what a VM
+        // in flight does. Seeding a Running record instead would not occupy
+        // anything: the permit, not the map, is the reservation.
         let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
         vms.insert("fc-busy".into(), make_record(VmStatus::Running));
+        let vm_slots = Arc::new(Semaphore::new(1));
+        let _busy = vm_slots.clone().try_acquire_owned().unwrap();
         let state = AppState {
             vms,
             rootfs_dir: tmp.path().to_string_lossy().into_owned(),
             max_concurrent_vms: 1,
+            vm_slots,
             jailer: None,
             persistent: None,
             billing: None,
@@ -5039,6 +5172,56 @@ mod tests {
         assert_eq!(v["limit"], 1);
     }
 
+    /// The cap used to be derived from the map: count the records sitting in
+    /// Creating or Running and compare against the limit. Nothing guarantees a
+    /// record ever leaves those states -- the lifecycle task is the only thing
+    /// that moves it, and a task that panics leaves the record where it is --
+    /// and the reaper deliberately never evicts an active-looking record. So a
+    /// lost task cost a slot permanently, and enough of them wedged the service
+    /// at 429 until the pod restarted.
+    ///
+    /// The reservation is a permit now, owned by the lifecycle task, so it
+    /// comes back however that task ends. A stranded record is inert.
+    #[tokio::test]
+    async fn a_stranded_record_does_not_consume_capacity() {
+        let tmp = tempfile::tempdir().unwrap();
+        std::fs::write(tmp.path().join("alpine.ext4"), b"").unwrap();
+
+        // Two records whose lifecycle tasks are gone, as after a panic.
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        vms.insert("fc-stranded-a".into(), make_record(VmStatus::Creating));
+        vms.insert("fc-stranded-b".into(), make_record(VmStatus::Running));
+
+        let state = AppState {
+            vms,
+            rootfs_dir: tmp.path().to_string_lossy().into_owned(),
+            max_concurrent_vms: 2,
+            vm_slots: Arc::new(Semaphore::new(2)),
+            jailer: None,
+            persistent: None,
+            billing: None,
+        };
+        let app = Router::new()
+            .route("/vm/create", post(create_vm))
+            .with_state(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/vm/create")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        serde_json::json!({"rootfs": "alpine", "entrypoint": "/bin/sh"})
+                            .to_string(),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::CREATED);
+    }
+
     #[tokio::test]
     async fn get_vm_status_and_result_return_records() {
         let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
@@ -5057,6 +5240,7 @@ mod tests {
             vms,
             rootfs_dir: "/tmp".into(),
             max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
             persistent: None,
             billing: None,
@@ -5107,6 +5291,7 @@ mod tests {
             vms: vms.clone(),
             rootfs_dir: "/tmp".into(),
             max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
             persistent: None,
             billing: None,
