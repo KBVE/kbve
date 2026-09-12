@@ -44,11 +44,12 @@ fileGroups:
 
 # `^:build` on the three cargo tasks, because a crate here can depend on a
 # project whose build writes source cargo then has to compile. kbve-proto is
-# the one that does: it `include!`s packages/proto/gen/rust/mod.rs, which is
-# gitignored and written by `protobuf:build`. Without the dependency nothing in
-# the graph ever runs that task, so `cargo clippy` on any crate that reaches
-# kbve-proto dies on "couldn't read .../gen/rust/mod.rs" -- which is every
-# rust-affecting pull request. `dependsOn` alone does not order tasks.
+# the one that does: it `include!`s src/gen/mod.rs, written by
+# `protobuf:build`. That tree is committed, so a clean checkout compiles
+# without running the task -- but a schema edit that has not been regenerated
+# would otherwise be linted against the previous tree, which compiles and is
+# wrong. The dependency is what makes the generated code current rather than
+# merely present. `dependsOn` alone does not order tasks.
 #
 # It costs nothing for the crates that only depend on other crates: cargo
 # already builds those, and moon's `^:build` runs in the shared target/ the

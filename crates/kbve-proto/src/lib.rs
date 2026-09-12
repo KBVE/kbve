@@ -1,14 +1,11 @@
-//! The generated prost output lives in `packages/proto/gen/rust`, which is
-//! gitignored and written by `moon run protobuf:build`. Including it from
-//! there rather than copying it in keeps a single generated tree for every
-//! consumer; `include!` resolves the nested paths relative to `mod.rs`, so the
-//! whole module tree comes along.
+//! The generated prost output lives in `src/gen`, written by
+//! `moon run protobuf:build` and committed. It sits inside the package rather
+//! than in `packages/proto/gen` because a path that escapes the package root
+//! is not carried by `cargo package`: the tarball would build here and fail
+//! for everyone who installed it from the registry.
 #![allow(clippy::all)]
 
-include!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../packages/proto/gen/rust/mod.rs"
-));
+include!("gen/mod.rs");
 
 pub use kbve::*;
 
@@ -40,7 +37,6 @@ impl From<kbve::r#type::v1::Ulid> for UlidText {
         Self(ulid_text(Some(&id)).unwrap_or_default())
     }
 }
-
 
 /// A ULID's textual form, or `None` when there is not one to render.
 ///
@@ -80,11 +76,7 @@ pub mod grpc {
                     // server in modules of their own, so the re-export has to
                     // sit beside the include and not one level out.
                     pub use crate::kbve::$pkg::v1::*;
-                    include!(concat!(
-                        env!("CARGO_MANIFEST_DIR"),
-                        "/../../packages/proto/gen/rust/",
-                        $file
-                    ));
+                    include!(concat!("gen/", $file));
                 }
                 pub use generated::*;
             }

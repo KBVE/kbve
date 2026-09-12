@@ -12,7 +12,7 @@ rust-version.workspace = true
 
 [dependencies]
 ammonia = { workspace = true }
-kbve-proto = { path = "../kbve-proto" }
+kbve-proto = { path = "../kbve-proto", version = "0.1.0" }
 async-trait = { workspace = true }
 axum = { workspace = true, features = ["default", "ws", "macros"] }
 bitflags = { workspace = true, features = ["serde"] }
