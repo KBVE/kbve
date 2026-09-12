@@ -21,8 +21,8 @@ jsonld:
 pipeline: docker
 app_name: aria2-proxy
 version: "0.1.1"
-source_path: apps/vm/aria2-proxy
-version_toml: apps/vm/aria2-proxy/version.toml
+source_path: services/aria2
+version_toml: services/aria2/version.toml
 runner: arc-runner-set
 image: kbve/aria2-proxy
 deployment_yaml: apps/kube/kubevirt/download-proxy/deployment.yaml
@@ -49,7 +49,7 @@ bento:
         support and serves them back to builder VMs over plain HTTP.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/vm/aria2-proxy
+          href: https://github.com/KBVE/kbve/tree/main/services/aria2
           primary: true
           external: true
         - label: Image layout

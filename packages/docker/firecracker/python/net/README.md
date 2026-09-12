@@ -14,7 +14,7 @@ Network-capable Python rootfs for Firecracker microVMs.
 
 This image pairs with the **net deployment** (`firecracker-ctl-net`, `FC_PERSISTENT_ENDPOINTS_ENABLED=true`). It is intended for staff-deployed persistent endpoints that need outbound HTTP.
 
-For sandbox quick-mode VMs (no network, public exec), keep using the no-network `alpine-python` rootfs in [apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python](../../../../../apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python).
+For sandbox quick-mode VMs (no network, public exec), keep using the no-network `alpine-python` rootfs in [services/firecracker/rootfs/Dockerfile.alpine-python](../../../../../services/firecracker/rootfs/Dockerfile.alpine-python).
 
 ## Output
 
