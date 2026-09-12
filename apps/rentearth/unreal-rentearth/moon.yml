@@ -52,7 +52,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     clangd-db:
-        script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
+        script: 'cd packages/python/kbve && uv run kbve-unreal-clangd'
+        options:
+            runFromWorkspaceRoot: true
 
 env:
     # The engine configuration this project builds with. JSON rather than
