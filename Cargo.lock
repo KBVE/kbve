@@ -12411,6 +12411,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "670fdfda89751bc4a84ac13eaa63e205cf0fd22b4c9a5fbfa085b63c1f1d3a30"
 
 [[package]]
+name = "mail"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum 0.8.9",
+ "dotenvy",
+ "http-body-util",
+ "jedi",
+ "mail-builder",
+ "mail-parser",
+ "mail-send",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http 0.7.0",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "mail-builder"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

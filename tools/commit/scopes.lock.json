@@ -259,6 +259,7 @@
 		"lfs",
 		"lfs-tools",
 		"lint",
+		"mail",
 		"manifest",
 		"mapdb",
 		"markets",
