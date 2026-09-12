@@ -8,7 +8,7 @@
 //! item or a spell has, so it comes from `kbve.common.v1`. Conversations are no
 //! longer inlined: an NPC carries `dialogue_graph_refs` into
 //! `kbve.dialogue.v1`, so several NPCs can share one conversation and a
-//! conversation can outgrow the NPC that first used it. `bevy_dialogue` is
+//! conversation can outgrow the NPC that first used it. `bevy_kbve_dialogue` is
 //! where those are resolved.
 
 pub use kbve_proto::kbve::common::v1::Rarity;

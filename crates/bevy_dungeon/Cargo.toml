@@ -30,7 +30,7 @@ bevy_behavior = { version = "0.1", path = "../bevy_behavior" }
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
 bevy_items = { version = "0.1", path = "../bevy_items", features = ["inventory"] }
 bevy_mapdb = { version = "0.1", path = "../bevy_mapdb" }
-bevy_dialogue = { path = "../bevy_dialogue" }
+bevy_kbve_dialogue = { path = "../bevy_kbve_dialogue", version = "0.1.0" }
 bevy_npc = { version = "0.1", path = "../bevy_npc" }
 bevy_quests = { version = "0.1", path = "../bevy_quests" }
 bevy_skills = { version = "0.1", path = "../bevy_skills" }

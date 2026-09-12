@@ -10,3 +10,8 @@ toolchains:
 
 owners:
   defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: a `bevy_kbve_dialogue@<semver>` tag publishes
+# this to crates.io. The plain `bevy_dialogue` name on the registry belongs to
+# an unrelated project, which is why this carries the kbve prefix.
+tags: ['crates']

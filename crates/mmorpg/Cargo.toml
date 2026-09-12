@@ -22,6 +22,7 @@ items = ["dep:bevy_items", "dep:bevy_inventory"]
 progress = ["dep:bevy_skills", "dep:bevy_quests"]
 combat = ["dep:bevy_battle"]
 social = ["dep:bevy_chat", "bevy_chat/plugin"]
+dialogue = ["dep:bevy_kbve_dialogue"]
 state = ["dep:bevy_statemachine"]
 net = ["dep:mmorpg_net"]
 
@@ -33,6 +34,7 @@ full = [
 	"progress",
 	"combat",
 	"social",
+	"dialogue",
 	"state",
 	"net",
 ]
@@ -50,5 +52,6 @@ bevy_skills = { path = "../bevy_skills", version = "0.1.0", optional = true }
 bevy_quests = { path = "../bevy_quests", version = "0.1.0", optional = true }
 bevy_battle = { path = "../bevy_battle", version = "0.1.0", optional = true }
 bevy_chat = { path = "../bevy_chat", version = "0.1.1", default-features = false, optional = true }
+bevy_kbve_dialogue = { path = "../bevy_kbve_dialogue", version = "0.1.0", optional = true }
 bevy_statemachine = { path = "../bevy_statemachine", version = "0.1.0", optional = true }
 mmorpg_net = { path = "../mmorpg_net", version = "0.1.0", optional = true }
