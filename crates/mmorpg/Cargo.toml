@@ -1,0 +1,54 @@
+[package]
+name = "mmorpg"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Batteries-included MMORPG toolkit for Bevy — character control, NPCs, items, skills, quests, combat, chat, and netcode as one feature-gated dependency."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "mmorpg", "gamedev", "multiplayer", "rpg"]
+categories = ["game-development"]
+readme = "README.md"
+
+[features]
+default = []
+
+character = ["dep:bevy_player"]
+camera = ["dep:bevy_cam"]
+npc = ["dep:bevy_npc", "dep:bevy_behavior", "bevy_behavior/bevy"]
+items = ["dep:bevy_items", "dep:bevy_inventory"]
+progress = ["dep:bevy_skills", "dep:bevy_quests"]
+combat = ["dep:bevy_battle"]
+social = ["dep:bevy_chat", "bevy_chat/plugin"]
+state = ["dep:bevy_statemachine"]
+net = ["dep:mmorpg_net"]
+
+full = [
+	"character",
+	"camera",
+	"npc",
+	"items",
+	"progress",
+	"combat",
+	"social",
+	"state",
+	"net",
+]
+
+[dependencies]
+bevy = { workspace = true, default-features = false, features = ["std"] }
+
+bevy_player = { path = "../bevy_player", version = "0.1.0", optional = true }
+bevy_cam = { path = "../bevy_cam", version = "0.1.0", optional = true }
+bevy_npc = { path = "../bevy_npc", version = "0.1.0", optional = true }
+bevy_behavior = { path = "../bevy_behavior", version = "0.1.0", default-features = false, optional = true }
+bevy_items = { path = "../bevy_items", version = "0.1.1", optional = true }
+bevy_inventory = { path = "../bevy_inventory", version = "0.1.0", optional = true }
+bevy_skills = { path = "../bevy_skills", version = "0.1.0", optional = true }
+bevy_quests = { path = "../bevy_quests", version = "0.1.0", optional = true }
+bevy_battle = { path = "../bevy_battle", version = "0.1.0", optional = true }
+bevy_chat = { path = "../bevy_chat", version = "0.1.1", default-features = false, optional = true }
+bevy_statemachine = { path = "../bevy_statemachine", version = "0.1.0", optional = true }
+mmorpg_net = { path = "../mmorpg_net", version = "0.1.0", optional = true }

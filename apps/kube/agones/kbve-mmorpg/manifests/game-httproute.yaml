@@ -1,10 +1,10 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-    name: mmorpg-game-route
-    namespace: mmorpg
+    name: kbve-mmorpg-game-route
+    namespace: kbve-mmorpg
     labels:
-        app.kubernetes.io/part-of: mmorpg
+        app.kubernetes.io/part-of: kbve-mmorpg
 spec:
     # parentRefs/backendRefs carry the API-server default group/kind (+ backendRef
     # weight) EXPLICITLY — the Gateway API defaults them on the live object, so
@@ -34,7 +34,7 @@ spec:
           backendRefs:
               - group: ''
                 kind: Service
-                name: mmorpg-game
+                name: kbve-mmorpg-game
                 port: 7960
                 weight: 1
         # The token endpoint. A browser cannot put an Authorization header on a
@@ -47,7 +47,7 @@ spec:
           backendRefs:
               - group: ''
                 kind: Service
-                name: mmorpg-game
+                name: kbve-mmorpg-game
                 port: 7961
                 weight: 1
         # Useful for checking a fleet from outside, and the same path the
@@ -59,6 +59,6 @@ spec:
           backendRefs:
               - group: ''
                 kind: Service
-                name: mmorpg-game
+                name: kbve-mmorpg-game
                 port: 7961
                 weight: 1
