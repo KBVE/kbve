@@ -16,8 +16,16 @@ tasks:
             cache: false
             runFromWorkspaceRoot: true
 
+    # Regenerates the baseline after an intentional coverage change, the same
+    # way `sync` does for the cargo stubs.
+    sync-lfs-baseline:
+        command: 'python3 tools/guards/check-lfs-coverage.py --write'
+        options:
+            cache: false
+            runFromWorkspaceRoot: true
+
     lint:
-        deps: ['~:lint-paths']
+        deps: ['~:lint-paths', '~:lint-lfs']
         script: >-
             python3 tools/guards/sync-cargo-workspace-stubs.py --check
             && ./tools/guards/kong-config-hash.sh --check
@@ -41,6 +49,19 @@ tasks:
     # by definition one nobody thought to list.
     lint-paths:
         command: 'python3 tools/guards/check-portable-paths.py'
+        options:
+            cache: false
+            runFromWorkspaceRoot: true
+
+    # A .gitattributes rule names a product directory literally, and product
+    # directories get renamed -- apps/rareicon/unreal to
+    # apps/rareicon/unreal-rareicon. The rename commit is green either way;
+    # the art commit after it writes real .umap bytes into plain git. Reads
+    # `git ls-files` for the same reason lint-paths does: the file that breaks
+    # it is the one nobody thought to list.
+    lint-lfs:
+        script: >-
+            bash tools/guards/check-lfs-coverage.test.sh
         options:
             cache: false
             runFromWorkspaceRoot: true
