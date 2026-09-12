@@ -260,6 +260,7 @@
 		"lfs-tools",
 		"lint",
 		"mail",
+		"mail-e2e",
 		"manifest",
 		"mapdb",
 		"markets",

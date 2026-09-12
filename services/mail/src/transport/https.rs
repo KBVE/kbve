@@ -124,6 +124,7 @@ pub fn router(allowed: Vec<String>) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .merge(super::hooks::router())
         .merge(super::mail::router())
         .layer(middleware)
 }
@@ -231,5 +232,25 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    #[serial_test::serial]
+    async fn the_stalwart_hook_is_mounted_and_refuses_calls_without_a_secret() {
+        unsafe { std::env::remove_var("STALWART_HOOK_SECRET") };
+
+        let response = router(vec![])
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/hooks/stalwart")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{}"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 }

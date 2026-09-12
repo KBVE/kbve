@@ -55,6 +55,7 @@ resources:
 
     - cityvote/application.yaml
     - herbmail/application.yaml
+    # - mail/application.yaml  # DISABLED: successor to herbmail-api; enable once ghcr.io/kbve/mail:<version> is published. No HTTPRoute — herbmail.com keeps pointing at herbmail-service until the cutover.
     # Stalwart — MTA-only mail server for $username@herbmail.com
     # (MTA hook -> herbmail-api -> mail.messages; no local mail store)
     - stalwart/application.yaml

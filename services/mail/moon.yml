@@ -31,3 +31,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+
+env:
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/mail/manifest/mail-deployment.yaml"]'

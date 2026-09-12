@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mail-deployment
+    namespace: mail
+    labels:
+        app: mail
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mail
+    template:
+        metadata:
+            annotations:
+                rollout-restart: '2026-09-12T00:00:00Z'
+            labels:
+                app: mail
+                version: '0.1.0'
+        spec:
+            serviceAccountName: mail-sa
+            automountServiceAccountToken: false
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                fsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: mail
+                  image: ghcr.io/kbve/mail:0.1.0
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 5600
+                        protocol: TCP
+                  env:
+                      - name: HTTP_PORT
+                        value: '5600'
+                      # Unlike herbmail-api, which runs CorsLayer::permissive(),
+                      # this service refuses any origin outside the allowlist.
+                      # Unset would mean "allow any origin" — do not drop it.
+                      - name: MAIL_ALLOWED_ORIGINS
+                        value: 'https://herbmail.com,https://*.herbmail.com,https://kbve.com,https://*.kbve.com'
+                      - name: SUPABASE_URL
+                        value: http://kong.kilobase.svc.cluster.local:8000
+                      - name: SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: anon-key
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: service-role-key
+                      # Sealed per-namespace, so herbmail's blob cannot be
+                      # reused here — run ./seal-stalwart-hook-secret.sh.
+                      # Optional: the pod runs without it and /hooks/stalwart
+                      # answers 503 until the secret exists.
+                      - name: STALWART_HOOK_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: stalwart-hook-secret
+                                key: secret
+                                optional: true
+                  resources:
+                      requests:
+                          memory: 256Mi
+                          cpu: 100m
+                      limits:
+                          memory: 1024Mi
+                          cpu: 2000m
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: mail-service
+    namespace: mail
+    labels:
+        app: mail
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: mail
+    ports:
+        - port: 5600
+          targetPort: 5600
+          protocol: TCP

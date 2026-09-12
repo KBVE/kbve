@@ -12425,6 +12425,7 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "serial_test",
  "thiserror 2.0.19",
  "tokio",
  "tower 0.5.3",

@@ -66,6 +66,8 @@ pub fn router() -> Router {
     Router::new()
         .route("/mail/send", post(send))
         .route("/mail/inbox", get(inbox))
+        .route("/mail/threads", get(threads))
+        .route("/mail/threads/{id}", get(thread))
         .route("/mail/messages/{id}", get(message))
         .route("/mail/me", get(me))
         .layer(
@@ -368,6 +370,33 @@ fn parse_uuid(value: &str) -> Option<uuid::Uuid> {
     uuid::Uuid::parse_str(value.trim()).ok()
 }
 
+/// Parse the `(before, before_id)` keyset cursor shared by the message and
+/// thread listings; both halves must be present or absent together.
+fn parse_cursor(q: &InboxQuery) -> Result<Option<(String, uuid::Uuid)>, Reject> {
+    let before = q.before.as_deref().map(str::trim).filter(|b| !b.is_empty());
+    let before_id = q
+        .before_id
+        .as_deref()
+        .map(str::trim)
+        .filter(|b| !b.is_empty());
+    match (before, before_id) {
+        (None, None) => Ok(None),
+        (Some(ts), Some(id)) if is_rfc3339(ts) => match parse_uuid(id) {
+            Some(id) => Ok(Some((ts.to_string(), id))),
+            None => Err(error(StatusCode::UNPROCESSABLE_ENTITY, "bad_cursor")),
+        },
+        _ => Err(error(StatusCode::UNPROCESSABLE_ENTITY, "bad_cursor")),
+    }
+}
+
+fn parse_direction(q: &InboxQuery) -> Result<Option<&str>, Reject> {
+    match q.direction.as_deref().map(str::trim) {
+        None | Some("") | Some("all") => Ok(None),
+        Some(d @ ("in" | "out")) => Ok(Some(d)),
+        Some(_) => Err(error(StatusCode::UNPROCESSABLE_ENTITY, "bad_direction")),
+    }
+}
+
 async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
     let user = match authenticate(&headers).await {
         Ok(u) => u,
@@ -378,30 +407,13 @@ async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
         Err(r) => return r.into_response(),
     };
     let limit = q.limit.unwrap_or(50).clamp(1, 200);
-    let before = q.before.as_deref().map(str::trim).filter(|b| !b.is_empty());
-    let before_id = q
-        .before_id
-        .as_deref()
-        .map(str::trim)
-        .filter(|b| !b.is_empty());
-    let cursor = match (before, before_id) {
-        (None, None) => None,
-        (Some(ts), Some(id)) if is_rfc3339(ts) => match parse_uuid(id) {
-            Some(id) => Some((ts.to_string(), id)),
-            None => {
-                return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_cursor").into_response();
-            }
-        },
-        _ => {
-            return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_cursor").into_response();
-        }
+    let cursor = match parse_cursor(&q) {
+        Ok(c) => c,
+        Err(r) => return r.into_response(),
     };
-    let direction = match q.direction.as_deref().map(str::trim) {
-        None | Some("") | Some("all") => None,
-        Some(d @ ("in" | "out")) => Some(d),
-        Some(_) => {
-            return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_direction").into_response();
-        }
+    let direction = match parse_direction(&q) {
+        Ok(d) => d,
+        Err(r) => return r.into_response(),
     };
     let rows = match rpc(
         &db,
@@ -421,6 +433,102 @@ async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
     };
     let messages = if rows.is_array() { rows } else { json!([]) };
     (StatusCode::OK, Json(json!({ "messages": messages }))).into_response()
+}
+
+async fn threads(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
+    let user = match authenticate(&headers).await {
+        Ok(u) => u,
+        Err(r) => return r.into_response(),
+    };
+    let db = match supabase() {
+        Ok(db) => db,
+        Err(r) => return r.into_response(),
+    };
+    let limit = q.limit.unwrap_or(50).clamp(1, 200);
+    let cursor = match parse_cursor(&q) {
+        Ok(c) => c,
+        Err(r) => return r.into_response(),
+    };
+    let direction = match parse_direction(&q) {
+        Ok(d) => d,
+        Err(r) => return r.into_response(),
+    };
+    let rows = match rpc(
+        &db,
+        "herbmail_thread_list",
+        json!({
+            "p_user_id": user.user_id,
+            "p_limit": limit,
+            "p_before": cursor.as_ref().map(|c| c.0.clone()),
+            "p_before_id": cursor.as_ref().map(|c| c.1),
+            "p_direction": direction,
+        }),
+    )
+    .await
+    {
+        Ok(v) => v,
+        Err(r) => return r.into_response(),
+    };
+    let threads = if rows.is_array() { rows } else { json!([]) };
+    (StatusCode::OK, Json(json!({ "threads": threads }))).into_response()
+}
+
+async fn thread(headers: HeaderMap, Path(id): Path<String>) -> Response {
+    let user = match authenticate(&headers).await {
+        Ok(u) => u,
+        Err(r) => return r.into_response(),
+    };
+    let Some(id) = parse_uuid(&id) else {
+        return error(StatusCode::NOT_FOUND, "not found").into_response();
+    };
+    let db = match supabase() {
+        Ok(db) => db,
+        Err(r) => return r.into_response(),
+    };
+    let row = match rpc(
+        &db,
+        "herbmail_thread_get",
+        json!({ "p_user_id": user.user_id, "p_thread_id": id }),
+    )
+    .await
+    {
+        Ok(v) => v,
+        Err(r) => return r.into_response(),
+    };
+    let Some(obj) = row.as_object() else {
+        return error(StatusCode::NOT_FOUND, "not found").into_response();
+    };
+    let Some(messages) = obj.get("messages").and_then(Value::as_array) else {
+        return error(StatusCode::NOT_FOUND, "not found").into_response();
+    };
+    let rendered: Vec<Value> = messages
+        .iter()
+        .filter_map(|m| m.as_object())
+        .map(|m| {
+            let direction = m.get("direction").and_then(Value::as_str).unwrap_or("in");
+            let raw = m.get("body").and_then(Value::as_str).unwrap_or("");
+            let body = render_body(direction, raw);
+            let failed = m
+                .get("error")
+                .and_then(Value::as_str)
+                .is_some_and(|e| !e.is_empty());
+            let mut out = m.clone();
+            out.remove("headers");
+            out.insert(
+                "error".into(),
+                if failed {
+                    json!("delivery failed")
+                } else {
+                    Value::Null
+                },
+            );
+            out.insert("body".into(), body);
+            Value::Object(out)
+        })
+        .collect();
+    let mut out = obj.clone();
+    out.insert("messages".into(), Value::Array(rendered));
+    (StatusCode::OK, Json(Value::Object(out))).into_response()
 }
 
 async fn message(headers: HeaderMap, Path(id): Path<String>) -> Response {
@@ -610,11 +718,32 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn thread_list_rejects_half_cursors_before_auth_is_even_needed() {
+        for uri in [
+            "/mail/threads?before=2026-09-12T00:00:00Z",
+            "/mail/threads?before_id=0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e",
+        ] {
+            let response = router()
+                .oneshot(
+                    axum::extract::Request::builder()
+                        .uri(uri)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::UNAUTHORIZED, "{uri}");
+        }
+    }
+
+    #[tokio::test]
     async fn read_routes_reject_without_bearer() {
         for uri in [
             "/mail/inbox",
             "/mail/me",
             "/mail/messages/0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e",
+            "/mail/threads",
+            "/mail/threads/0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e",
         ] {
             let response = router()
                 .oneshot(
