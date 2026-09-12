@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-09-11T06:07:07Z",
+  "generated_at": "2026-09-12T05:50:34Z",
   "window": {
     "days": 7,
-    "since": "2026-09-04T06:07:07Z"
+    "since": "2026-09-05T05:50:34Z"
   },
   "commits": {
-    "total": 310,
+    "total": 323,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 234
+        "commits": 256
       },
       {
         "author": "github-actions[bot]",
-        "commits": 76
+        "commits": 67
       }
     ],
     "recent": [
       {
-        "sha": "173805e",
+        "sha": "0de0850",
         "author": "h0lybyte",
-        "message": "Merge pull request #17106 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/173805ec994028a7cac0fa4c458cd3c47531660c",
-        "date": "2026-09-11T05:44:22Z"
+        "message": "Merge pull request #17167 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/0de0850dc3841c2c1576ab3d4e6d1941e9b13318",
+        "date": "2026-09-12T05:35:35Z"
       },
       {
-        "sha": "35ad16f",
+        "sha": "a23395e",
         "author": "h0lybyte",
-        "message": "fix(docker): copy bevy_supa into the axum images and sync the ulid pin (#17107)",
-        "url": "https://github.com/KBVE/kbve/commit/35ad16f08df4d68e9db430d53f23681acf16905a",
-        "date": "2026-09-11T05:41:04Z"
+        "message": "fix(mmorpg): keep the pose player off a corpse (#17168)",
+        "url": "https://github.com/KBVE/kbve/commit/a23395e5bbab0ea8eff02bf3f2dff3422814da84",
+        "date": "2026-09-12T05:34:09Z"
       },
       {
-        "sha": "04aac2f",
+        "sha": "c7bbe99",
         "author": "h0lybyte",
-        "message": "fix(ci): close every duplicate tracker issue a green run resolves (#17104)",
-        "url": "https://github.com/KBVE/kbve/commit/04aac2f08116441dcf82db3581d1d6bcb12ce690",
-        "date": "2026-09-11T05:34:44Z"
+        "message": "fix(mmorpg): measure the crossing threshold instead of guessing it (#17165)",
+        "url": "https://github.com/KBVE/kbve/commit/c7bbe997504b7d2843ef01bcd1739abc6b668444",
+        "date": "2026-09-12T05:14:22Z"
       },
       {
-        "sha": "ea75f95",
-        "author": "h0lybyte",
-        "message": "feat(mmorpg): train combat skills from damage and kills (#17105)",
-        "url": "https://github.com/KBVE/kbve/commit/ea75f95c4f8a740f0003176239264785770c5136",
-        "date": "2026-09-11T04:57:54Z"
+        "sha": "8d65f38",
+        "author": "github-actions[bot]",
+        "message": "chore(herbmail-api): post-publish sync to v0.1.4 (#17166)",
+        "url": "https://github.com/KBVE/kbve/commit/8d65f38dba2adb429e859cdf31bf5e8730952aab",
+        "date": "2026-09-12T05:09:13Z"
       },
       {
-        "sha": "ebeb727",
+        "sha": "4dc338d",
         "author": "h0lybyte",
-        "message": "Merge pull request #17101 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/ebeb727e6b603a832f4d9517c9e9b7598253cbf9",
-        "date": "2026-09-11T04:28:56Z"
+        "message": "Merge pull request #17164 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/4dc338d6edd736b8543f89254a654270cbcd2d8a",
+        "date": "2026-09-12T05:04:52Z"
       },
       {
-        "sha": "81cc564",
+        "sha": "de2c353",
         "author": "h0lybyte",
-        "message": "feat(mmorpg): loot the dead through bevy_inventory and gate builds on protobuf (#17103)",
-        "url": "https://github.com/KBVE/kbve/commit/81cc564345f174318e9c889d303de7cb052f7ee4",
-        "date": "2026-09-11T04:19:11Z"
+        "message": "fix(ci): settle release failures from outside the notes lane (#17163)",
+        "url": "https://github.com/KBVE/kbve/commit/de2c353cb794423028f5f0a14b01ffa8257c39ae",
+        "date": "2026-09-12T04:46:13Z"
       },
       {
-        "sha": "a908b2b",
+        "sha": "64cfad8",
         "author": "h0lybyte",
-        "message": "refactor(irc): one directory per product (#17102)",
-        "url": "https://github.com/KBVE/kbve/commit/a908b2b9ab502ab9921321b569f1823573bcc072",
-        "date": "2026-09-11T04:06:00Z"
+        "message": "fix(kbve): generate the clang database without unity (#17162)",
+        "url": "https://github.com/KBVE/kbve/commit/64cfad80900cd46e909659c1b0b15b238dc8e101",
+        "date": "2026-09-12T04:44:59Z"
       },
       {
-        "sha": "d8a7501",
+        "sha": "8872f9d",
         "author": "h0lybyte",
-        "message": "fix(bevy_tasker): survive panicking tasks and unblock the proto crates on wasm (#17100)",
-        "url": "https://github.com/KBVE/kbve/commit/d8a75017809707763d14d6375643324fb70218f9",
-        "date": "2026-09-11T03:53:50Z"
+        "message": "Merge pull request #17156 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/8872f9d07feb08da0446596915a07b26c7316ae9",
+        "date": "2026-09-12T04:41:21Z"
       },
       {
-        "sha": "a7d2bc4",
+        "sha": "471f7e5",
         "author": "h0lybyte",
-        "message": "Merge pull request #17098 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/a7d2bc443092a124015317e1e52662c280799588",
-        "date": "2026-09-11T03:53:25Z"
+        "message": "fix(mmorpg): let the death clip keep the legs it was given (#17161)",
+        "url": "https://github.com/KBVE/kbve/commit/471f7e59f8658a33e38b116a24e338feb7914f24",
+        "date": "2026-09-12T04:40:58Z"
       },
       {
-        "sha": "1cc90e1",
+        "sha": "fe140c2",
         "author": "h0lybyte",
-        "message": "fix(ci): mirror moved tags to forgejo instead of failing the push (#17095)",
-        "url": "https://github.com/KBVE/kbve/commit/1cc90e150e9c3d1361e13f56c6b54bfc78470f6e",
-        "date": "2026-09-11T03:50:58Z"
+        "message": "fix(kilobase): harden the mail rpcs, mirror the schema and test the invariants (#17160)",
+        "url": "https://github.com/KBVE/kbve/commit/fe140c2cfd8eea5d6c54cf112db954f318e2028e",
+        "date": "2026-09-12T04:15:48Z"
       },
       {
-        "sha": "a3c7b65",
+        "sha": "3a151d2",
         "author": "h0lybyte",
-        "message": "docs(combat): added a project mdx.",
-        "url": "https://github.com/KBVE/kbve/commit/a3c7b65fbffd1c68dbf094153913f976083d1a1f",
-        "date": "2026-09-11T03:48:45Z"
+        "message": "feat(herbmail-api): send reply-only mail through an internal stalwart relay (#17158)",
+        "url": "https://github.com/KBVE/kbve/commit/3a151d2366264a3381664766f27985f4f9fb051e",
+        "date": "2026-09-12T03:46:44Z"
       },
       {
-        "sha": "17d1ddd",
+        "sha": "298e67a",
         "author": "h0lybyte",
-        "message": "Merge pull request #17094 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/17d1ddd9739044dddcf4de3e0ccf085d24a092d5",
-        "date": "2026-09-11T03:42:03Z"
+        "message": "docs(kube): record how stalwart 0.16 recipients and config actually work (#17157)",
+        "url": "https://github.com/KBVE/kbve/commit/298e67ae079f950e6f215a57bf61e565f7c9346c",
+        "date": "2026-09-12T03:46:35Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 258,
+    "merged": 286,
     "recent": [
       {
-        "number": 17113,
-        "title": "chore(content): daily graph scaffold",
+        "number": 17177,
+        "title": "chore(content): daily ci-health scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17113"
+        "url": "https://github.com/KBVE/kbve/pull/17177"
       },
       {
-        "number": 17112,
-        "title": "fix(crates): resync the workspace stubs and say what a missing proto tree needs",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17112"
-      },
-      {
-        "number": 17109,
-        "title": "fix(devops): unbreak every rust docker image on dev",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17109"
-      },
-      {
-        "number": 17111,
+        "number": 17176,
         "title": "chore(content): daily deps scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17111"
+        "url": "https://github.com/KBVE/kbve/pull/17176"
       },
       {
-        "number": 17110,
-        "title": "fix(ci): report the codeql rust break and log the file that panics it",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17110"
-      },
-      {
-        "number": 17106,
-        "title": "Release: 1 feature, 2 fixes \u2192 Main",
+        "number": 17175,
+        "title": "chore(content): daily kanban scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/17106"
+        "url": "https://github.com/KBVE/kbve/pull/17175"
       },
       {
-        "number": 17107,
-        "title": "fix(docker): copy bevy_supa into the axum images and sync the ulid pin",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17107"
+        "number": 17174,
+        "title": "chore(content): daily releases scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/17174"
       },
       {
-        "number": 17104,
-        "title": "fix(ci): close every duplicate tracker issue a green run resolves",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17104"
+        "number": 17173,
+        "title": "chore(content): daily report scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/17173"
       },
       {
-        "number": 17105,
-        "title": "feat(mmorpg): train combat skills from damage and kills",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17105"
+        "number": 17171,
+        "title": "chore(content): daily proto scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/17171"
       },
       {
-        "number": 17095,
-        "title": "fix(ci): mirror moved tags to forgejo instead of failing the push",
+        "number": 17170,
+        "title": "chore(content): daily journal scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/17170"
+      },
+      {
+        "number": 17167,
+        "title": "Release: 1 fix, 1 chore \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/17167"
+      },
+      {
+        "number": 17168,
+        "title": "fix(mmorpg): keep the pose player off a corpse",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/17095"
+        "url": "https://github.com/KBVE/kbve/pull/17168"
+      },
+      {
+        "number": 17165,
+        "title": "fix(mmorpg): measure the crossing threshold instead of guessing it",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17165"
       }
     ]
   },
   "issues": {
-    "opened": 270,
-    "closed": 279
+    "opened": 296,
+    "closed": 296
   }
 }
