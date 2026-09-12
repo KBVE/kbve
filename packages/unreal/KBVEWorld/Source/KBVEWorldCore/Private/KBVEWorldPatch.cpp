@@ -1,5 +1,6 @@
 #include "KBVEWorldPatch.h"
 
+#include "Async/ParallelFor.h"
 #include "KBVEWorldHeightfield.h"
 
 void FKBVEWorldPatchPlan::Build(const FKBVEWorldPatchPlan& Plan, TArray<float>& Padded,
