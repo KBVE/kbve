@@ -6,6 +6,8 @@ pub struct Config {
     pub port: u16,
     pub errors_table: String,
     pub groups_view: String,
+    pub perf_view: String,
+    pub events_view: String,
     pub allowed_origins: Vec<String>,
     pub max_body_bytes: usize,
     pub max_batch: usize,
@@ -44,6 +46,8 @@ impl Config {
             // METRICS_ERRORS_TABLE, so pointing ingest elsewhere left reads
             // querying a table nothing was being written to, with readiness green.
             groups_view: get("METRICS_GROUPS_VIEW", "error_groups"),
+            perf_view: get("METRICS_PERF_VIEW", "perf_summary"),
+            events_view: get("METRICS_EVENTS_VIEW", "event_counts"),
             allowed_origins,
             max_body_bytes: get("METRICS_MAX_BODY_BYTES", "262144")
                 .parse()
