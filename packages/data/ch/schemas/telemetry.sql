@@ -1,5 +1,5 @@
 -- telemetry.errors_raw — replicated local table for the in-house client telemetry pipeline.
--- Frontend SDK (@kbve/observ) → metrics ingest (apps/metrics) → ClickHouse direct.
+-- Frontend SDK (@kbve/observ) → metrics ingest (services/metrics) → ClickHouse direct.
 -- Captures window errors / promise rejections; fingerprinted for rollup. 30-day TTL.
 --
 -- Cluster topology: 2 shards × 2 replicas.

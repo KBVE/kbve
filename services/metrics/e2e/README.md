@@ -18,7 +18,7 @@ queue → flush → `INSERT ... FORMAT JSONEachRow` — against a real database.
 ## Run locally
 
 ```bash
-apps/metrics/e2e/run.sh
+services/metrics/e2e/run.sh
 ```
 
 Requires `docker compose` and `curl`. The script builds the image, boots CH,

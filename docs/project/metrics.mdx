@@ -21,9 +21,9 @@ key: metrics
 pipeline: docker
 app_name: metrics
 version: "0.1.6"
-source_path: apps/metrics
-version_toml: apps/metrics/version.toml
-version_target: apps/metrics/Cargo.toml
+source_path: services/metrics
+version_toml: services/metrics/version.toml
+version_target: services/metrics/Cargo.toml
 runner: ubuntu-latest
 image: kbve/metrics
 nx_project: met
@@ -48,7 +48,7 @@ next: false
 jsonld:
     faq:
         - question: What is the Metrics service?
-          answer: Metrics (apps/metrics) is KBVE's in-house observability platform, a scoped Rust/axum service that ingests client telemetry into a self-hosted ClickHouse telemetry database. It replaces SaaS tooling like Sentry, Datadog, and PostHog with one pipeline exposing errors, performance, and product lenses over a single wide table correlated by session_id.
+          answer: Metrics (services/metrics) is KBVE's in-house observability platform, a scoped Rust/axum service that ingests client telemetry into a self-hosted ClickHouse telemetry database. It replaces SaaS tooling like Sentry, Datadog, and PostHog with one pipeline exposing errors, performance, and product lenses over a single wide table correlated by session_id.
         - question: How does the Metrics ingest pipeline work?
           answer: The browser SDK @kbve/observ POSTs to metrics.kbve.com/api/v1/ingest, the axum service on port 5500 reuses the shared jedi ClickHouse client to batch JSONEachRow inserts via a tokio mpsc flusher, and rows land in telemetry.errors_distributed. Requests are CORS-allowlisted, rate-limited, body-capped, and PII-sanitized.
         - question: How is Metrics client-agnostic across web and game clients?
@@ -64,7 +64,7 @@ bento:
         wide table.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/metrics
+          href: https://github.com/KBVE/kbve/tree/main/services/metrics
           primary: true
           external: true
         - label: Ingest pipeline
@@ -119,7 +119,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="overview" eyebrow="What it is" heading="In-house observability">
 
-`apps/metrics` is a scoped Rust/Axum service that ingests client telemetry into a
+`services/metrics` is a scoped Rust/Axum service that ingests client telemetry into a
 self-hosted ClickHouse `telemetry` database. It replaces SaaS error/metrics tooling
 (Sentry / Datadog / PostHog) with one pipeline that exposes three lenses — errors,
 performance, and product — over a single wide table correlated by `session_id`.
@@ -131,7 +131,7 @@ performance, and product — over a single wide table correlated by `session_id`
 ```
 @kbve/observ (browser SDK)
    → POST metrics.kbve.com/api/v1/ingest/errors
-      → apps/metrics (axum, port 5500)
+      → services/metrics (axum, port 5500)
          → jedi ClickHouseConfig::execute_insert (JSONEachRow, batched)
             → telemetry.errors_distributed
 ```
