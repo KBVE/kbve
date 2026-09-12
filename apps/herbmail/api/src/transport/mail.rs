@@ -15,6 +15,27 @@ use tracing::{info, warn};
 
 const MAX_SUBJECT: usize = 998;
 const MAX_BODY: usize = 64 * 1024;
+const MAX_RECIPIENT: usize = 254;
+
+fn scrub_header(value: &str) -> String {
+    value
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect::<String>()
+        .trim()
+        .to_string()
+}
+
+fn message_id_token(value: &str) -> Option<String> {
+    let v = value.trim();
+    let inner = v.strip_prefix('<')?.strip_suffix('>')?;
+    (!inner.is_empty()
+        && inner.len() <= 250
+        && !inner
+            .chars()
+            .any(|c| c == '<' || c == '>' || c.is_whitespace() || c.is_control()))
+    .then(|| v.to_string())
+}
 
 #[derive(Deserialize)]
 pub struct SendRequest {
@@ -185,9 +206,22 @@ async fn send(headers: HeaderMap, Json(req): Json<SendRequest>) -> Response {
         Ok(u) => u,
         Err(r) => return r.into_response(),
     };
-    if req.subject.len() > MAX_SUBJECT || req.body.len() > MAX_BODY {
+    if req.subject.len() > MAX_SUBJECT || req.body.len() > MAX_BODY || req.to.len() > MAX_RECIPIENT
+    {
         return error(StatusCode::UNPROCESSABLE_ENTITY, "message too large").into_response();
     }
+    if req.body.contains('\0') {
+        return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_body").into_response();
+    }
+    let to = req.to.trim().to_ascii_lowercase();
+    if to.is_empty()
+        || to.chars().any(|c| c.is_whitespace() || c.is_control())
+        || to.matches('@').count() != 1
+    {
+        return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_recipient").into_response();
+    }
+    let subject = scrub_header(&req.subject);
+    let in_reply_to = req.in_reply_to.as_deref().and_then(message_id_token);
     let db = match supabase() {
         Ok(db) => db,
         Err(r) => return r.into_response(),
@@ -197,10 +231,10 @@ async fn send(headers: HeaderMap, Json(req): Json<SendRequest>) -> Response {
         "herbmail_outbound_prepare",
         json!({
             "p_user_id": user.user_id,
-            "p_to": req.to,
-            "p_subject": req.subject,
+            "p_to": to,
+            "p_subject": subject,
             "p_body": req.body,
-            "p_in_reply_to": req.in_reply_to,
+            "p_in_reply_to": in_reply_to,
         }),
     )
     .await
@@ -224,10 +258,10 @@ async fn send(headers: HeaderMap, Json(req): Json<SendRequest>) -> Response {
     let outcome = relay(
         from,
         to,
-        &req.subject,
+        &subject,
         &req.body,
         &message_id,
-        req.in_reply_to.as_deref(),
+        in_reply_to.as_deref(),
     )
     .await;
     let (status, err) = match &outcome {
@@ -287,6 +321,18 @@ mod tests {
             policy_status("bad_recipient"),
             StatusCode::UNPROCESSABLE_ENTITY
         );
+    }
+
+    #[test]
+    fn headers_are_scrubbed_and_ids_validated() {
+        assert_eq!(scrub_header("Re: hi\r\nBcc: x@y"), "Re: hi  Bcc: x@y");
+        assert_eq!(
+            message_id_token(" <abc@example.com> ").as_deref(),
+            Some("<abc@example.com>")
+        );
+        assert_eq!(message_id_token("abc@example.com"), None);
+        assert_eq!(message_id_token("<a b@example.com>"), None);
+        assert_eq!(message_id_token("<>"), None);
     }
 
     #[test]

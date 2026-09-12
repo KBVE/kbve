@@ -10,6 +10,7 @@ Hand-authored reference DDL grouped by Postgres schema. This tree is the **revie
 | [`forum/`](./forum/)         | `forum`         | KBVE forum core (spaces, threads, engagement, moderation, RPCs).                                   |
 | [`gh/`](./gh/)               | `gh`            | L2 cache for GitHub issue/PR metadata + lease-based event queue feeding the discordsh thread sync. |
 | [`inventory/`](./inventory/) | `inventory`     | KBVE-owned ledger of items (canonical bank-style), bridge coordinator + receipt, 2FA gate.         |
+| [`mail/`](./mail/)         | `mail`          | herbmail.com mailbox store: inbound rows from the Stalwart MTA hook, reply-only outbound rows from herbmail-api, recipient lookup for Stalwart. |
 | [`mc/`](./mc/)               | `mc`            | Minecraft server (auth, characters, containers, players, skills, transfers).                       |
 | [`meme/`](./meme/)           | `meme`          | Meme social platform (cards, engagement, moderation, social, RPCs).                                |
 | [`n8n/`](./n8n/)             | `n8n`           | n8n workflow engine bootstrap.                                                                     |
