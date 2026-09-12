@@ -468,7 +468,7 @@ fn play_pose(
     let Some(set) = rig.poses.as_ref().and_then(|handle| sets.get(handle)) else {
         return;
     };
-    let started = std::time::Instant::now();
+    let started = bevy::platform::time::Instant::now();
     let mut posed = 0u32;
     let idle = set.clips.iter().find(|c| c.name == "idle");
     let dt = time.delta_secs();
