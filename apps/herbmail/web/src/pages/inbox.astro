@@ -1,0 +1,25 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import ReactInbox from '../components/mail/ReactInbox.tsx';
+import '../styles/mail.css';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Inbox',
+    description: 'Read mail sent to your herbmail address and reply.',
+    template: 'splash',
+    tableOfContents: false,
+  }}
+>
+  <div class="not-content hm-page">
+    <ReactInbox client:only="react" />
+  </div>
+</StarlightPage>
+
+<style>
+  .hm-page {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+</style>

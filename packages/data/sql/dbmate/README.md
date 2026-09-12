@@ -67,6 +67,7 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 | `20260911233000` | `stalwart_rcpt_lookup`                      | `mail`      | `public.stalwart_rcpt(text)` definer: whole-address recipient lookup Stalwart's SQL directory runs at RCPT TO; revokes the direct table grant                                                                                  |
 | `20260912040000` | `mail_outbound`                             | `mail`      | Outbound columns on `mail.messages` (direction, to_addr, message_id, in_reply_to, sent_at, error) + `herbmail_outbound_prepare` (From forced, reply-only, 20/24h cap) + `herbmail_outbound_mark`                             |
 | `20260912120000` | `mail_outbound_hardening`                   | `mail`      | Whole-address compares, spf=pass gate on `from_user_id`, per-user advisory lock around the cap, control-char scrubbing, `<token>` validation for Message-ID/In-Reply-To, timeouts, privilege verification block            |
+| `20260912200000` | `mail_inbox_read`                           | `mail`      | `herbmail_inbox_list` / `herbmail_message_get` / `herbmail_mailbox_stats` definers (service_role only): the read surface herbmail-api serves to the web client, scoped by the verified user id                                     |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -122,7 +123,7 @@ Schema container only — n8n TypeORM manages its own 23 tables (workflows, exec
 
 ### `mail` — herbmail.com mailbox store
 
-1 table (`messages`), 5 functions. Stalwart runs MTA-only and never stores mail: its data-stage hook posts to herbmail-api, which calls `public.stalwart_ingest`; outbound goes through `public.herbmail_outbound_prepare` / `_mark` from herbmail-api and is relayed to Stalwart's pod-only listener. `public.stalwart_rcpt` is the recipient query Stalwart's SQL directory runs at RCPT TO.
+1 table (`messages`), 8 functions. Stalwart runs MTA-only and never stores mail: its data-stage hook posts to herbmail-api, which calls `public.stalwart_ingest`; outbound goes through `public.herbmail_outbound_prepare` / `_mark` from herbmail-api and is relayed to Stalwart's pod-only listener. `public.stalwart_rcpt` is the recipient query Stalwart's SQL directory runs at RCPT TO. The web client reads a mailbox through `herbmail_inbox_list` / `herbmail_message_get` / `herbmail_mailbox_stats`, which herbmail-api calls with the user id it verified from the caller's JWT.
 
 - **Source**: `../schema/mail/`
 - **Access**: `authenticated` may SELECT own rows (RLS `user_id = auth.uid()`); every RPC is service_role only, owned by postgres (`profile.username` is RLS-locked), `SECURITY DEFINER` + `search_path = ''`; `stalwart_rcpt` is EXECUTE-only for the `stalwart` role

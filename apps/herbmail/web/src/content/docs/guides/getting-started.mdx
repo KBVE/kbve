@@ -1,8 +1,57 @@
 ---
 title: Getting Started
-description: Getting started with Herbmail
+description: How a herbmail address works, what you can send, and what the limits are.
 ---
 
-## Getting Started
+import { Steps, Aside } from '@astrojs/starlight/components';
 
-Welcome to Herbmail.
+Herbmail gives every KBVE account a mailbox at `username@herbmail.com`. There is no separate signup and no mail client to configure.
+
+## Your address
+
+<Steps>
+
+1. Sign in on this site with GitHub, Discord or Twitch. It is the same account you use on [kbve.com](https://kbve.com).
+
+2. Pick a username on your [KBVE profile](https://kbve.com/profile) if you have not already. Usernames are lowercase letters, digits, `_` and `-`, three to sixty-three characters.
+
+3. Open [your address page](/profile/). The address shown there is live immediately. Anyone can write to it.
+
+</Steps>
+
+## Reading mail
+
+Everything sent to your address appears in [the inbox](/inbox/) within a few seconds of arriving. Messages are shown as plain text; HTML-only mail is converted, and attachments are listed by name but not downloadable yet.
+
+Inbound mail is checked with SPF, DKIM and DMARC. Senders that fail those checks are still delivered, but a `herbmail.com` sender is only linked to a profile when the checks pass.
+
+## Replying
+
+Open a message and press **Reply**. The reply goes out from your address with the original message threaded in the recipient's client.
+
+<Aside type="caution" title="Reply-only">
+You can write to an address only after that address has written to you. Herbmail does not send first-contact mail. This keeps the domain off blocklists so the replies you do send land in inboxes.
+</Aside>
+
+Limits on outbound mail:
+
+- **20 replies** per rolling 24 hours per account.
+- **64 KiB** of plain text per message. No attachments, no HTML.
+- The `From` address is always your own. It cannot be changed.
+
+## Retention
+
+Mail is stored for **90 days** from the day it arrives, then deleted. Sent replies follow the same rule. Download anything you want to keep before then.
+
+## For developers
+
+The web client talks to a small HTTP API on this host with your session token. The same endpoints are available to scripts:
+
+| Method | Path                 | Purpose                                |
+| ------ | -------------------- | -------------------------------------- |
+| `GET`  | `/mail/me`           | Address, counts, remaining daily quota |
+| `GET`  | `/mail/inbox`        | Newest first; `?direction=in\|out`, page with `before=<received_at>&before_id=<id>` from the last row |
+| `GET`  | `/mail/messages/:id` | One message, decoded body              |
+| `POST` | `/mail/send`         | `{ to, subject, body, in_reply_to }`   |
+
+Send the Supabase access token as `Authorization: Bearer <token>`. Policy refusals come back as `403` (`not_a_reply`, `self`, `no_username`) or `429` (`daily_cap`).
