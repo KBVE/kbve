@@ -1,5 +1,5 @@
 [package]
-name = "bevy_dialogue"
+name = "bevy_kbve_dialogue"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition.workspace = true

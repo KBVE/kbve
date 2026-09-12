@@ -34,6 +34,9 @@ pub use bevy_battle;
 #[cfg(feature = "social")]
 pub use bevy_chat;
 
+#[cfg(feature = "dialogue")]
+pub use bevy_kbve_dialogue;
+
 #[cfg(feature = "state")]
 pub use bevy_statemachine;
 
@@ -69,6 +72,9 @@ pub mod prelude {
 
     #[cfg(feature = "combat")]
     pub use bevy_battle::BevyBattlePlugin;
+
+    #[cfg(feature = "dialogue")]
+    pub use bevy_kbve_dialogue::{BevyDialoguePlugin, DialogueContext, DialogueDb, OfferedChoice};
 
     #[cfg(feature = "social")]
     pub use bevy_chat::{ChatInbox, ChatMessage, ChatOutbox, ChatPlugin, IncomingChatEvent};
@@ -122,6 +128,10 @@ impl PluginGroup for MmorpgPlugins {
         #[cfg(feature = "combat")]
         {
             group = group.add(bevy_battle::BevyBattlePlugin);
+        }
+        #[cfg(feature = "dialogue")]
+        {
+            group = group.add(bevy_kbve_dialogue::BevyDialoguePlugin);
         }
         #[cfg(feature = "net")]
         {

@@ -1,4 +1,4 @@
-//! # bevy_dialogue
+//! # bevy_kbve_dialogue
 //!
 //! Conversation graphs for Bevy games, over `kbve.dialogue.v1`.
 //!

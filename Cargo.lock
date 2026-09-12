@@ -3007,26 +3007,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_dialogue"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "kbve-proto",
- "prost 0.14.4",
- "serde",
- "serde_json",
- "ulid",
-]
-
-[[package]]
 name = "bevy_dungeon"
 version = "0.1.0"
 dependencies = [
  "bevy_battle",
  "bevy_behavior",
- "bevy_dialogue",
  "bevy_inventory",
  "bevy_items",
+ "bevy_kbve_dialogue",
  "bevy_mapdb",
  "bevy_npc",
  "bevy_pathfinder",
@@ -3482,6 +3470,18 @@ dependencies = [
  "prost-types 0.14.4",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "bevy_kbve_dialogue"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "kbve-proto",
+ "prost 0.14.4",
+ "serde",
+ "serde_json",
+ "ulid",
 ]
 
 [[package]]
@@ -12756,6 +12756,7 @@ dependencies = [
  "bevy_chat",
  "bevy_inventory",
  "bevy_items",
+ "bevy_kbve_dialogue",
  "bevy_npc",
  "bevy_player",
  "bevy_quests",
