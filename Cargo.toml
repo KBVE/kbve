@@ -14,7 +14,7 @@ members = [
 	'apps/kbve/kbve-gate',
 	'apps/chuckrpg/api',
 	'apps/rentearth/axum-rentearth',
-	'apps/rareicon/axum-rareicon',
+	'apps/rareicon/api',
 	'apps/cryptothrone/api',
 	'apps/rows',
 	'apps/jobboard',
@@ -161,7 +161,7 @@ zip = { version = "6", default-features = false }
 [profile.dev]
 opt-level = 1
 
-# Iteration profile for the game clients: `cargo run -p mmorpg --profile fast`.
+# Iteration profile for the game clients: `cargo run -p kbve-mmorpg --profile fast`.
 #
 # A separate profile rather than a change to `dev`, because `dev` is shared with
 # 35 other crates and CI, and building all of their dependencies at opt-level 3
@@ -193,7 +193,7 @@ panic = 'abort'
 # transitively, so it stopped being `Send`, and a non-`Send` `Context` cannot be
 # a bevy `Component` -- bevy_egui then fails to compile for any wasm build with
 # shared memory, which is every SharedArrayBuffer build. That is 326 errors
-# between mmorpg and a browser bundle that can share memory with a worker.
+# between kbve-mmorpg and a browser bundle that can share memory with a worker.
 #
 # The fork is branched from the 0.36.2 tag and carries one commit restoring the
 # bound. bevy_egui's `BevyDroppedFile` holds a `PathBuf` and its wasm

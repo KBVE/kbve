@@ -11,7 +11,6 @@ repository.workspace = true
 keywords = ["bevy", "lightyear", "multiplayer", "networking", "gamedev"]
 categories = ["game-development", "network-programming"]
 readme = "README.md"
-publish = false
 
 [dependencies]
 # No renderer. This crate is linked by a headless server and by a wasm client,

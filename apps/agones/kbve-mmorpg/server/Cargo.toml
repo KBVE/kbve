@@ -1,5 +1,5 @@
 [package]
-name = "mmorpg-server"
+name = "kbve-mmorpg-server"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.1"
 edition = "2024"
@@ -9,7 +9,7 @@ license = "MIT"
 description = "mmorpg dedicated server — authoritative avian3d sim replicated with lightyear over WebSocket, hosted on Agones."
 
 [[bin]]
-name = "mmorpg-server"
+name = "kbve-mmorpg-server"
 path = "src/main.rs"
 
 [dependencies]

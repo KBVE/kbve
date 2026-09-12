@@ -1,0 +1,17 @@
+# Conversation graphs.
+#
+# The registry half of kbve.dialogue.v1: which node a conversation opens on,
+# which choices are offered, and what each one writes back. The schema is in
+# packages/proto; nothing is generated here.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: a `bevy_kbve_dialogue@<semver>` tag publishes
+# this to crates.io. The plain `bevy_dialogue` name on the registry belongs to
+# an unrelated project, which is why this carries the kbve prefix.
+tags: ['crates']

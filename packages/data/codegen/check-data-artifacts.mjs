@@ -50,14 +50,14 @@ const repoRoot = resolve(__dirname, '../../..');
 const generatedDir = resolve(__dirname, 'generated');
 const unityStreamingAssets = resolve(
 	repoRoot,
-	'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+	'apps/rareicon/unity/Assets/StreamingAssets',
 );
 const godotAssets = (db) =>
 	resolve(repoRoot, `apps/friendslop/godot-friendslop/assets/${db}`);
 const rareiconScript = (name) =>
 	resolve(
 		repoRoot,
-		`apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/${name}`,
+		`apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/${name}`,
 	);
 
 // professiondb runs last because its generator reads generated/mapdb-data.json — checking it

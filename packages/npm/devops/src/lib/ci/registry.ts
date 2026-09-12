@@ -404,10 +404,10 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		name: 'RareIcon Dedicated Server',
 		pipeline: 'ue5_server',
 		app_name: 'unreal-rareicon',
-		shell_path: 'apps/rareicon/unreal-rareicon',
+		shell_path: 'apps/rareicon/unreal',
 		description:
 			'RareIcon UE5 Linux dedicated server (stock UE 5.7 Docker)',
-		source_path: 'apps/rareicon/unreal-rareicon',
+		source_path: 'apps/rareicon/unreal',
 		runner: 'arc-runner-ue',
 		author: 'h0lybyte',
 		license: 'KBVE',

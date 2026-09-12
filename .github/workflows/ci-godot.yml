@@ -290,7 +290,7 @@ jobs:
                       apps/discordsh/bot
                       apps/chuckrpg/api
                       apps/rentearth/axum-rentearth
-                      apps/rareicon/axum-rareicon
+                      apps/rareicon/api
                       apps/cryptothrone/api
                       apps/rows
                       apps/jobboard

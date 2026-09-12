@@ -25,7 +25,7 @@ pnpm-lock.yaml
 # drift under a whole-file indentation diff. Cover every mirror when a new one
 # is added.
 packages/data/codegen/generated/*.json
-apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
+apps/rareicon/unity/Assets/StreamingAssets/*.json
 apps/friendslop/godot-friendslop/assets/*db/*.json
 apps/discordsh/bot/data/*.json
 

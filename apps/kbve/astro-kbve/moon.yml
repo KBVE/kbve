@@ -179,7 +179,7 @@ tasks:
                 '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
-            ['/apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto']
+            ['/apps/rareicon/unity/Assets/_RareIcon/Generated/Proto']
         options:
             runFromWorkspaceRoot: true
     sync-mapdb:
@@ -194,8 +194,8 @@ tasks:
             [
                 '/packages/data/codegen/generated/mapdb-data.json',
                 '/packages/data/codegen/generated/mapdb-data.binpb',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb',
+                '/apps/rareicon/unity/Assets/StreamingAssets/mapdb.json',
+                '/apps/rareicon/unity/Assets/StreamingAssets/mapdb.binpb',
                 '/apps/discordsh/bot/data/mapdb.json',
             ]
         options:
@@ -247,8 +247,8 @@ tasks:
                 '/packages/data/codegen/generated/itemdb-data.json',
                 '/packages/data/codegen/generated/itemdb-data.binpb',
                 '/packages/data/codegen/generated/itemdb.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb',
+                '/apps/rareicon/unity/Assets/StreamingAssets/itemdb.json',
+                '/apps/rareicon/unity/Assets/StreamingAssets/itemdb.binpb',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -298,7 +298,7 @@ tasks:
                 '/packages/data/codegen/generated/professiondb-data.binpb',
                 '/packages/data/codegen/generated/professiondb-runtime.json',
                 '/packages/data/codegen/generated/xref-index.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json',
+                '/apps/rareicon/unity/Assets/StreamingAssets/professiondb-runtime.json',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -328,8 +328,8 @@ tasks:
             [
                 '/packages/data/codegen/generated/questdb-data.json',
                 '/packages/data/codegen/generated/questdb-data.binpb',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb',
+                '/apps/rareicon/unity/Assets/StreamingAssets/questdb.json',
+                '/apps/rareicon/unity/Assets/StreamingAssets/questdb.binpb',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -360,8 +360,8 @@ tasks:
             [
                 '/packages/data/codegen/generated/npcdb-data.json',
                 '/packages/data/codegen/generated/npcdb-data.binpb',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.json',
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.binpb',
+                '/apps/rareicon/unity/Assets/StreamingAssets/npcdb.json',
+                '/apps/rareicon/unity/Assets/StreamingAssets/npcdb.binpb',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -424,8 +424,8 @@ tasks:
             ]
         outputs:
             [
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png',
-                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs',
+                '/apps/rareicon/unity/Assets/StreamingAssets/itemdb-atlas.png',
+                '/apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs',
                 '/apps/cryptothrone/web/public/assets/items/itemdb-atlas.png',
                 '/apps/cryptothrone/web/src/components/game/data/itemAtlas.generated.ts',
             ]
@@ -435,13 +435,13 @@ tasks:
         script: 'node packages/data/codegen/gen-hextile-atlas.mjs'
         inputs:
             [
-                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment/**/*.png',
+                '/apps/rareicon/unity/Assets/_RareIcon/Textures/Environment/**/*.png',
                 '/packages/data/codegen/gen-hextile-atlas.mjs',
             ]
         outputs:
             [
-                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png',
-                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs',
+                '/apps/rareicon/unity/Assets/StreamingAssets/hextile-atlas.png',
+                '/apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs',
             ]
         options:
             runFromWorkspaceRoot: true

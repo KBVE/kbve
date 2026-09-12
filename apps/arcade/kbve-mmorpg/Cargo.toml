@@ -1,5 +1,5 @@
 [package]
-name = "mmorpg"
+name = "kbve-mmorpg"
 description = "3D open-world MMORPG client on bevy + avian3d, one source for native and browser wgpu."
 version = "0.1.0"
 edition.workspace = true

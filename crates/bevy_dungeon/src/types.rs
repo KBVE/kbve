@@ -938,8 +938,8 @@ impl SessionState {
     /// quest by ULID and this journal keys them by slug ref, so anything filled
     /// in here would be matched against keys that never collide -- a condition
     /// that silently never holds is worse than one that visibly does not yet.
-    pub fn dialogue_context(&self, actor: PlayerId) -> bevy_dialogue::DialogueContext {
-        bevy_dialogue::DialogueContext {
+    pub fn dialogue_context(&self, actor: PlayerId) -> bevy_kbve_dialogue::DialogueContext {
+        bevy_kbve_dialogue::DialogueContext {
             flags: self.dialogue_memory.flags.clone(),
             level: i32::from(self.player(actor).level),
             visits: self.dialogue_memory.visits.clone(),
@@ -955,8 +955,8 @@ impl SessionState {
     /// party, opening a shop -- reach systems this type does not own, and are
     /// left unhandled rather than half-handled so that a graph relying on one
     /// fails visibly instead of appearing to work.
-    pub fn apply_dialogue_effect(&mut self, effect: &bevy_dialogue::DialogueEffect) {
-        use bevy_dialogue::DialogueEffectKind;
+    pub fn apply_dialogue_effect(&mut self, effect: &bevy_kbve_dialogue::DialogueEffect) {
+        use bevy_kbve_dialogue::DialogueEffectKind;
         let Some(flag) = effect.flag.as_ref() else {
             return;
         };

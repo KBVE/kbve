@@ -290,7 +290,7 @@ fn handle_dialogue_navigate(
         // which is a different thing from an NPC with no graph -- the first is
         // "not now", the second is "never".
         let ctx = session.dialogue_context(actor);
-        let opening = match bevy_dialogue::entry_node(graph, &ctx) {
+        let opening = match bevy_kbve_dialogue::entry_node(graph, &ctx) {
             Some(n) => n.id.clone(),
             None => {
                 logs.push("They have nothing to say to you right now.".to_owned());
@@ -352,12 +352,12 @@ fn handle_dialogue_navigate(
     session
         .dialogue_memory
         .seen_nodes
-        .insert(bevy_dialogue::node_key(graph, &node.id));
+        .insert(bevy_kbve_dialogue::node_key(graph, &node.id));
 
     // A node with no choices to offer is the end of the conversation, whether
     // it is an END node or simply a line nobody can reply to.
     let ctx = session.dialogue_context(actor);
-    if bevy_dialogue::choices(graph, node, &ctx).is_empty() {
+    if bevy_kbve_dialogue::choices(graph, node, &ctx).is_empty() {
         session.active_dialogue = None;
         logs.push("*The conversation ends.*".to_owned());
     }

@@ -23,7 +23,7 @@ Rareicon's economy and simulation logic runs in Rust (Bevy ECS); the rendered wo
 | Target                  | Consumer                                                                   |
 | ----------------------- | -------------------------------------------------------------------------- |
 | Rust struct via `prost` | `packages/rust/bevy/uniti` (FFI layer) and the Rareicon Bevy ECS systems.  |
-| C# via `protoc`         | `apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto/Empire.cs`. |
+| C# via `protoc`         | `apps/rareicon/unity/Assets/_RareIcon/Generated/Proto/Empire.cs`. |
 
 ## Conventions
 
@@ -35,5 +35,5 @@ Rareicon's economy and simulation logic runs in Rust (Bevy ECS); the rendered wo
 ## Related
 
 - Rust FFI bridge: [`packages/rust/bevy/uniti`](../../../../packages/rust/bevy/uniti/).
-- Unity-side generated proto: `apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto/Empire.cs`.
+- Unity-side generated proto: `apps/rareicon/unity/Assets/_RareIcon/Generated/Proto/Empire.cs`.
 - Save / persistence pipeline notes: see `project_rareicon_ffi_persistence` in the auto-memory.

@@ -11,8 +11,8 @@
  * Outputs:
  *   packages/data/codegen/generated/npcdb-data.json   (proto-canonical camelCase JSON)
  *   packages/data/codegen/generated/npcdb-data.binpb  (wire-format proto binary)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.json   (mirror)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.binpb  (mirror)
+ *   apps/rareicon/unity/Assets/StreamingAssets/npcdb.json   (mirror)
+ *   apps/rareicon/unity/Assets/StreamingAssets/npcdb.binpb  (mirror)
  *
  * Also regenerates apps/rareicon/.../Generated/Proto/Npcdb.cs (+ Common.cs).
  *
@@ -148,7 +148,7 @@ function main() {
 			name: 'rareicon',
 			dir: resolve(
 				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+				'apps/rareicon/unity/Assets/StreamingAssets',
 			),
 		},
 		{

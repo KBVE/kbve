@@ -143,7 +143,7 @@ fn spawn_ground(mut commands: Commands) {
 fn on_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     commands
         .entity(trigger.entity)
-        .insert(ReplicationSender::default());
+        .insert(ReplicationSender);
 }
 
 /// A client finished the netcode handshake: give it a character.

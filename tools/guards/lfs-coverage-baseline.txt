@@ -1,0 +1,149 @@
+# Tracked binaries under a game's LFS prefix that carry no LFS filter.
+#
+# Two kinds of entry, and they are not the same thing:
+#
+#   meant to stay plain   vendored third-party payloads (Unity's NuGet DLLs
+#                         and their package icons, gdUnit4's bundled UI art),
+#                         tauri bundler icons, and playwright screenshot
+#                         baselines. These are build inputs read before any
+#                         LFS hydrate runs; a pointer stub here fails the
+#                         build, not the asset.
+#
+#   real gaps, unmigrated the rule for the game covers a narrower set of
+#                         extensions or a narrower root than the game
+#                         actually uses: arpg has .obj/.jpg models outside
+#                         its png/webp rule, herbmail keeps shader plates
+#                         under src/ rather than public/, rareicon's texture
+#                         rule pins Textures/Environment while the atlases
+#                         sit in StreamingAssets and Resources/Ocean, and
+#                         isometric's art is a level deeper than the
+#                         apps/arcade/*/assets glob reaches.
+#
+# Migrating the second kind is not a .gitattributes edit alone: renormalizing
+# writes pointers, and the blobs have to reach each game's Forgejo endpoint
+# first or every hydrate 404s. Do it per game, with the push, then drop the
+# lines here -- a baseline entry that stops matching fails the guard, so the
+# file cannot outlive the gap.
+#
+# Regenerate after an intentional change: moon run guards:sync-lfs-baseline
+
+apps/agones/arpg/web/public/assets/arcade/arpg/models/ship/fighter1.obj
+apps/agones/arpg/web/public/assets/arcade/arpg/models/ship/idolknight.jpg
+apps/arcade/isometric/src-tauri/app-icon.png
+apps/arcade/isometric/src-tauri/assets/textures/creatures/badger/badger-sprite.png
+apps/arcade/isometric/src-tauri/assets/textures/creatures/boar/boar-sprite.png
+apps/arcade/isometric/src-tauri/assets/textures/creatures/stag/stag-sprite.png
+apps/arcade/isometric/src-tauri/assets/textures/creatures/wolf/wolf-sprite.png
+apps/arcade/isometric/src-tauri/assets/textures/creatures/wraith/wraith_executioner.png
+apps/arcade/isometric/src-tauri/assets/textures/frog_green.png
+apps/arcade/isometric/src-tauri/assets/textures/frog_green_mob.png
+apps/arcade/isometric/src-tauri/assets/textures/grass_blades.png
+apps/arcade/isometric/src-tauri/assets/textures/grass_tileset.png
+apps/arcade/isometric/src-tauri/icons/128x128.png
+apps/arcade/isometric/src-tauri/icons/128x128@2x.png
+apps/arcade/isometric/src-tauri/icons/32x32.png
+apps/arcade/isometric/src-tauri/icons/64x64.png
+apps/arcade/isometric/src-tauri/icons/Square107x107Logo.png
+apps/arcade/isometric/src-tauri/icons/Square142x142Logo.png
+apps/arcade/isometric/src-tauri/icons/Square150x150Logo.png
+apps/arcade/isometric/src-tauri/icons/Square284x284Logo.png
+apps/arcade/isometric/src-tauri/icons/Square30x30Logo.png
+apps/arcade/isometric/src-tauri/icons/Square310x310Logo.png
+apps/arcade/isometric/src-tauri/icons/Square44x44Logo.png
+apps/arcade/isometric/src-tauri/icons/Square71x71Logo.png
+apps/arcade/isometric/src-tauri/icons/Square89x89Logo.png
+apps/arcade/isometric/src-tauri/icons/StoreLogo.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-hdpi/ic_launcher.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-hdpi/ic_launcher_foreground.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-hdpi/ic_launcher_round.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-mdpi/ic_launcher.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-mdpi/ic_launcher_foreground.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-mdpi/ic_launcher_round.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xhdpi/ic_launcher.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_foreground.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xhdpi/ic_launcher_round.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_foreground.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxhdpi/ic_launcher_round.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_foreground.png
+apps/arcade/isometric/src-tauri/icons/android/mipmap-xxxhdpi/ic_launcher_round.png
+apps/arcade/isometric/src-tauri/icons/icon.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-20x20@1x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-20x20@2x-1.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-20x20@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-20x20@3x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-29x29@1x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-29x29@2x-1.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-29x29@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-29x29@3x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-40x40@1x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-40x40@2x-1.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-40x40@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-40x40@3x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-512@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-60x60@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-60x60@3x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-76x76@1x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-76x76@2x.png
+apps/arcade/isometric/src-tauri/icons/ios/AppIcon-83.5x83.5@2x.png
+apps/arcade/yuki/e2e/__screenshots__/chromium/yuki-vrm.spec.ts/yuki-vrm-canvas.png
+apps/arcade/yuki/e2e/__screenshots__/mobile-chrome/yuki-vrm.spec.ts/yuki-vrm-canvas.png
+apps/arcade/yuki/e2e/__screenshots__/mobile-safari/yuki-vrm.spec.ts/yuki-vrm-canvas.png
+apps/arcade/yuki/e2e/__screenshots__/webkit/yuki-vrm.spec.ts/yuki-vrm-canvas.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/core/assets/touch-button.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/reporters/html/template/css/logo.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/ui/settings/logo.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/border_bottom.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/border_top.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/dot1.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/dot2.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/embedded.png
+apps/friendslop/godot-friendslop/addons/gdUnit4/src/update/assets/horizontal-line2.png
+apps/friendslop/godot-friendslop/assets/biomes/grassland/grass/grass-clump.obj
+apps/friendslop/godot-friendslop/assets/biomes/grassland/grass/grass-stalk-medium.obj
+apps/friendslop/godot-friendslop/assets/biomes/grassland/grass/grass-stalk-simple.obj
+apps/friendslop/godot-friendslop/assets/biomes/grassland/grass/grass-stalk.obj
+apps/herbmail/game/art/items/gem/scene.bin
+apps/herbmail/game/art/items/gem/scene.gltf
+apps/herbmail/game/src/game/water/vendor/shaders/swim-1-idle.png
+apps/herbmail/game/src/game/water/vendor/shaders/swim-2-fwd.png
+apps/rareicon/unity/Assets/Packages/Google.Protobuf.3.34.1/lib/netstandard2.0/Google.Protobuf.dll
+apps/rareicon/unity/Assets/Packages/MessagePack.2.1.90/lib/netstandard2.0/MessagePack.dll
+apps/rareicon/unity/Assets/Packages/MessagePack.Annotations.2.1.90/lib/netstandard2.0/MessagePack.Annotations.dll
+apps/rareicon/unity/Assets/Packages/Microsoft.Bcl.AsyncInterfaces.6.0.0/Icon.png
+apps/rareicon/unity/Assets/Packages/Microsoft.Bcl.AsyncInterfaces.6.0.0/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
+apps/rareicon/unity/Assets/Packages/Microsoft.Bcl.TimeProvider.8.0.0/Icon.png
+apps/rareicon/unity/Assets/Packages/Microsoft.Bcl.TimeProvider.8.0.0/lib/netstandard2.0/Microsoft.Bcl.TimeProvider.dll
+apps/rareicon/unity/Assets/Packages/Newtonsoft.Json.13.0.4/lib/netstandard2.0/Newtonsoft.Json.dll
+apps/rareicon/unity/Assets/Packages/Newtonsoft.Json.13.0.4/packageIcon.png
+apps/rareicon/unity/Assets/Packages/ObservableCollections.3.3.4/Icon.png
+apps/rareicon/unity/Assets/Packages/ObservableCollections.3.3.4/lib/netstandard2.1/ObservableCollections.dll
+apps/rareicon/unity/Assets/Packages/ObservableCollections.R3.3.3.4/Icon.png
+apps/rareicon/unity/Assets/Packages/ObservableCollections.R3.3.3.4/lib/netstandard2.1/ObservableCollections.R3.dll
+apps/rareicon/unity/Assets/Packages/R3.1.3.0/Icon.png
+apps/rareicon/unity/Assets/Packages/R3.1.3.0/lib/netstandard2.1/R3.dll
+apps/rareicon/unity/Assets/Packages/System.ComponentModel.Annotations.5.0.0/Icon.png
+apps/rareicon/unity/Assets/Packages/System.ComponentModel.Annotations.5.0.0/lib/netstandard2.1/System.ComponentModel.Annotations.dll
+apps/rareicon/unity/Assets/Packages/System.Threading.Channels.8.0.0/Icon.png
+apps/rareicon/unity/Assets/Packages/System.Threading.Channels.8.0.0/lib/netstandard2.1/System.Threading.Channels.dll
+apps/rareicon/unity/Assets/Packages/Ulid.1.4.1/Icon.png
+apps/rareicon/unity/Assets/Packages/Ulid.1.4.1/lib/netstandard2.1/Ulid.dll
+apps/rareicon/unity/Assets/Packages/Ulid.MessagePack.1.4.1/Icon.png
+apps/rareicon/unity/Assets/Packages/Ulid.MessagePack.1.4.1/lib/netstandard2.1/Ulid.MessagePack.dll
+apps/rareicon/unity/Assets/Resources/Hex/grass_blades.png
+apps/rareicon/unity/Assets/Resources/Ocean/CausticTexture.png
+apps/rareicon/unity/Assets/Resources/Ocean/CausticTextureHighlights.png
+apps/rareicon/unity/Assets/Resources/Ocean/ocean_base.png
+apps/rareicon/unity/Assets/Resources/UI/fonts/Iceberg-Regular.ttf
+apps/rareicon/unity/Assets/Resources/UI/icons/discord.png
+apps/rareicon/unity/Assets/Resources/UI/icons/github.png
+apps/rareicon/unity/Assets/Resources/UI/icons/twitch.png
+apps/rareicon/unity/Assets/StreamingAssets/hextile-atlas.png
+apps/rareicon/unity/Assets/StreamingAssets/itemdb-atlas.png
+apps/rareicon/unity/Assets/_RareIcon/Textures/Ocean/CausticTexture.png
+apps/rareicon/unity/Assets/_RareIcon/Textures/Ocean/CausticTextureHighlights.png
+apps/rareicon/unity/Assets/_RareIcon/Textures/Ocean/ocean_base.png
+apps/rareicon/web/public/assets/icon/rareicon_low_res_256px.png
+apps/rareicon/web/public/assets/steam/rareicon_demo_icon.jpg
+apps/rareicon/web/public/assets/steam/rareicon_library_header_920_x_430px.png

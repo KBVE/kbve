@@ -34,64 +34,64 @@ apps/godot/**/addons/**/bin/**/*.wasm  filter=lfs diff=lfs merge=lfs -text
 # time with no LFS pull. Plugin libs are pinned third-party versions that change
 # rarely, so the history cost is acceptable for the zero-friction download.
 
-# Unreal Engine — apps/rareicon/unreal-rareicon binary assets
+# Unreal Engine — apps/rareicon/unreal binary assets
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/rareicon.git
-# (see apps/rareicon/unreal-rareicon/.lfsconfig, and the repo-root .lfsconfig
+# (see apps/rareicon/unreal/.lfsconfig, and the repo-root .lfsconfig
 # which already defaults to that endpoint). Added before the first level was
 # saved: without it a .umap lands in plain git on GitHub, and rewriting that
 # out of history later is far more work than one rule now.
 # UE cooked / serialized assets
-apps/rareicon/unreal-rareicon/**/*.uasset filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.umap   filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.uasset filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.umap   filter=lfs diff=lfs merge=lfs -text
 # Raw 3D / DCC source art
-apps/rareicon/unreal-rareicon/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.obj    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.blend  filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.psd    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.obj    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.blend  filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.psd    filter=lfs diff=lfs merge=lfs -text
 # Textures
-apps/rareicon/unreal-rareicon/**/*.png    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.tga    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.exr    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.r16    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.png    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.tga    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.exr    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.r16    filter=lfs diff=lfs merge=lfs -text
 # Audio
-apps/rareicon/unreal-rareicon/**/*.wav    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
-apps/rareicon/unreal-rareicon/**/*.flac   filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.wav    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal*/**/*.flac   filter=lfs diff=lfs merge=lfs -text
 
 # Unreal Engine — apps/rentearth/unreal-rentearth binary assets
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/rentearth.git
 # (see apps/rentearth/unreal-rentearth/.lfsconfig). Routes through git.kbve.com
 # ingress-nginx the same way as the rareicon LFS repo.
 # UE cooked / serialized assets
-apps/rentearth/unreal-rentearth/**/*.uasset filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.umap   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.uasset filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.umap   filter=lfs diff=lfs merge=lfs -text
 # Raw 3D / DCC source art
-apps/rentearth/unreal-rentearth/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.obj    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.blend  filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.psd    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.obj    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.blend  filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.psd    filter=lfs diff=lfs merge=lfs -text
 # Textures (raster + HDR)
-apps/rentearth/unreal-rentearth/**/*.png    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.tga    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.exr    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.png    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.tga    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.exr    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
 # Audio
-apps/rentearth/unreal-rentearth/**/*.wav    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/*.flac   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.wav    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/*.flac   filter=lfs diff=lfs merge=lfs -text
 # Plugin / native binaries
-apps/rentearth/unreal-rentearth/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
-apps/rentearth/unreal-rentearth/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/rentearth/unreal*/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text
 
 # ARPG — apps/agones/arpg/web standalone vite client game art (sprites + ground)
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/arpg.git
@@ -99,65 +99,65 @@ apps/rentearth/unreal-rentearth/**/Plugins/**/*.bundle filter=lfs diff=lfs merge
 # blobs to the arpg endpoint with `./kbve.sh -lfs arpg <push|pull|...>`; the
 # repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the
 # arpg endpoint. Raw 720px source sheets stay gitignored (characters/**/raw/).
-apps/agones/arpg/web/public/assets/arcade/arpg/**/*.png filter=lfs diff=lfs merge=lfs -text
-apps/agones/arpg/web/public/assets/arcade/arpg/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/agones/arpg/web*/public/assets/arcade/arpg/**/*.png filter=lfs diff=lfs merge=lfs -text
+apps/agones/arpg/web*/public/assets/arcade/arpg/**/*.webp filter=lfs diff=lfs merge=lfs -text
 
 # Cryptothrone — apps/cryptothrone/web isometric game art
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/cryptothrone.git
 # (see apps/cryptothrone/web/public/assets/.lfsconfig). Push/pull the
 # blobs to the cryptothrone endpoint with `./kbve.sh -lfs cryptothrone <push|pull|...>`;
 # the repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
-apps/cryptothrone/web/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
-apps/cryptothrone/web/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/cryptothrone/web*/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/cryptothrone/web*/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
 
 # Herbmail — apps/herbmail/game PSX-style vite game art (textures + models + audio)
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/herbmail.git
 # (see apps/herbmail/game/public/.lfsconfig). Push/pull the blobs to the
 # herbmail endpoint with `./kbve.sh -lfs herbmail <push|pull|register|...>`; the
 # repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
-apps/herbmail/game/public/**/*.png  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.webp filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.glb  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.gltf filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.fbx  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.ogg  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/public/**/*.wav  filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/art/**/*.blend   filter=lfs diff=lfs merge=lfs -text
-apps/herbmail/game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.jpg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.glb  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.gltf filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.fbx  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.mp3  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.ogg  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/public/**/*.wav  filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/art/**/*.blend   filter=lfs diff=lfs merge=lfs -text
+apps/herbmail/game*/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text
 
 # Friendslop — apps/friendslop/godot-friendslop Godot 4 3D game assets
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/friendslop.git
 # (see apps/friendslop/godot-friendslop/.lfsconfig). Push/pull the blobs to the
 # friendslop endpoint with `./kbve.sh -lfs friendslop <push|pull|register|...>`.
-apps/friendslop/godot-friendslop/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.bin   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.tga   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.exr   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.ttf   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/assets/**/*.otf   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/**/*.gdshader    filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/**/*.gdshaderinc filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/addons/**/*.dylib filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/addons/**/*.so    filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/addons/**/*.dll   filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/addons/**/*.a     filter=lfs diff=lfs merge=lfs -text
-apps/friendslop/godot-friendslop/addons/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.bin   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.tga   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.exr   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.ttf   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/assets/**/*.otf   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/**/*.gdshader    filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/**/*.gdshaderinc filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/addons/**/*.dylib filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/addons/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/addons/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/addons/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot*/addons/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
 # The bundle's plist is small text worth diffing; only the binary needs LFS.
-apps/friendslop/godot-friendslop/addons/**/*.framework/Info.plist !filter !diff !merge text
+apps/friendslop/godot*/addons/**/*.framework/Info.plist !filter !diff !merge text
 
 # git-crypt — encrypted game internals.
 #

@@ -7,7 +7,7 @@
 
 use std::sync::LazyLock;
 
-use bevy_dialogue::{DialogueDb, DialogueGraph};
+use bevy_kbve_dialogue::{DialogueDb, DialogueGraph};
 use bevy_items::{
     EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, Rarity, StatusEffectKind, UseEffectType,
     inventory_adapter::ProtoItemKind,
@@ -747,8 +747,8 @@ pub fn get_npc_dialogue_graph(npc_ref: &str) -> Option<&'static DialogueGraph> {
 pub fn get_dialogue_node<'a>(
     graph: &'a DialogueGraph,
     node_id: &str,
-) -> Option<&'a bevy_dialogue::DialogueNode> {
-    bevy_dialogue::node(graph, node_id)
+) -> Option<&'a bevy_kbve_dialogue::DialogueNode> {
+    bevy_kbve_dialogue::node(graph, node_id)
 }
 
 /// Whether an NPC has a conversation at all.
@@ -2394,15 +2394,15 @@ mod dialogue_tests {
     #[test]
     fn the_opening_line_changes_once_you_have_met_him() {
         let graph = get_npc_dialogue_graph("the-shattered-king").unwrap();
-        let mut ctx = bevy_dialogue::DialogueContext::default();
+        let mut ctx = bevy_kbve_dialogue::DialogueContext::default();
 
-        let first = bevy_dialogue::entry_node(graph, &ctx).expect("a first meeting");
+        let first = bevy_kbve_dialogue::entry_node(graph, &ctx).expect("a first meeting");
         assert_eq!(first.id, "first_meeting");
 
         // Entering that node sets the flag, which is what the higher-priority
         // entry is waiting for.
         ctx.flags.insert("met_shattered_king".into());
-        let second = bevy_dialogue::entry_node(graph, &ctx).expect("a second meeting");
+        let second = bevy_kbve_dialogue::entry_node(graph, &ctx).expect("a second meeting");
         assert_eq!(second.id, "again");
     }
 
@@ -2410,9 +2410,9 @@ mod dialogue_tests {
     fn the_farewell_ends_the_conversation() {
         let graph = get_npc_dialogue_graph("the-shattered-king").unwrap();
         let farewell = get_dialogue_node(graph, "farewell").expect("a farewell node");
-        assert_eq!(bevy_dialogue::next_node(farewell), None);
+        assert_eq!(bevy_kbve_dialogue::next_node(farewell), None);
         assert!(
-            bevy_dialogue::choices(graph, farewell, &bevy_dialogue::DialogueContext::default())
+            bevy_kbve_dialogue::choices(graph, farewell, &bevy_kbve_dialogue::DialogueContext::default())
                 .is_empty(),
             "nothing to reply to means the conversation is over"
         );

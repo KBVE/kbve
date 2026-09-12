@@ -25,7 +25,7 @@ env:
     WASM_BINDGEN_VERSION: '0.2.126'
     MMORPG_WEB_PORT: '4321'
 
-    # Where a release of this game ships. A `mmorpg@<semver>` tag resolves to
+    # Where a release of this game ships. A `kbve-mmorpg@<semver>` tag resolves to
     # the `web-game` lane through the tag above, builds the bundle and pushes
     # it to itch with butler.
     ITCH_USER: 'kbve'
@@ -85,16 +85,24 @@ tasks:
     # worker at all -- the half that cannot be added later without rebuilding
     # std -- so anything spawning its own workers has somewhere to put them.
     #
-    # RUSTUP_TOOLCHAIN rather than `cargo +nightly`: under moon's rust toolchain
-    # the `+nightly` form is not passed to a real rustup shim and dies.
+    # `toolchain: system` plus `rustup run nightly`, both together. moon's rust
+    # toolchain prepends the pinned toolchain's bin to PATH, so `cargo` is the
+    # raw binary rather than the rustup shim: `cargo +nightly` dies outright,
+    # and RUSTUP_TOOLCHAIN never reaches a shim that would read it. `rustup run`
+    # alone is still not enough -- rustc would resolve to the pinned toolchain
+    # and -Z build-std would hunt for rust-src in the wrong sysroot.
     build-web:
+        toolchain: 'system'
         # Inherited rust tasks pick the generated tree up through `^:build`;
         # a script task has to name it.
         deps: ['protobuf:build']
         script: |
             set -euo pipefail
+            # `toolchain: system` does not put the cargo bin dir on PATH the way
+            # moon's rust toolchain does, so an installed wasm-bindgen is still
+            # unreachable without this.
+            export PATH="$HOME/.cargo/bin:$PATH"
             command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@$WASM_BINDGEN_VERSION --locked
-            RUSTUP_TOOLCHAIN=nightly \
             RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128 \
                 -C llvm-args=--wasm-enable-sjlj \
                 -C link-arg=--import-memory \
@@ -105,12 +113,12 @@ tasks:
                 -C link-arg=--export=__tls_size \
                 -C link-arg=--export=__tls_align \
                 -C link-arg=--export=__tls_base" \
-                cargo build --release --target wasm32-unknown-unknown \
+                rustup run nightly cargo build --release --target wasm32-unknown-unknown \
                     -Z build-std=std,panic_abort \
                     --no-default-features --features webgpu
             rm -rf dist
             mkdir -p dist
-            wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/mmorpg.wasm \
+            wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/kbve-mmorpg.wasm \
                 --out-dir dist/pkg --target web --out-name mmorpg
             cp index.html dist/index.html
             # bevy resolves an asset path against the page, so the tree has to

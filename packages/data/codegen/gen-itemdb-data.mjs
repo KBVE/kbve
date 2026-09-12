@@ -11,11 +11,11 @@
  *   packages/data/codegen/generated/itemdb-data.binpb     (wire-format proto binary)
  *
  * Outputs (per-game sync — Unity-friendly, raw frontmatter):
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json
+ *   apps/rareicon/unity/Assets/StreamingAssets/itemdb.json
  *     — { version, count, entries: [...snake_case frontmatter...] }
  *     Mirrors the gen-mapdb-data.mjs wrapper convention so Newtonsoft can
  *     deserialise directly into an ItemDBBundle POCO (see ItemDBDef.cs).
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb
+ *   apps/rareicon/unity/Assets/StreamingAssets/itemdb.binpb
  *     — Byte-for-byte copy of the central binpb. Lets future Burst / uniti
  *     paths consume the same wire format.
  *
@@ -63,15 +63,15 @@ const SYNC_TARGETS = [
 		name: 'rareicon',
 		streamingAssetsDir: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+			'apps/rareicon/unity/Assets/StreamingAssets',
 		),
 		itemIdPath: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemId.Generated.cs',
+			'apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemId.Generated.cs',
 		),
 		refMapPath: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemDBRefMap.Generated.cs',
+			'apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemDBRefMap.Generated.cs',
 		),
 	},
 	{
