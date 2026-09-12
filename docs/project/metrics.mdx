@@ -29,7 +29,7 @@ image: kbve/metrics
 nx_project: met
 e2e_name: metrics
 deployment_yaml: apps/kube/metrics/manifest/metrics-deployment.yaml
-has_test: false
+has_test: true
 author: h0lybyte
 license: KBVE
 status: active
@@ -48,9 +48,9 @@ next: false
 jsonld:
     faq:
         - question: What is the Metrics service?
-          answer: Metrics (services/metrics) is KBVE's in-house observability platform, a scoped Rust/axum service that ingests client telemetry into a self-hosted ClickHouse telemetry database. It replaces SaaS tooling like Sentry, Datadog, and PostHog with one pipeline exposing errors, performance, and product lenses over a single wide table correlated by session_id.
+          answer: Metrics (services/metrics) is KBVE's in-house observability platform, a scoped Rust/axum service that ingests client telemetry into a self-hosted ClickHouse telemetry database. It replaces SaaS tooling like Sentry, Datadog, and PostHog with one pipeline exposing errors, performance, and product lenses, one table per lens, correlated by session_id.
         - question: How does the Metrics ingest pipeline work?
-          answer: The browser SDK @kbve/observ POSTs to metrics.kbve.com/api/v1/ingest, the axum service on port 5500 reuses the shared jedi ClickHouse client to batch JSONEachRow inserts via a tokio mpsc flusher, and rows land in telemetry.errors_distributed. Requests are CORS-allowlisted, rate-limited, body-capped, and PII-sanitized.
+          answer: The browser SDK @kbve/observ POSTs to metrics.kbve.com/api/v1/ingest/errors, /perf or /events, the axum service on port 5500 reuses the shared jedi ClickHouse client to batch JSONEachRow inserts, and each lens has its own queue and flusher writing to its own table. Requests are CORS-allowlisted, rate-limited, body-capped, and PII-sanitized.
         - question: How is Metrics client-agnostic across web and game clients?
           answer: A platform field (web, unreal, unity, and more) lets every client feed the same pipe, so the errors lens built for the frontend extends to Unreal and Unity game clients with no schema changes.
 bento:
@@ -60,8 +60,8 @@ bento:
     lede: >-
         KBVE's in-house observability platform — a scoped Rust/axum service that
         ingests client telemetry into a self-hosted ClickHouse database,
-        replacing Sentry, Datadog, and PostHog with one pipeline over a single
-        wide table.
+        replacing Sentry, Datadog, and PostHog with one pipeline across three
+        lenses — errors, performance and product.
     ctas:
         - label: View source
           href: https://github.com/KBVE/kbve/tree/main/services/metrics
@@ -121,8 +121,13 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 `services/metrics` is a scoped Rust/Axum service that ingests client telemetry into a
 self-hosted ClickHouse `telemetry` database. It replaces SaaS error/metrics tooling
-(Sentry / Datadog / PostHog) with one pipeline that exposes three lenses — errors,
-performance, and product — over a single wide table correlated by `session_id`.
+(Sentry / Datadog / PostHog) with one pipeline exposing three lenses — errors,
+performance, and product — correlated by `session_id`.
+
+Each lens is its own table rather than one wide table: a Web Vitals sample settles
+when the browser says so (INP can land minutes after LCP), and a wide row would have
+to be rewritten after the fact, which MergeTree does not do cheaply. Rolling the
+samples up into quantiles is a read-side concern instead.
 
 </BentoProse>
 
@@ -130,18 +135,47 @@ performance, and product — over a single wide table correlated by `session_id`
 
 ```
 @kbve/observ (browser SDK)
-   → POST metrics.kbve.com/api/v1/ingest/errors
+   → POST metrics.kbve.com/api/v1/ingest/{errors,perf,events}
       → services/metrics (axum, port 5500)
-         → jedi ClickHouseConfig::execute_insert (JSONEachRow, batched)
-            → telemetry.errors_distributed
+         → one queue + one flusher per lens
+            → jedi ClickHouseConfig::execute_insert (JSONEachRow, batched)
+               → telemetry.{errors,perf,events}_distributed
 ```
+
+One queue per destination table, not one shared queue: a rejected insert takes its
+whole batch with it, so a malformed perf sample would otherwise drop the errors
+queued beside it.
+
+| Route | Lens | Read as |
+| --- | --- | --- |
+| `POST /api/v1/ingest/errors` | window errors, promise rejections | `GET /api/v1/groups`, `GET /api/v1/events` |
+| `POST /api/v1/ingest/perf` | Web Vitals (LCP/INP/CLS/FCP/TTFB) | `GET /api/v1/perf` |
+| `POST /api/v1/ingest/events` | named product events | `GET /api/v1/product` |
+
+The read routes are staff-gated; the ingest routes take a shared token. Note that
+`/api/v1/events` is the **read** side of the errors lens — it lists the events behind
+a fingerprint — while product events are written to `/api/v1/ingest/events` and read
+at `/api/v1/product`.
 
 The ingest path reuses the shared `jedi` ClickHouse client — no new database
 plumbing. A background tokio mpsc flusher batches rows by size and interval.
 Requests are CORS-allowlisted, per-IP rate-limited, body-capped, and run through a
 noise/PII sanitizer. Error grouping uses a `sha256(project + error_type + top-5
-stack frames)` fingerprint. `/readiness` checks ClickHouse so a degraded backend
-sheds load instead of silently 503ing.
+stack frames)` fingerprint.
+
+Sanitizing is per lens and deliberately strict about what reaches a
+`LowCardinality` column. An unknown perf metric is dropped rather than defaulted —
+the read path groups by it, so coercing junk to `lcp` would poison a quantile
+instead of losing one row — and a non-finite value is rejected outright, because
+NaN serializes to JSON `null`, which ClickHouse refuses for a `Float64` and which
+fails the entire insert batch rather than the offending row.
+
+`/readiness` checks that every table ingest writes to exists, not just that
+ClickHouse answers: `SELECT 1` passes against a database with no schema at all, and
+a half-applied schema is exactly the case where the service accepts one kind of
+event and discards another. The answer is re-verified on a window
+(`METRICS_SCHEMA_RECHECK_MS`, default 30s) rather than latched, so a cluster that
+loses its schema after startup is noticed instead of being reported ready forever.
 
 ### Client-agnostic
 
@@ -154,9 +188,24 @@ without schema changes.
 <BentoProse id="deployment" eyebrow="Runtime" heading="Deployment">
 
 Runs in the `kbve` namespace behind the Cilium Gateway at `metrics.kbve.com`,
-reusing the existing `clickhouse-credentials` ExternalSecret. Schema setup is a
-job in the `vector` namespace that creates the `telemetry` database, the
-`errors_raw` / `errors_distributed` tables, and the `error_groups` view.
+reusing the existing `clickhouse-credentials` ExternalSecret.
+
+The DDL is hand-written in exactly one place, `packages/data/ch/schemas/telemetry.sql`.
+Both the ArgoCD PreSync job that applies it in production and the single-node schema
+the e2e harness applies are **generated** from that file by
+`node packages/data/codegen/gen-ch-telemetry.mjs`, with `--check` gating CI. Editing
+the source without regenerating leaves the cluster on the old schema and the harness
+testing it — which is how the three copies drifted the first time.
+
+Serving more domains is a gateway concern, not a deployment one: additional
+hostnames (`metrics.rareicon.com`, …) go on the existing HTTPRoute and reach the same
+pods. Tenants are separated inside the one process by `METRICS_PROJECT_RATE_LIMIT_PER_MIN`
+and the CORS allowlist.
+
+Recovery covers the **schema, not the data**. There are no ClickHouse backups and
+every table carries a 30-day TTL, so a wipe loses the telemetry in it permanently.
+The e2e suite drills the schema half: it drops the database, asserts readiness goes
+degraded, rebuilds from the generated artifact and asserts ingest resumes.
 
 </BentoProse>
 
