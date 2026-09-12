@@ -1,0 +1,64 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: mmorpg-game-route
+    namespace: mmorpg
+    labels:
+        app.kubernetes.io/part-of: mmorpg
+spec:
+    # parentRefs/backendRefs carry the API-server default group/kind (+ backendRef
+    # weight) EXPLICITLY — the Gateway API defaults them on the live object, so
+    # omitting them makes ArgoCD diff git-vs-live forever (perpetual OutOfSync).
+    # Mirrors the synced arpg-game-route and friendslop-game-route manifests.
+    parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: kbve-gateway
+          namespace: kbve
+    # Served by the gateway's existing `*.kbve.com` listener — a dedicated
+    # listener for this host would duplicate a SAN the wildcard already covers,
+    # which Cilium resolves to the wrong filter chain and 404s the route.
+    hostnames:
+        - mmorpg.kbve.com
+    rules:
+        # The game socket.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /ws
+          timeouts:
+              # Long-lived WebSocket — override Envoy's ~15s default backend
+              # timeout so a session survives being idle (matches the arpg and
+              # friendslop /ws rules).
+              backendRequest: 3600s
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: mmorpg-game
+                port: 7960
+                weight: 1
+        # The token endpoint. A browser cannot put an Authorization header on a
+        # WebSocket, so admission happens over HTTP first and the socket is
+        # opened with the credential that returns.
+        - matches:
+              - path:
+                    type: Exact
+                    value: /token
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: mmorpg-game
+                port: 7961
+                weight: 1
+        # Useful for checking a fleet from outside, and the same path the
+        # readiness and liveness probes hit from inside.
+        - matches:
+              - path:
+                    type: Exact
+                    value: /healthz
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: mmorpg-game
+                port: 7961
+                weight: 1
