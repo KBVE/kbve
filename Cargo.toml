@@ -182,3 +182,24 @@ lto = true
 strip = true
 codegen-units = 1
 panic = 'abort'
+
+# egui, with one upstream regression reverted.
+#
+# emilk/egui#8354 began storing a `web_sys::File` inside `DroppedFile` and, that
+# handle not being thread-safe, dropped the `Send + Sync` bound from
+# `DroppedFileHandle` on `wasm32 + atomics`. `egui::Context` holds one
+# transitively, so it stopped being `Send`, and a non-`Send` `Context` cannot be
+# a bevy `Component` -- bevy_egui then fails to compile for any wasm build with
+# shared memory, which is every SharedArrayBuffer build. That is 326 errors
+# between mmorpg and a browser bundle that can share memory with a worker.
+#
+# The fork is branched from the 0.36.2 tag and carries one commit restoring the
+# bound. bevy_egui's `BevyDroppedFile` holds a `PathBuf` and its wasm
+# `bytes_async` returns an error, so it never stored a `web_sys::File` and never
+# needed the relaxation -- and an integration that does store one fails to
+# compile against the fork rather than being handed an unsound `Send`.
+#
+# Upstream: emilk/egui#8401 (open since 2026-08-08, no fix in flight) and
+# vladbat00/bevy_egui#498. Delete this patch and the fork when #8401 lands.
+[patch.crates-io]
+egui = { git = "https://github.com/KBVE/egui", branch = "kbve-base" }

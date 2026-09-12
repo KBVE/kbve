@@ -38,6 +38,14 @@ on:
         secrets:
             ITCH_API_KEY:
                 required: false
+            # A game whose assets live on the Forgejo LFS remote needs these to
+            # materialize them. Absent, the build still runs -- and ships a
+            # bundle whose meshes and textures are pointer stubs -- so the pull
+            # is verified rather than attempted.
+            FORGEJO_USER:
+                required: false
+            FORGEJO_TOKEN:
+                required: false
     workflow_dispatch:
         inputs:
             project:
@@ -116,6 +124,17 @@ jobs:
                   done
                   rustup default nightly
 
+                  # rust-toolchain.toml pins 1.98.0 for the whole repo and a
+                  # toolchain file beats `rustup default`, so a build that does
+                  # not set RUSTUP_TOOLCHAIN itself compiles on 1.98.0 -- which
+                  # has no wasm32 target from the install above. mmorpg's bundle
+                  # is exactly that build: stable, because the shared-memory one
+                  # needs egui to be Send on a threaded wasm target and it is
+                  # not. Adding the target with no --toolchain gives it to
+                  # whichever toolchain is active here, which is the pinned one.
+                  rustup target add wasm32-unknown-unknown
+                  rustup show active-toolchain
+
             - name: Rust Cache
               if: ${{ inputs.needs_rust == true }}
               uses: Swatinem/rust-cache@v2
@@ -133,24 +152,63 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
-            # The project's own build task, so the bundle CI ships is the one a
-            # developer gets locally. moon resolves its project-local npm
-            # install through the task graph.
-            - name: Build
-              env:
-                  CI: 'true'
-              run: moon run ${{ inputs.project }}:build
-
-            - name: Resolve the build output
-              id: dist
+            # Before the build, because the build reads them. The graph is the
+            # only thing that knows where a project lives, so the pull is
+            # scoped to that directory rather than to the whole remote: the
+            # arcade remote holds colony and yuki as well, and pulling those
+            # costs minutes for blobs this bundle will not contain.
+            - name: Resolve the project source
+              id: source
               env:
                   PROJECT: ${{ inputs.project }}
               run: |
                   set -euo pipefail
                   SOURCE=$(moon query projects --id "$PROJECT" | jq -r '.projects[0].source')
+                  [ -n "$SOURCE" ] && [ "$SOURCE" != 'null' ] || {
+                    echo "::error::no source in the project graph for $PROJECT"
+                    exit 1
+                  }
+                  echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
+
+            # Nothing here for a game whose assets are committed outright. For
+            # one that keeps them in LFS, a checkout without this step leaves
+            # every mesh and texture a 130-byte pointer file -- which builds,
+            # uploads, and fails in the player's browser rather than in CI.
+            # ensure.sh proves they materialized instead of trusting the pull.
+            - name: Pull LFS assets (Forgejo)
+              if: ${{ fromJSON(inputs.publish).lfs_remote != '' }}
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  LFS_REMOTE: ${{ fromJSON(inputs.publish).lfs_remote }}
+                  LFS_INCLUDE: ${{ steps.source.outputs.source }}
+                  LFS_REQUIRED: '1'
+              run: bash tools/lfs/ensure.sh
+
+            # The project's own build task, so the bundle CI ships is the one a
+            # developer gets locally. moon resolves its project-local npm
+            # install through the task graph.
+            #
+            # Which task, because `build` is not universal. A Vite game's build
+            # is the bundle; a rust game inherits `build` from the rust
+            # toolchain, where it means a native `cargo build`. The project
+            # names its wasm task in WEB_GAME_TASK and verify-tag carries it
+            # here, defaulting to `build` so a Vite game says nothing.
+            - name: Build
+              env:
+                  CI: 'true'
+              run: moon run ${{ inputs.project }}:${{ fromJSON(inputs.publish).web_game_task || 'build' }}
+
+            - name: Resolve the build output
+              id: dist
+              env:
+                  SOURCE: ${{ steps.source.outputs.source }}
+                  TARGET: ${{ inputs.project }}:${{ fromJSON(inputs.publish).web_game_task || 'build' }}
+              run: |
+                  set -euo pipefail
                   DIST="$SOURCE/dist"
                   if [ ! -d "$DIST" ] || [ -z "$(ls -A "$DIST")" ]; then
-                    echo "::error::$PROJECT:build produced nothing at $DIST"
+                    echo "::error::$TARGET produced nothing at $DIST"
                     exit 1
                   fi
                   echo "path=$DIST" >> "$GITHUB_OUTPUT"

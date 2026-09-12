@@ -511,6 +511,11 @@ jobs:
             # ITCH_API_KEY is the input; ITCH_API is the org secret behind it,
             # as ci-godot, ci-unity and ci-unreal already pass it for butler.
             ITCH_API_KEY: ${{ secrets.ITCH_API }}
+            # A game whose assets live on the Forgejo LFS remote -- every
+            # apps/arcade game does -- needs these to materialize them before
+            # the build reads them.
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # Withdraw a tag that never shipped.
     #
