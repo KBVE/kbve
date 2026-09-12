@@ -29,12 +29,13 @@ AS $$
                'in_reply_to',  m.in_reply_to,
                'received_at',  m.received_at,
                'sent_at',      m.sent_at,
-               'from_user_id', m.from_user_id,
+               'from_username', m.from_username,
                'has_body',     (m.body IS NOT NULL AND m.body <> '')
            ) ORDER BY m.received_at DESC, m.id DESC), '[]'::jsonb)
       FROM (
-          SELECT *
+          SELECT m.*, fu.username AS from_username
             FROM mail.messages AS m
+            LEFT JOIN profile.username AS fu ON fu.user_id = m.from_user_id
            WHERE p_user_id IS NOT NULL
              AND m.user_id = p_user_id
              AND (p_before IS NULL OR m.received_at < p_before)
@@ -62,16 +63,18 @@ AS $$
                'from_addr',    m.from_addr,
                'to_addr',      m.to_addr,
                'subject',      m.subject,
-               'body',         m.body,
+               'body',         left(m.body, 1048576),
+               'body_truncated', (length(coalesce(m.body, '')) > 1048576),
                'headers',      m.headers,
                'message_id',   m.message_id,
                'in_reply_to',  m.in_reply_to,
                'received_at',  m.received_at,
                'sent_at',      m.sent_at,
                'error',        m.error,
-               'from_user_id', m.from_user_id
+               'from_username', fu.username
            )
       FROM mail.messages AS m
+      LEFT JOIN profile.username AS fu ON fu.user_id = m.from_user_id
      WHERE p_user_id IS NOT NULL
        AND p_id IS NOT NULL
        AND m.user_id = p_user_id

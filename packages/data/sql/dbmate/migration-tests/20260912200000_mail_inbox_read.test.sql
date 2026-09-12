@@ -3,19 +3,21 @@
 
 -- SEED
 
-DELETE FROM auth.users
- WHERE id IN ('b0000000-0000-4000-8000-000000000011',
-              'b0000000-0000-4000-8000-000000000012');
+DELETE FROM mail.messages
+ WHERE user_id IN ('b0000000-0000-4000-8000-000000000011',
+                   'b0000000-0000-4000-8000-000000000012');
 
 INSERT INTO auth.users (id)
 VALUES
     ('b0000000-0000-4000-8000-000000000011'),
-    ('b0000000-0000-4000-8000-000000000012');
+    ('b0000000-0000-4000-8000-000000000012')
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO profile.username (user_id, username)
 VALUES
     ('b0000000-0000-4000-8000-000000000011', 'mailtest-carol'),
-    ('b0000000-0000-4000-8000-000000000012', 'mailtest-dave');
+    ('b0000000-0000-4000-8000-000000000012', 'mailtest-dave')
+ON CONFLICT (user_id) DO UPDATE SET username = EXCLUDED.username;
 
 INSERT INTO mail.messages (user_id, via, direction, from_addr, subject, body, received_at)
 VALUES
@@ -49,8 +51,11 @@ BEGIN
     IF r -> 1 ->> 'subject' <> 'three' OR (r -> 1 ->> 'has_body')::boolean THEN
         RAISE EXCEPTION 'fail: null body must report has_body=false, got %', r -> 1;
     END IF;
-    IF r -> 0 ? 'body' THEN
-        RAISE EXCEPTION 'fail: listing must not carry bodies';
+    IF r -> 0 ? 'body' OR r -> 0 ? 'from_user_id' THEN
+        RAISE EXCEPTION 'fail: listing must not carry bodies or user ids';
+    END IF;
+    IF r -> 0 ->> 'from_username' <> 'mailtest-carol' OR r -> 1 ? 'from_user_id' THEN
+        RAISE EXCEPTION 'fail: sender exposed as username only, got %', r -> 0;
     END IF;
 
     -- dave never sees carol's mail, and vice versa
@@ -79,9 +84,16 @@ BEGIN
     SELECT m.id INTO first_id FROM mail.messages AS m
      WHERE m.user_id = carol AND m.subject = 'one';
     r := public.herbmail_message_get(carol, first_id);
-    IF r ->> 'body' <> 'first' OR jsonb_typeof(r -> 'headers') <> 'array' THEN
-        RAISE EXCEPTION 'fail: owner get should return body + headers, got %', r;
+    IF r ->> 'body' <> 'first' OR jsonb_typeof(r -> 'headers') <> 'array'
+       OR (r ->> 'body_truncated')::boolean OR r ? 'from_user_id' THEN
+        RAISE EXCEPTION 'fail: owner get should return body + headers, no user ids, got %', r;
     END IF;
+    UPDATE mail.messages SET body = repeat('x', 1048576 + 10) WHERE id = first_id;
+    r := public.herbmail_message_get(carol, first_id);
+    IF NOT (r ->> 'body_truncated')::boolean OR octet_length(r ->> 'body') <> 1048576 THEN
+        RAISE EXCEPTION 'fail: body should be capped at 1 MiB with the flag set';
+    END IF;
+    UPDATE mail.messages SET body = 'first' WHERE id = first_id;
     r := public.herbmail_message_get(dave, first_id);
     IF r IS NOT NULL THEN
         RAISE EXCEPTION 'fail: dave must not read carol''s message, got %', r;

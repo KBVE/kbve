@@ -11,7 +11,7 @@ export interface InboxRow {
 	in_reply_to: string | null;
 	received_at: string;
 	sent_at: string | null;
-	from_user_id: string | null;
+	from_username: string | null;
 	has_body: boolean;
 }
 
@@ -24,6 +24,7 @@ export interface Attachment {
 export interface MessageDetail extends Omit<InboxRow, 'has_body'> {
 	via: string;
 	error: string | null;
+	body_truncated?: boolean;
 	body: {
 		text: string | null;
 		html: string | null;

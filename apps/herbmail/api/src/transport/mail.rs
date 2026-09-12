@@ -298,6 +298,50 @@ fn html_to_text(html: &str) -> String {
         .replace("&#39;", "'")
 }
 
+/// Cursor shape: `YYYY-MM-DDTHH:MM:SS[.frac](Z|+HH:MM|-HH:MM)`, at most 40
+/// ASCII bytes, so nothing but a timestamp ever reaches the RPC cast.
+fn is_rfc3339(value: &str) -> bool {
+    let b = value.as_bytes();
+    if b.len() < 20 || b.len() > 40 || !value.is_ascii() {
+        return false;
+    }
+    let digits = |r: std::ops::Range<usize>| b[r].iter().all(u8::is_ascii_digit);
+    if !(digits(0..4)
+        && b[4] == b'-'
+        && digits(5..7)
+        && b[7] == b'-'
+        && digits(8..10)
+        && (b[10] == b'T' || b[10] == b't' || b[10] == b' ')
+        && digits(11..13)
+        && b[13] == b':'
+        && digits(14..16)
+        && b[16] == b':'
+        && digits(17..19))
+    {
+        return false;
+    }
+    let mut i = 19;
+    if i < b.len() && b[i] == b'.' {
+        i += 1;
+        let start = i;
+        while i < b.len() && b[i].is_ascii_digit() {
+            i += 1;
+        }
+        if i == start {
+            return false;
+        }
+    }
+    match &b[i..] {
+        b"Z" | b"z" | b"+00:00" | b"+00" => true,
+        rest if rest.len() == 6 && (rest[0] == b'+' || rest[0] == b'-') => {
+            rest[1..3].iter().all(u8::is_ascii_digit)
+                && rest[3] == b':'
+                && rest[4..6].iter().all(u8::is_ascii_digit)
+        }
+        _ => false,
+    }
+}
+
 fn parse_uuid(value: &str) -> Option<uuid::Uuid> {
     uuid::Uuid::parse_str(value.trim()).ok()
 }
@@ -312,11 +356,13 @@ async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
         Err(r) => return r.into_response(),
     };
     let limit = q.limit.unwrap_or(50).clamp(1, 200);
-    let before = q
-        .before
-        .as_deref()
-        .map(str::trim)
-        .filter(|b| !b.is_empty() && b.len() <= 40 && b.chars().all(|c| c.is_ascii_graphic()));
+    let before = match q.before.as_deref().map(str::trim).filter(|b| !b.is_empty()) {
+        None => None,
+        Some(b) if is_rfc3339(b) => Some(b.to_string()),
+        Some(_) => {
+            return error(StatusCode::UNPROCESSABLE_ENTITY, "bad_cursor").into_response();
+        }
+    };
     let rows = match rpc(
         &db,
         "herbmail_inbox_list",
@@ -602,6 +648,17 @@ mod tests {
         let body = render_body("out", "typed by the user");
         assert_eq!(body["text"], "typed by the user");
         assert!(body["html"].is_null());
+    }
+
+    #[test]
+    fn cursors_must_be_rfc3339() {
+        assert!(is_rfc3339("2026-09-12T06:30:44.609166+00:00"));
+        assert!(is_rfc3339("2026-09-12T06:30:44Z"));
+        assert!(is_rfc3339("2026-09-12 06:30:44-05:00"));
+        assert!(!is_rfc3339("2026-09-12"));
+        assert!(!is_rfc3339("now()"));
+        assert!(!is_rfc3339("2026-09-12T06:30:44+00:00;drop"));
+        assert!(!is_rfc3339("2026-09-12T06:30:44.+00:00"));
     }
 
     #[test]
