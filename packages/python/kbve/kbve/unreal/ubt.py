@@ -34,4 +34,10 @@ def generate_clang_db_command(
         config,
         f"-project={uproject}",
         "-mode=GenerateClangDatabase",
+        # Unity builds collapse a module into a handful of blob TUs, and the
+        # database then carries no entry for most source files -- clangd falls
+        # back to guessed flags and reports every UE type as undeclared. Per-file
+        # actions also match what the Mac CI lane compiles, so a missing include
+        # shows up in the editor instead of in a failed build.
+        "-DisableUnity",
     ]
