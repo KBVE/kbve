@@ -1,6 +1,7 @@
 import argparse
 import shutil
 import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -16,13 +17,18 @@ def write_clangd_pointer(repo_root: Path, db_dir: Path) -> Path:
     return out
 
 
-def locate_generated_db(engine_root: Path, project_dir: Path) -> Path | None:
-    for candidate in [
+def locate_generated_db(engine_root: Path, project_dir: Path, newer_than: float = 0.0) -> Path | None:
+    candidates = [
         Path(project_dir) / "compile_commands.json",
         Path(engine_root) / "compile_commands.json",
-    ]:
-        if candidate.exists():
-            return candidate
+    ]
+    # The previous run left a database in the project directory, and UBT writes
+    # its own under the engine root. Taking the first that exists picks up the
+    # old file every time -- the run reports success and the database never
+    # changes. Only a file this run wrote counts.
+    fresh = [c for c in candidates if c.exists() and c.stat().st_mtime >= newer_than]
+    if fresh:
+        return max(fresh, key=lambda c: c.stat().st_mtime)
     return None
 
 
@@ -68,15 +74,16 @@ def main(argv: list[str] | None = None) -> int:
         print(" ".join(cmd))
         return 0
 
+    started = time.time()
     result = subprocess.run(cmd)
     if result.returncode != 0:
         print(f"UBT failed with exit code {result.returncode}", file=sys.stderr)
         return result.returncode
 
     project_dir = uproject.parent
-    db = locate_generated_db(engine_root, project_dir)
+    db = locate_generated_db(engine_root, project_dir, newer_than=started)
     if db is None:
-        print("UBT succeeded but compile_commands.json not found", file=sys.stderr)
+        print("UBT succeeded but wrote no compile_commands.json", file=sys.stderr)
         return 2
     target_db = project_dir / "compile_commands.json"
     if db != target_db:

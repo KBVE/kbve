@@ -50,3 +50,4 @@ def test_generate_clang_db_command_shape(uproject, tmp_path):
     assert "chuckEditor" in cmd
     assert "Development" in cmd
     assert "Mac" in cmd
+    assert "-DisableUnity" in cmd
