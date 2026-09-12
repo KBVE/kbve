@@ -133,7 +133,7 @@ projects:
         isometric-game: 'apps/arcade/isometric/src-tauri'
 
         # The arcade games are not listed here: apps/arcade/* is globbed
-        # above, which registers colony and mmorpg under the same ids these
+        # above, which registers colony and kbve-mmorpg under the same ids these
         # lines gave them.
 
         # Published npm packages
@@ -170,7 +170,7 @@ projects:
         factorio-ctl: 'apps/vm/factorio-ctl'
         firecracker-ctl: 'apps/vm/firecracker-ctl'
         friendslop-server: 'apps/agones/friendslop/server'
-        mmorpg-server: 'apps/agones/kbve-mmorpg/server'
+        kbve-mmorpg-server: 'apps/agones/kbve-mmorpg/server'
         herbmail-server: 'apps/agones/herbmail/server'
         irc-gateway: 'apps/irc/api'
         jobboard: 'apps/jobboard'

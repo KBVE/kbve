@@ -1,18 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-    name: mmorpg-game
-    namespace: mmorpg
+    name: kbve-mmorpg-game
+    namespace: kbve-mmorpg
     labels:
-        app: mmorpg-server
-        app.kubernetes.io/part-of: mmorpg
+        app: kbve-mmorpg-server
+        app.kubernetes.io/part-of: kbve-mmorpg
         kbve.com/category: game-server
         kbve.com/stack: agones
         kbve.com/managed-by: argocd
 spec:
     type: ClusterIP
     selector:
-        app: mmorpg-server
+        app: kbve-mmorpg-server
     # A player's token names one server, and netcode checks the address the
     # packets arrive from against it. Without affinity the gateway is free to
     # send the upgrade to a different pod than the one the token was minted by,

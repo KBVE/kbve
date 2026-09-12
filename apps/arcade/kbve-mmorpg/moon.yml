@@ -25,7 +25,7 @@ env:
     WASM_BINDGEN_VERSION: '0.2.126'
     MMORPG_WEB_PORT: '4321'
 
-    # Where a release of this game ships. A `mmorpg@<semver>` tag resolves to
+    # Where a release of this game ships. A `kbve-mmorpg@<semver>` tag resolves to
     # the `web-game` lane through the tag above, builds the bundle and pushes
     # it to itch with butler.
     ITCH_USER: 'kbve'
@@ -110,7 +110,7 @@ tasks:
                     --no-default-features --features webgpu
             rm -rf dist
             mkdir -p dist
-            wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/mmorpg.wasm \
+            wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/kbve_mmorpg.wasm \
                 --out-dir dist/pkg --target web --out-name mmorpg
             cp index.html dist/index.html
             # bevy resolves an asset path against the page, so the tree has to

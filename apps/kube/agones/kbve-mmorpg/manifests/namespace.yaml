@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-    name: mmorpg
+    name: kbve-mmorpg
     labels:
-        app.kubernetes.io/part-of: mmorpg
+        app.kubernetes.io/part-of: kbve-mmorpg
         kbve.com/stack: agones

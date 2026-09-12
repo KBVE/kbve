@@ -1,11 +1,11 @@
 apiVersion: agones.dev/v1
 kind: Fleet
 metadata:
-    name: mmorpg-server
-    namespace: mmorpg
+    name: kbve-mmorpg-server
+    namespace: kbve-mmorpg
     labels:
-        app: mmorpg-server
-        app.kubernetes.io/part-of: mmorpg
+        app: kbve-mmorpg-server
+        app.kubernetes.io/part-of: kbve-mmorpg
 spec:
     replicas: 0
     scheduling: Packed
@@ -17,12 +17,12 @@ spec:
     template:
         metadata:
             labels:
-                app: mmorpg-server
-                app.kubernetes.io/part-of: mmorpg
+                app: kbve-mmorpg-server
+                app.kubernetes.io/part-of: kbve-mmorpg
         spec:
             ports:
                 # No hostPort. Both lanes are TCP and reach the pod through the
-                # Cilium gateway (HTTPRoute -> mmorpg-game Service), so the pod
+                # Cilium gateway (HTTPRoute -> kbve-mmorpg-game Service), so the pod
                 # stays compatible with baseline PodSecurity — same shape as
                 # arpg and friendslop. The ports also sit above the chart's
                 # 7000-7900 dynamic range so nothing here can collide with a
@@ -44,8 +44,8 @@ spec:
             template:
                 metadata:
                     labels:
-                        app: mmorpg-server
-                        app.kubernetes.io/part-of: mmorpg
+                        app: kbve-mmorpg-server
+                        app.kubernetes.io/part-of: kbve-mmorpg
                 spec:
                     securityContext:
                         runAsNonRoot: true
@@ -55,8 +55,8 @@ spec:
                         seccompProfile:
                             type: RuntimeDefault
                     containers:
-                        - name: mmorpg-server
-                          image: ghcr.io/kbve/mmorpg-server:0.0.1
+                        - name: kbve-mmorpg-server
+                          image: ghcr.io/kbve/kbve-mmorpg-server:0.0.1
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: MMORPG_GAME_ADDR
@@ -84,11 +84,11 @@ spec:
                               - name: GAME_PRIVATE_KEY
                                 valueFrom:
                                     secretKeyRef:
-                                        name: mmorpg-netcode
+                                        name: kbve-mmorpg-netcode
                                         key: private-key
                                         optional: true
                               - name: RUST_LOG
-                                value: 'info,mmorpg_server=debug'
+                                value: 'info,kbve_mmorpg_server=debug'
                           ports:
                               - name: ws
                                 containerPort: 7960

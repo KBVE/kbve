@@ -1,5 +1,5 @@
 # ============================================================================
-# mmorpg-server — authoritative avian3d sim replicated with lightyear over a
+# kbve-mmorpg-server — authoritative avian3d sim replicated with lightyear over a
 # WebSocket, plus the HTTP door that mints ConnectTokens. Multi-stage build on
 # the shared chisel base.
 #
@@ -10,7 +10,7 @@
 # The COPY list below is the crate's path-dependency closure and has to stay
 # equal to it: a missing crate fails in `cargo chef prepare` with a manifest
 # error rather than anywhere near the line that introduced it.
-#   mmorpg-server -> mmorpg_net, bevy_kbve_net, jedi -> kbve-proto
+#   kbve-mmorpg-server -> mmorpg_net, bevy_kbve_net, jedi -> kbve-proto
 # ============================================================================
 
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
@@ -38,7 +38,7 @@ RUN mkdir -p apps/agones/kbve-mmorpg/server/src && \
 
 COPY packages/data/proto packages/data/proto
 
-RUN cargo chef prepare --recipe-path recipe.json --bin mmorpg-server
+RUN cargo chef prepare --recipe-path recipe.json --bin kbve-mmorpg-server
 
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
@@ -58,12 +58,12 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     if [ -n "${SCCACHE_REDIS_PASSWORD:-}" ]; then \
         export SCCACHE_REDIS_ENDPOINT=tcp://valkey.valkey.svc.cluster.local:6379 \
             SCCACHE_REDIS_USERNAME=default \
-            SCCACHE_REDIS_KEY_PREFIX=mmorpg-server; \
+            SCCACHE_REDIS_KEY_PREFIX=kbve-mmorpg-server; \
         echo "sccache: Redis backend enabled"; \
     else \
         echo "sccache: Redis password not provided, falling back to local disk cache"; \
     fi && \
-    cargo chef cook --release --recipe-path recipe.json -p mmorpg-server && \
+    cargo chef cook --release --recipe-path recipe.json -p kbve-mmorpg-server && \
     (sccache --show-stats || true)
 
 # ============================================================================
@@ -91,22 +91,22 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     if [ -n "${SCCACHE_REDIS_PASSWORD:-}" ]; then \
         export SCCACHE_REDIS_ENDPOINT=tcp://valkey.valkey.svc.cluster.local:6379 \
             SCCACHE_REDIS_USERNAME=default \
-            SCCACHE_REDIS_KEY_PREFIX=mmorpg-server; \
+            SCCACHE_REDIS_KEY_PREFIX=kbve-mmorpg-server; \
     fi && \
-    cargo build --release -p mmorpg-server && \
+    cargo build --release -p kbve-mmorpg-server && \
     (sccache --show-stats || true) && \
-    strip target/release/mmorpg-server
+    strip target/release/kbve-mmorpg-server
 
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/mmorpg-server /app/mmorpg-server
+COPY --from=builder --chown=10001:10001 /app/target/release/kbve-mmorpg-server /app/kbve-mmorpg-server
 
 ENV MMORPG_GAME_ADDR=0.0.0.0:7960
 ENV MMORPG_HTTP_ADDR=0.0.0.0:7961
-ENV RUST_LOG=info,mmorpg_server=debug
+ENV RUST_LOG=info,kbve_mmorpg_server=debug
 
 EXPOSE 7960
 EXPOSE 7961
 
-ENTRYPOINT ["/app/mmorpg-server"]
+ENTRYPOINT ["/app/kbve-mmorpg-server"]
