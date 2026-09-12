@@ -88,10 +88,28 @@ runs:
               SETUP_JS_SCRUB: ${{ inputs.scrub }}
           run: |
               set -euo pipefail
-              if [ "$SETUP_JS_SCRUB" != 'true' ] || [ "${RUNNER_OS:-}" = 'Windows' ]; then
-                exec pnpm install --frozen-lockfile
+
+              ARGS=(install --frozen-lockfile)
+              if [ "$SETUP_JS_SCRUB" = 'true' ] && [ "${RUNNER_OS:-}" != 'Windows' ]; then
+                ARGS+=(--ignore-scripts)
               fi
-              exec pnpm install --frozen-lockfile --ignore-scripts
+
+              # Three attempts, because the registry is a network and this one
+              # step stands in front of every job in the repository.
+              # `--prefer-offline` on a retry reuses whatever the failed attempt
+              # already wrote to the store instead of asking for it again.
+              for attempt in 1 2 3; do
+                if pnpm "${ARGS[@]}"; then
+                  exit 0
+                fi
+                if [ "$attempt" -eq 3 ]; then
+                  break
+                fi
+                echo "::warning::pnpm install failed (attempt $attempt/3), retrying in $((attempt * 15))s"
+                ARGS+=(--prefer-offline)
+                sleep "$((attempt * 15))"
+              done
+              exit 1
 
         # `--pending` builds exactly what the fetch skipped. It also runs the
         # root project's own `prepare`, so husky is still installed here.
@@ -143,4 +161,23 @@ runs:
                 fi
               done
 
-              exec env -i "${FORWARD[@]}" "$PNPM_BIN" rebuild --pending
+              # Retried for the same reason the fetch above is, against a
+              # different network: three of the eight allowed builds download a
+              # binary from a vendor host rather than from the registry, and
+              # those hosts have no mirror to fall back to. `herbmail-api@0.1.3`
+              # published its image and then lost the release notes to one
+              # ECONNRESET from node-precompiled-binaries.grpc.io -- grpc-tools
+              # fetching protoc -- with nothing between the reset and a failed
+              # job (#17144). A rebuild is idempotent: what already built stays
+              # built, and `--pending` picks up only what did not.
+              for attempt in 1 2 3; do
+                if env -i "${FORWARD[@]}" "$PNPM_BIN" rebuild --pending; then
+                  exit 0
+                fi
+                if [ "$attempt" -eq 3 ]; then
+                  break
+                fi
+                echo "::warning::pnpm rebuild --pending failed (attempt $attempt/3), retrying in $((attempt * 15))s"
+                sleep "$((attempt * 15))"
+              done
+              exit 1
