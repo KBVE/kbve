@@ -2107,7 +2107,7 @@
         "name": "isometric",
         "type": "application",
         "data": {
-          "root": "apps/kbve/isometric",
+          "root": "apps/arcade/isometric",
           "name": "isometric",
           "layer": "application",
           "stack": "frontend",
@@ -2116,6 +2116,21 @@
             "tauri",
             "eslint",
             "web-game"
+          ]
+        }
+      },
+      "isometric-game": {
+        "name": "isometric-game",
+        "type": "application",
+        "data": {
+          "root": "apps/arcade/isometric/src-tauri",
+          "name": "isometric-game",
+          "layer": "application",
+          "stack": "frontend",
+          "language": "rust",
+          "tags": [
+            "bevy",
+            "game"
           ]
         }
       },
@@ -4021,6 +4036,58 @@
         }
       ],
       "isometric": [],
+      "isometric-game": [
+        {
+          "source": "isometric-game",
+          "target": "bevy_inventory",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_behavior",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_db",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_cam",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_pathfinder",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_kbve_net",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_chat",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_items",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_tasker",
+          "type": "static"
+        },
+        {
+          "source": "isometric-game",
+          "target": "bevy_skills",
+          "type": "static"
+        }
+      ],
       "jedi": [
         {
           "source": "jedi",
@@ -4096,7 +4163,13 @@
       ],
       "kbve-spider": [],
       "kbve-tauri": [],
-      "kbve_wgpu": [],
+      "kbve_wgpu": [
+        {
+          "source": "kbve_wgpu",
+          "target": "isometric-game",
+          "type": "static"
+        }
+      ],
       "khashvault": [
         {
           "source": "khashvault",
@@ -4194,12 +4267,22 @@
         },
         {
           "source": "mmorpg",
+          "target": "bevy_behavior",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
           "target": "protobuf",
           "type": "static"
         },
         {
           "source": "mmorpg",
           "target": "kinetree",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
+          "target": "bevy_pathfinder",
           "type": "static"
         },
         {
