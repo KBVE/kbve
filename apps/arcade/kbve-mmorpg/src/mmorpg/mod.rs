@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod action;
+pub mod blood;
 pub mod camera;
 pub mod character;
 pub mod combat;
@@ -8,6 +9,8 @@ pub mod foot_ik;
 pub mod gaze;
 pub mod inventory;
 pub mod nav;
+#[cfg(feature = "net")]
+pub mod net;
 pub mod npc;
 pub mod player;
 pub mod pose;
@@ -43,7 +46,13 @@ impl Plugin for MmorpgPlugin {
             target_ring::TargetRingPlugin,
             ui::UiPlugin,
         ))
+        .add_plugins(blood::BloodPlugin)
         .add_systems(Startup, slow_motion);
+
+        // Multiplayer, when this build has it. Added after the game plugins so
+        // a replicated player arrives in a world that already exists.
+        #[cfg(feature = "net")]
+        app.add_plugins(net::NetPlugin);
     }
 }
 

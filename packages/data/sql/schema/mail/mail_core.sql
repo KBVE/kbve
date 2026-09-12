@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS mail.messages (
 COMMENT ON TABLE mail.messages IS
     'Single store for herbmail.com mail. via=smtp rows arrive from the Stalwart MTA hook; via=internal rows are user-to-user messages that never touch SMTP. Purged after 90 days by pg_cron.';
 
-CREATE INDEX IF NOT EXISTS messages_user_received_idx
-    ON mail.messages (user_id, received_at DESC);
+CREATE INDEX IF NOT EXISTS messages_user_received_id_idx
+    ON mail.messages (user_id, received_at DESC, id DESC);
 
 CREATE INDEX IF NOT EXISTS messages_pending_idx
     ON mail.messages (received_at)
@@ -83,16 +83,6 @@ CREATE INDEX IF NOT EXISTS messages_inbound_from_idx
     WHERE direction = 'in';
 
 COMMENT ON COLUMN mail.messages.direction IS
-ALTER TABLE mail.messages
-    ADD CONSTRAINT messages_status_check
-    CHECK (status IN ('pending', 'processed', 'failed'));
-ALTER TABLE mail.messages
-    DROP COLUMN IF EXISTS error,
-    DROP COLUMN IF EXISTS sent_at,
-    DROP COLUMN IF EXISTS in_reply_to,
-    DROP COLUMN IF EXISTS message_id,
-    DROP COLUMN IF EXISTS to_addr,
-    DROP COLUMN IF EXISTS direction;
     'in = received through Stalwart or internally; out = sent by the user through herbmail-api.';
 
 -- RETENTION — purge messages older than 90 days

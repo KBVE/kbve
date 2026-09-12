@@ -9,7 +9,7 @@ compiles to a native binary and to a browser WebGPU bundle.
 | --------------------- | ------------------------ | -------------------------- |
 | `apps/arcade/isometric` | orthographic             | 2.5D sprites               |
 | `apps/arcade/colony`  | orthographic             | 3D geometry, 2D billboards |
-| `apps/arcade/mmorpg`  | perspective third-person | 3D                         |
+| `apps/arcade/kbve-mmorpg`  | perspective third-person | 3D                         |
 
 ## Run
 
@@ -77,6 +77,29 @@ What this does **not** give you is a threaded bevy schedule. bevy 0.19 gates
 "wasm32"), feature = "multi_threaded"))` in `bevy_tasks` -- so the ECS still runs
 on one thread. What it gives is a module that can share memory with a worker,
 which is the half that cannot be added afterwards without rebuilding std.
+
+## Multiplayer
+
+Off by default. `--features net` adds the client half: it asks the dedicated
+server for a `ConnectToken`, opens the WebSocket lightyear replicates over, and
+sends held keys once per tick.
+
+```bash
+moon run mmorpg:run -- --features net              # against mmorpg.kbve.com
+MMORPG_SERVER=http://127.0.0.1:7961/token \
+  cargo run -p mmorpg --features net               # against a local server
+```
+
+Nobody has to sign in. With no account token the server issues a guest name for
+the session and nothing is persisted, which is what lets a stranger open the itch
+page and walk around. A player who *does* bring an expired token is refused
+rather than quietly demoted, so a broken session says so.
+
+Other players arrive as capsules with a name over them, tinted by whether they
+are a guest — not the full character rig, which is driven by the local animation
+and IK systems and is its own piece of work to point at a replicated transform.
+
+The server is `apps/agones/kbve-mmorpg/server`.
 
 ## Browser limits
 

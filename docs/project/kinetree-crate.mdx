@@ -88,7 +88,7 @@ bento:
           body: glam only with default-features off; libm feature for deterministic transcendentals across server and client.
     related:
         - title: MMORPG client source
-          href: https://github.com/KBVE/kbve/tree/main/apps/arcade/mmorpg
+          href: https://github.com/KBVE/kbve/tree/main/apps/arcade/kbve-mmorpg
           copy: The bevy + avian3d client whose legs this crate solves.
           icon: package
     features_eyebrow: What it gives you
@@ -127,7 +127,7 @@ Tests live in `crates/kinetree/tests` (limb, chain, rig, plugin). Run them with 
 
 ## Field notes
 
-Working log for the `apps/arcade/mmorpg` integration. Written for whoever picks this up next, human or agent. Dates are absolute.
+Working log for the `apps/arcade/kbve-mmorpg` integration. Written for whoever picks this up next, human or agent. Dates are absolute.
 
 ### Goal
 
@@ -135,7 +135,7 @@ Replace shipped animation clips for locomotion with compact data that IK and pro
 
 ### Where the data comes from
 
-Epic's Game Animation Sample locomotion set (GASP), kept locally in `~/Downloads/Animations-2`. Not in the repo, 5.5 GB, UE-only licence, never shipped. It is baked with the headless Blender tool `kbve-blender-gait` (`packages/python/kbve/kbve/blender/gait_bake.py`) into `apps/arcade/mmorpg/assets/gaits/neutral.gait.ron`: 20 loops (idle, walk and jog in 8 directions, sprint in 3), 71 KB. Per gait: direction, speed, hip height, stride period, pelvis bob, yaw and roll, and per foot contact phase, duty, lift, forward, side and pitch as 32 samples on a shared clock that starts at left-foot contact. Everything is normalised by leg length so it is rig-independent.
+Epic's Game Animation Sample locomotion set (GASP), kept locally in `~/Downloads/Animations-2`. Not in the repo, 5.5 GB, UE-only licence, never shipped. It is baked with the headless Blender tool `kbve-blender-gait` (`packages/python/kbve/kbve/blender/gait_bake.py`) into `apps/arcade/kbve-mmorpg/assets/gaits/neutral.gait.ron`: 20 loops (idle, walk and jog in 8 directions, sprint in 3), 71 KB. Per gait: direction, speed, hip height, stride period, pelvis bob, yaw and roll, and per foot contact phase, duty, lift, forward, side and pitch as 32 samples on a shared clock that starts at left-foot contact. Everything is normalised by leg length so it is rig-independent.
 
 Bake rules learned the hard way:
 
@@ -161,7 +161,7 @@ Bugs this found in one pass that weeks of looking at frames missed: a hurry loop
 
 ### Why it still reads wrong, and the pivot (decided 2026-09-09)
 
-The bake keeps ankle positions and discards every joint rotation. Legs rebuilt from foot positions by two-bone IK are "IK legs": feet right, everything above synthetic. Turns, starts and stops are separate mocap clips with real weight shifts that rules cannot fake; every rule fought another. The reviewer's point 6 in `apps/arcade/mmorpg/FEEDBACK.md` was right.
+The bake keeps ankle positions and discards every joint rotation. Legs rebuilt from foot positions by two-bone IK are "IK legs": feet right, everything above synthetic. Turns, starts and stops are separate mocap clips with real weight shifts that rules cannot fake; every rule fought another. The reviewer's point 6 in `apps/arcade/kbve-mmorpg/FEEDBACK.md` was right.
 
 Next architecture, still no GLB, still our own data:
 

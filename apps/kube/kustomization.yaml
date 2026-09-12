@@ -83,6 +83,7 @@ resources:
     - agones/arpg/application.yaml
     # - agones/herbmail/application.yaml  # DISABLED: enable once ghcr.io/kbve/herbmail-server:<version> is published and game.herbmail.com resolves
     - agones/friendslop/application.yaml
+    - agones/mmorpg/application.yaml
     - agones/factorio/application.yaml
     - agones/palworld/application.yaml
     # ToCloud9 — clustered AzerothCore (WoW 3.3.5a), test case for the raw-TCP

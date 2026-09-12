@@ -32,7 +32,7 @@ spec:
                 app.kubernetes.io/version: '3.9'
                 version: '3.9'
             annotations:
-                config-hash: 8def9c20346cdd082231e084b3ee36c5
+                config-hash: d74c8f3eb35b68d3ca334291d5829efd
                 kuma.io/gateway: enabled
                 traffic.sidecar.istio.io/includeInboundPorts: ''
         spec:

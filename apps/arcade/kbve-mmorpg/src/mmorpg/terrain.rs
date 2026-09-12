@@ -8,7 +8,7 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 
 use super::river::{bank_wetness, river_at};
 use super::terrain_material::{
-    TerrainExtension, TerrainMaterial, TerrainParams, layer_array, load_ground_strips,
+    BloodParams, TerrainExtension, TerrainMaterial, TerrainParams, layer_array, load_ground_strips,
 };
 use super::water_material::{WaterMaterial, water_material};
 use super::world::{height_at, normal_at};
@@ -54,8 +54,8 @@ pub struct TerrainChunk {
 
 /// Shared handles every chunk entity reuses.
 #[derive(Resource)]
-struct TerrainAssets {
-    material: Handle<TerrainMaterial>,
+pub struct TerrainAssets {
+    pub material: Handle<TerrainMaterial>,
     water: Handle<WaterMaterial>,
 }
 
@@ -343,6 +343,8 @@ fn seed_terrain(
                 params: TerrainParams::default(),
                 layers: Handle::default(),
                 normals: Handle::default(),
+                blood_params: BloodParams::default(),
+                blood: Handle::default(),
             },
         }),
         water: waters.add(water_material()),

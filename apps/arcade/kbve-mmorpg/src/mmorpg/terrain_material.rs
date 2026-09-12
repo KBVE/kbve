@@ -75,6 +75,38 @@ impl Default for TerrainParams {
     }
 }
 
+/// Uniform half of the blood mask, mirrored by `BloodParams` in the shader.
+///
+/// Field order is the layout: the `Vec3` sits on a 16-byte boundary so the struct
+/// encodes the same on both sides without hand-written padding.
+#[derive(Clone, Copy, Debug, Reflect, ShaderType)]
+pub struct BloodParams {
+    /// World position of the mask's lower corner, in metres.
+    pub origin: Vec2,
+    /// How many metres of world the mask spans, or zero while no mask is bound.
+    pub extent: f32,
+    /// Coverage at which the mask starts reading as blood rather than damp ground.
+    pub threshold: f32,
+    pub color: Vec3,
+    /// Roughness of wet blood, well below any ground it covers.
+    pub roughness: f32,
+    /// How much of the ground beneath still shows through at full coverage.
+    pub blending: f32,
+}
+
+impl Default for BloodParams {
+    fn default() -> Self {
+        Self {
+            origin: Vec2::ZERO,
+            extent: 0.0,
+            threshold: 0.22,
+            color: Vec3::new(0.24, 0.012, 0.012),
+            roughness: 0.12,
+            blending: 0.15,
+        }
+    }
+}
+
 /// Extension bindings; indices start at 100 to clear [`StandardMaterial`].
 #[derive(Asset, AsBindGroup, Reflect, Clone, Debug)]
 pub struct TerrainExtension {
@@ -86,6 +118,11 @@ pub struct TerrainExtension {
     #[texture(103, dimension = "2d_array")]
     #[sampler(104)]
     pub normals: Handle<Image>,
+    #[uniform(105)]
+    pub blood_params: BloodParams,
+    #[texture(106)]
+    #[sampler(107)]
+    pub blood: Handle<Image>,
 }
 
 impl MaterialExtension for TerrainExtension {
