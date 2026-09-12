@@ -1567,7 +1567,40 @@ fn report(
     }
 }
 
-/// Logs each time a character's right foot lands left of its left foot, with what the stride was doing.
+/// How far the right ankle must sit inside the left before the stride counts as
+/// crossed, in metres.
+///
+/// Measured, not chosen. Straight-line `walk` and `jog` autowalks cannot cross a
+/// stride, and across five of them the ankles pass within 2 cm about 70 times a
+/// run, never deeper than 8 cm. Turning runs reach 14 to 16 cm. This sits above
+/// the first and below the second, so straight travel reports nothing and the
+/// deep events survive.
+///
+/// The count past this is **not** a regression metric. Three repeats of the same
+/// `jogturn` gave 3, 7 and 0 events past it while the shallow count held at 76,
+/// 78 and 87: the noise floor is stable and the tail is rare, so a single run
+/// says nothing about whether a gait change helped.
+const CROSS_GAP: f32 = -0.09;
+
+/// Straight-line walk and jog reach -0.080, so a threshold at or above that
+/// reports ordinary travel as a crossed stride.
+const _: () = assert!(CROSS_GAP < -0.08);
+
+/// Reads a threshold override, as a depth in metres of either sign.
+fn cross_gap_from(raw: Option<&str>) -> f32 {
+    raw.and_then(|v| v.parse::<f32>().ok())
+        .filter(|v| v.is_finite())
+        .map(|v| -v.abs())
+        .unwrap_or(CROSS_GAP)
+}
+
+/// `MMORPG_CROSS=<metres>` re-scores a run against the gait's noise floor
+/// without a rebuild.
+fn cross_gap() -> f32 {
+    cross_gap_from(std::env::var("MMORPG_CROSS").ok().as_deref())
+}
+
+/// Logs each time a character's right foot lands well inside its left, with what the stride was doing.
 fn detect_crossing(
     mut crossed: Local<bevy::platform::collections::HashSet<Entity>>,
     bodies: Query<(Entity, &GlobalTransform, &Cadence), (With<Character>, Standing)>,
@@ -1595,7 +1628,7 @@ fn detect_crossing(
         };
         let side = cadence.forward.cross(Vec3::Y);
         let gap = (right - left).dot(side);
-        let is_crossed = gap < -0.02;
+        let is_crossed = gap < cross_gap();
         let was = crossed.contains(&entity);
         if is_crossed && !was {
             warn!(
@@ -1610,5 +1643,24 @@ fn detect_crossing(
         } else if !is_crossed && was {
             crossed.remove(&entity);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_override_is_read_as_a_depth_whichever_sign_it_carries() {
+        assert_eq!(cross_gap_from(Some("0.05")), -0.05);
+        assert_eq!(cross_gap_from(Some("-0.05")), -0.05);
+    }
+
+    #[test]
+    fn an_absent_or_unreadable_override_leaves_the_measured_threshold() {
+        assert_eq!(cross_gap_from(None), CROSS_GAP);
+        assert_eq!(cross_gap_from(Some("")), CROSS_GAP);
+        assert_eq!(cross_gap_from(Some("deep")), CROSS_GAP);
+        assert_eq!(cross_gap_from(Some("nan")), CROSS_GAP);
     }
 }
