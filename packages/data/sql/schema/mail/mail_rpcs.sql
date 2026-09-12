@@ -259,9 +259,11 @@ GRANT EXECUTE ON FUNCTION public.stalwart_ingest(text, text[], text, text, jsonb
 -- postgres, search_path pinned, anon/authenticated revoked.
 
 CREATE OR REPLACE FUNCTION public.herbmail_inbox_list(
-    p_user_id uuid,
-    p_limit   integer     DEFAULT 50,
-    p_before  timestamptz DEFAULT NULL
+    p_user_id   uuid,
+    p_limit     integer     DEFAULT 50,
+    p_before    timestamptz DEFAULT NULL,
+    p_before_id uuid        DEFAULT NULL,
+    p_direction text        DEFAULT NULL
 )
 RETURNS jsonb
 LANGUAGE sql
@@ -290,7 +292,10 @@ AS $$
             LEFT JOIN profile.username AS fu ON fu.user_id = m.from_user_id
            WHERE p_user_id IS NOT NULL
              AND m.user_id = p_user_id
-             AND (p_before IS NULL OR m.received_at < p_before)
+             AND (p_direction IS NULL OR m.direction = p_direction)
+             AND ((p_before IS NULL AND p_before_id IS NULL)
+                  OR (p_before IS NOT NULL AND p_before_id IS NOT NULL
+                      AND (m.received_at, m.id) < (p_before, p_before_id)))
            ORDER BY m.received_at DESC, m.id DESC
            LIMIT least(greatest(coalesce(p_limit, 50), 1), 200)
       ) AS m;
@@ -362,13 +367,13 @@ AS $$
      WHERE p_user_id IS NOT NULL;
 $$;
 
-ALTER FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz) OWNER TO postgres;
+ALTER FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text) OWNER TO postgres;
 ALTER FUNCTION public.herbmail_message_get(uuid, uuid) OWNER TO postgres;
 ALTER FUNCTION public.herbmail_mailbox_stats(uuid) OWNER TO postgres;
 
-REVOKE ALL ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz) FROM anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz) TO service_role;
+REVOKE ALL ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text) TO service_role;
 REVOKE ALL ON FUNCTION public.herbmail_message_get(uuid, uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.herbmail_message_get(uuid, uuid) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.herbmail_message_get(uuid, uuid) TO service_role;

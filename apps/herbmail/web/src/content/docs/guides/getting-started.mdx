@@ -50,7 +50,7 @@ The web client talks to a small HTTP API on this host with your session token. T
 | Method | Path                 | Purpose                                |
 | ------ | -------------------- | -------------------------------------- |
 | `GET`  | `/mail/me`           | Address, counts, remaining daily quota |
-| `GET`  | `/mail/inbox`        | Newest messages, `?limit=&before=`     |
+| `GET`  | `/mail/inbox`        | Newest first; `?direction=in\|out`, page with `before=<received_at>&before_id=<id>` from the last row |
 | `GET`  | `/mail/messages/:id` | One message, decoded body              |
 | `POST` | `/mail/send`         | `{ to, subject, body, in_reply_to }`   |
 

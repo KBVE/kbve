@@ -69,9 +69,29 @@ BEGIN
     IF jsonb_array_length(r) <> 1 THEN
         RAISE EXCEPTION 'fail: limit 0 should clamp to 1, got %', jsonb_array_length(r);
     END IF;
-    r := public.herbmail_inbox_list(carol, 50, now() - interval '90 minutes');
+    r := public.herbmail_inbox_list(carol, 50, now() - interval '90 minutes', '00000000-0000-0000-0000-000000000000');
     IF jsonb_array_length(r) <> 2 OR r -> 0 ->> 'subject' <> 'two' THEN
         RAISE EXCEPTION 'fail: before cursor should leave the two oldest, got %', r;
+    END IF;
+    -- half a cursor fails closed: nothing, never "everything"
+    r := public.herbmail_inbox_list(carol, 50, now() - interval '90 minutes', NULL);
+    IF jsonb_array_length(r) <> 0 THEN
+        RAISE EXCEPTION 'fail: partial cursor should yield no rows, got %', jsonb_array_length(r);
+    END IF;
+    -- ties on received_at page by id, no row skipped or repeated
+    UPDATE mail.messages SET received_at = now() - interval '5 hours'
+     WHERE user_id = carol AND direction = 'in';
+    r := public.herbmail_inbox_list(carol, 2, NULL, NULL, 'in');
+    IF jsonb_array_length(r) <> 2 THEN
+        RAISE EXCEPTION 'fail: direction filter + limit, got %', r;
+    END IF;
+    r := public.herbmail_inbox_list(carol, 2, (r -> 1 ->> 'received_at')::timestamptz, (r -> 1 ->> 'id')::uuid, 'in');
+    IF jsonb_array_length(r) <> 1 THEN
+        RAISE EXCEPTION 'fail: tie-break page should hold the last row, got %', r;
+    END IF;
+    r := public.herbmail_inbox_list(carol, 50, NULL, NULL, 'out');
+    IF jsonb_array_length(r) <> 1 OR r -> 0 ->> 'direction' <> 'out' THEN
+        RAISE EXCEPTION 'fail: out filter, got %', r;
     END IF;
 
     -- null user id yields an empty list, never a scan of everyone
@@ -114,12 +134,12 @@ BEGIN
     END IF;
 
     -- privileges: service_role only
-    IF has_function_privilege('anon', 'public.herbmail_inbox_list(uuid, integer, timestamptz)', 'EXECUTE')
+    IF has_function_privilege('anon', 'public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text)', 'EXECUTE')
        OR has_function_privilege('authenticated', 'public.herbmail_message_get(uuid, uuid)', 'EXECUTE')
        OR has_function_privilege('anon', 'public.herbmail_mailbox_stats(uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'fail: anon/authenticated must not execute inbox read RPCs';
     END IF;
-    IF NOT has_function_privilege('service_role', 'public.herbmail_inbox_list(uuid, integer, timestamptz)', 'EXECUTE') THEN
+    IF NOT has_function_privilege('service_role', 'public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'fail: service_role must execute herbmail_inbox_list';
     END IF;
 END;
@@ -129,7 +149,7 @@ $$;
 
 DO $$
 BEGIN
-    IF to_regprocedure('public.herbmail_inbox_list(uuid, integer, timestamptz)') IS NOT NULL
+    IF to_regprocedure('public.herbmail_inbox_list(uuid, integer, timestamptz, uuid, text)') IS NOT NULL
        OR to_regprocedure('public.herbmail_message_get(uuid, uuid)') IS NOT NULL
        OR to_regprocedure('public.herbmail_mailbox_stats(uuid)') IS NOT NULL THEN
         RAISE EXCEPTION 'fail: inbox read RPCs should be dropped on down';
@@ -137,6 +157,10 @@ BEGIN
     IF (SELECT count(*) FROM mail.messages
          WHERE user_id = 'b0000000-0000-4000-8000-000000000011') <> 4 THEN
         RAISE EXCEPTION 'fail: rollback must not touch message rows';
+    END IF;
+    IF to_regclass('mail.messages_user_received_idx') IS NULL
+       OR to_regclass('mail.messages_user_received_id_idx') IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: down must restore the original index';
     END IF;
 END;
 $$;

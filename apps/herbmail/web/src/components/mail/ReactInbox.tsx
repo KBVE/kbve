@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { $auth, openModal } from '@kbve/astro';
 import DOMPurify from 'dompurify';
@@ -16,10 +16,12 @@ import {
 import { initSupa } from '../../lib/supa';
 import {
 	ApiError,
+	cursorOf,
 	describeSendError,
 	getMessage,
 	listInbox,
 	sendMail,
+	type Cursor,
 	type InboxRow,
 	type MessageDetail,
 } from '../../lib/api';
@@ -70,12 +72,16 @@ export default function ReactInbox() {
 	}, []);
 
 	const load = useCallback(
-		async (before?: string) => {
+		async (cursor?: Cursor | null, dir: Filter = filter) => {
 			setLoading(true);
 			setLoadError(null);
 			try {
-				const { messages } = await listInbox({ limit: PAGE, before });
-				setRows((prev) => (before ? [...prev, ...messages] : messages));
+				const { messages } = await listInbox({
+					limit: PAGE,
+					cursor,
+					direction: dir === 'all' ? null : dir,
+				});
+				setRows((prev) => (cursor ? [...prev, ...messages] : messages));
 				setExhausted(messages.length < PAGE);
 			} catch (err) {
 				setLoadError(
@@ -87,17 +93,17 @@ export default function ReactInbox() {
 				setLoading(false);
 			}
 		},
-		[],
+		[filter],
 	);
 
 	useEffect(() => {
-		if (auth.tone === 'auth') void load();
+		if (auth.tone === 'auth') void load(null, filter);
 		if (auth.tone === 'anon') {
 			setRows([]);
 			setDetail(null);
 			setSelectedId(null);
 		}
-	}, [auth.tone, load]);
+	}, [auth.tone, filter, load]);
 
 	useEffect(() => {
 		if (!selectedId) {
@@ -123,10 +129,7 @@ export default function ReactInbox() {
 		};
 	}, [selectedId]);
 
-	const visible = useMemo(
-		() => rows.filter((r) => filter === 'all' || r.direction === filter),
-		[rows, filter],
-	);
+	const visible = rows;
 
 	const canReply = detail?.direction === 'in';
 
@@ -144,7 +147,7 @@ export default function ReactInbox() {
 			setSendResult({ ok: true, text: `Sent to ${detail.from_addr}.` });
 			setDraft('');
 			setComposing(false);
-			void load();
+			void load(null, filter);
 		} catch (err) {
 			setSendResult({ ok: false, text: describeSendError(err) });
 		} finally {
@@ -204,7 +207,7 @@ export default function ReactInbox() {
 						type="button"
 						className="hm-icon-btn"
 						title="Refresh"
-						onClick={() => void load()}
+						onClick={() => void load(null, filter)}
 						disabled={loading}
 					>
 						<RefreshCw size={16} className={loading ? 'hm-spin' : ''} />
@@ -268,7 +271,7 @@ export default function ReactInbox() {
 						type="button"
 						className="hm-btn hm-btn-ghost hm-more"
 						disabled={loading}
-						onClick={() => void load(rows[rows.length - 1]?.received_at)}
+						onClick={() => void load(cursorOf(rows[rows.length - 1]), filter)}
 					>
 						Load older
 					</button>

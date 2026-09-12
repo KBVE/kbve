@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS mail.messages (
 COMMENT ON TABLE mail.messages IS
     'Single store for herbmail.com mail. via=smtp rows arrive from the Stalwart MTA hook; via=internal rows are user-to-user messages that never touch SMTP. Purged after 90 days by pg_cron.';
 
-CREATE INDEX IF NOT EXISTS messages_user_received_idx
-    ON mail.messages (user_id, received_at DESC);
+CREATE INDEX IF NOT EXISTS messages_user_received_id_idx
+    ON mail.messages (user_id, received_at DESC, id DESC);
 
 CREATE INDEX IF NOT EXISTS messages_pending_idx
     ON mail.messages (received_at)

@@ -78,10 +78,27 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 	return (await res.json()) as T;
 }
 
-export function listInbox(opts: { limit?: number; before?: string } = {}) {
+export type Direction = 'in' | 'out';
+
+export interface Cursor {
+	before: string;
+	before_id: string;
+}
+
+export function cursorOf(row: InboxRow): Cursor {
+	return { before: row.received_at, before_id: row.id };
+}
+
+export function listInbox(
+	opts: { limit?: number; cursor?: Cursor | null; direction?: Direction | null } = {},
+) {
 	const q = new URLSearchParams();
 	if (opts.limit) q.set('limit', String(opts.limit));
-	if (opts.before) q.set('before', opts.before);
+	if (opts.cursor) {
+		q.set('before', opts.cursor.before);
+		q.set('before_id', opts.cursor.before_id);
+	}
+	if (opts.direction) q.set('direction', opts.direction);
 	const qs = q.toString();
 	return request<{ messages: InboxRow[] }>(`/mail/inbox${qs ? `?${qs}` : ''}`);
 }
