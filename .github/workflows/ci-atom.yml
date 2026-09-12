@@ -315,6 +315,11 @@ jobs:
             actions: read
             issues: write
         uses: ./.github/workflows/ci.yml
+        # ci.yml's Godot job needs FORGEJO_* to pull the project's LFS assets,
+        # and a called workflow is handed nothing it is not passed. Without
+        # this an atom branch that reached a Godot project would run the suite
+        # against pointer files.
+        secrets: inherit
 
     # Job 6: Security check — defense-in-depth validation of PR author
     security_check:

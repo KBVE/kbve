@@ -96,8 +96,13 @@ fn router() -> Router {
         .merge(super::mail::router())
 }
 
+/// Liveness plus the build identity, so a deploy can be confirmed from outside.
 async fn health() -> impl IntoResponse {
-    "OK"
+    axum::Json(serde_json::json!({
+        "status": "ok",
+        "service": "herbmail-api",
+        "version": env!("CARGO_PKG_VERSION"),
+    }))
 }
 
 /// Set Cache-Control based on request path; only 2xx responses are cacheable.
@@ -223,7 +228,10 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        assert_eq!(&body[..], b"OK");
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["service"], "herbmail-api");
+        assert_eq!(json["version"], env!("CARGO_PKG_VERSION"));
     }
 
     #[tokio::test]

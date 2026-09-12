@@ -54,20 +54,26 @@ function changedFiles(base, head) {
 	});
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
-	const [base, head] = process.argv.slice(2);
-	// No base means "run everything": a manual dispatch, or a push where there
-	// is nothing to compare against. Narrowing on a bad guess would silently
-	// skip the suite, which looks the same as passing it.
-	// --downstream deep, because the reason to run this suite is usually that
-	// the gdextension crate changed rather than the Godot project. moon
-	// defaults to `none`, which would report the project unaffected by a change
-	// to the crate it loads -- the exact case the python script scanned every
-	// Cargo.toml in the tree to catch.
+// The whole answer, for a caller that has a range and wants the matrix. A null
+// base means "run everything": a manual dispatch, or a push where there is
+// nothing to compare against. Narrowing on a bad guess would silently skip the
+// suite, which looks the same as passing it.
+//
+// --downstream deep, because the reason to run this suite is usually that the
+// gdextension crate changed rather than the Godot project. moon defaults to
+// `none`, which would report the project unaffected by a change to the crate it
+// loads -- the exact case the python script scanned every Cargo.toml in the
+// tree to catch.
+export function godotMatrix(base, head) {
 	const affected = base
 		? query(['--affected', '--downstream', 'deep'], changedFiles(base, head || 'HEAD')).map(
 				(p) => p.id,
 			)
 		: null;
-	process.stdout.write(JSON.stringify(matrixFrom(query([]), affected)) + '\n');
+	return matrixFrom(query([]), affected);
+}
+
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
+	const [base, head] = process.argv.slice(2);
+	process.stdout.write(JSON.stringify(godotMatrix(base, head)) + '\n');
 }

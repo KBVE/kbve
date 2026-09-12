@@ -1,82 +1,34 @@
-name: CI - Godot Tests
+name: Godot Tests
+
+# The build half of what was ci-godot-tests.yml. The discover half -- a
+# full-history checkout and a `moon setup`, to ask the project graph which Godot
+# projects a change reaches -- is gone: ci.yml's plan job already has that graph
+# open and already answers that question for its own shards, so it answers this
+# one too and hands the matrix down. The suite used to trigger on `apps/**`,
+# which is most of the tree, to run that job and be told "none" for every app
+# that is not a Godot project.
+#
+# A reusable workflow rather than a trigger of its own, because the only thing
+# it needs that the caller does not have is the matrix.
 
 on:
-    workflow_dispatch:
-    pull_request:
-        # Discover is the authority on which projects a change reaches -- it
-        # asks moon rather than comparing paths -- but it only gets to answer
-        # if the workflow runs at all, and `apps/**` ran it for every change in
-        # the tree. A rust file under apps/arcade cannot reach a Godot project
-        # that no moon edge connects it to, and the job queued for it is a job
-        # some other PR is waiting behind.
-        #
-        # The apps entries are the Godot project directories; crates stays
-        # whole because a gdextension crate's cargo dependencies are not moon
-        # edges, so narrowing it would drop changes Discover would have caught.
-        # guards:lint fails if a Godot project lands outside this list.
-        paths:
-            - 'apps/friendslop/godot-friendslop/**'
-            - 'crates/**'
-            - '.github/workflows/ci-godot-tests.yml'
-            - 'tools/guards/check-godot-paths.py'
-            - 'tools/release/godot-matrix.mjs'
+    workflow_call:
+        inputs:
+            matrix:
+                description: 'Godot projects to test, as the JSON matrix tools/release/godot-matrix.mjs emits.'
+                required: true
+                type: string
+        secrets:
+            FORGEJO_USER:
+                required: false
+            FORGEJO_TOKEN:
+                required: false
 
 permissions: {}
 
-concurrency:
-    group: godot-tests-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
-
 jobs:
-    discover:
-        name: Discover
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: read
-            pull-requests: read
-        outputs:
-            matrix: ${{ steps.pick.outputs.matrix }}
-            any: ${{ steps.pick.outputs.any }}
-        steps:
-            # Full history, not a sparse checkout: the matrix asks moon what a
-            # range of commits affected, and that needs the range present.
-            - uses: actions/checkout@v7
-              with:
-                  fetch-depth: 0
-
-            - name: Setup JavaScript
-              uses: ./.github/actions/setup-js
-              with:
-                  install: 'false'
-
-            - name: Setup moon
-              uses: ./.github/actions/setup-moon
-
-            # No base on a manual dispatch, which the generator reads as "run
-            # everything". Narrowing on a bad guess would skip the suite
-            # silently, and a skipped suite looks exactly like a passing one.
-            - name: Pick the projects this change touches
-              id: pick
-              env:
-                  BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
-                  HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
-              run: |
-                  set -euo pipefail
-                  node tools/release/godot-matrix.mjs "$BASE" "$HEAD" > matrix.json
-                  cat matrix.json
-                  echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
-                  if [ "$(cat matrix.json)" = "[]" ]; then
-                    echo "any=false" >> "$GITHUB_OUTPUT"
-                    echo "::notice::No Godot project touched by this change"
-                  else
-                    echo "any=true" >> "$GITHUB_OUTPUT"
-                  fi
-
     gdextension:
         name: Build ${{ matrix.package }} for ${{ matrix.app_name }}
-        needs: [discover]
-        if: ${{ needs.discover.outputs.any == 'true' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
@@ -84,7 +36,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                include: ${{ fromJSON(needs.discover.outputs.matrix) }}
+                include: ${{ fromJSON(inputs.matrix) }}
         steps:
             - uses: actions/checkout@v7
               if: ${{ matrix.package != '' }}
@@ -155,8 +107,10 @@ jobs:
 
     test:
         name: gdUnit4 (${{ matrix.app_name }})
-        needs: [discover, gdextension]
-        if: ${{ always() && needs.discover.outputs.any == 'true' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        needs: [gdextension]
+        # A fork's pull request cannot read FORGEJO_*, so the LFS pull below
+        # would fetch pointers and the suite would run against them.
+        if: ${{ always() && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         runs-on: ubuntu-latest
         timeout-minutes: 40
         permissions:
@@ -165,7 +119,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                include: ${{ fromJSON(needs.discover.outputs.matrix) }}
+                include: ${{ fromJSON(inputs.matrix) }}
         container:
             image: barichello/godot-ci:${{ matrix.godot_version }}
         # A step inside a container runs under `sh -e`, not the `bash -e` a step on the

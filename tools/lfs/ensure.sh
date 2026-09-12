@@ -5,7 +5,7 @@
 # failure this script exists to catch:
 #
 #   ci-godot.yml (x3)     listed with `ls-files -n | grep -q`, no retry
-#   ci-godot-tests.yml    listed into a file, no retry
+#   utils-godot-tests.yml listed into a file, no retry
 #   ci-unity.yml (x2)     no listing, no stub check at all
 #   utils-blender-flow.yml  no listing, no stub check
 #   utils-unreal-build.yml  auth preflight and retries, no stub check

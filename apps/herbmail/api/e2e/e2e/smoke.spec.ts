@@ -21,10 +21,13 @@ test.describe('Smoke: Page Loading', () => {
 });
 
 test.describe('Smoke: Health Endpoint', () => {
-	test('GET /health returns OK', async ({ request }) => {
+	test('GET /health reports the running build', async ({ request }) => {
 		const response = await request.get('/health');
 		expect(response.status()).toBe(200);
-		expect(await response.text()).toBe('OK');
+		const body = await response.json();
+		expect(body.status).toBe('ok');
+		expect(body.service).toBe('herbmail-api');
+		expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
 	});
 });
 
