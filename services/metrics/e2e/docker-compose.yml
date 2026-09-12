@@ -3,6 +3,15 @@
 services:
     clickhouse:
         image: clickhouse/clickhouse-server:25.8
+        environment:
+            # ClickHouse only lets `default` connect without a password from
+            # localhost, so the harness has to use a credentialed user the way
+            # production does (kbve_ingest) -- otherwise every query from the
+            # metrics container comes back 401 and readiness reports the server
+            # unreachable rather than unauthorized.
+            CLICKHOUSE_USER: 'kbve_ingest'
+            CLICKHOUSE_PASSWORD: 'e2e-ch-password'
+            CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: '1'
         ulimits:
             nofile:
                 soft: 262144
@@ -31,12 +40,16 @@ services:
             RUST_LOG: 'met=info,tower_http=warn'
             CLICKHOUSE_ENDPOINT: 'http://clickhouse:8123'
             CLICKHOUSE_DATABASE: 'telemetry'
-            CLICKHOUSE_USERNAME: 'default'
-            CLICKHOUSE_PASSWORD: ''
+            CLICKHOUSE_USERNAME: 'kbve_ingest'
+            CLICKHOUSE_PASSWORD: 'e2e-ch-password'
             METRICS_ERRORS_TABLE: 'errors_distributed'
             METRICS_FLUSH_INTERVAL_MS: '500'
             METRICS_FLUSH_ROWS: '10'
             METRICS_INGEST_TOKEN: 'e2e-secret-token'
             METRICS_RATE_LIMIT_PER_MIN: '1000'
+            # Re-verify the schema on every probe. Production trusts a success
+            # for 30s; the recovery drill needs readiness to react to a dropped
+            # database inside the test's patience, not the operator's.
+            METRICS_SCHEMA_RECHECK_MS: '0'
         ports:
             - '5500:5500'

@@ -18,6 +18,7 @@ pub struct Config {
     pub project_rate_limit_per_min: u32,
     pub global_rate_limit_per_min: u32,
     pub trusted_proxy_hops: usize,
+    pub schema_recheck_ms: u64,
     pub ingest_token: Option<String>,
     pub metrics_port: u16,
 }
@@ -69,6 +70,12 @@ impl Config {
                 .parse()
                 .unwrap_or(60000),
             trusted_proxy_hops: get("METRICS_TRUSTED_PROXY_HOPS", "1").parse().unwrap_or(1),
+            // How long a successful schema check is trusted. 0 re-verifies on
+            // every probe, which is what the e2e wipe drill wants and what an
+            // operator can reach for if a cluster is being rebuilt underneath.
+            schema_recheck_ms: get("METRICS_SCHEMA_RECHECK_MS", "30000")
+                .parse()
+                .unwrap_or(30000),
             ingest_token: env::var("METRICS_INGEST_TOKEN")
                 .ok()
                 .map(|s| s.trim().to_string())
