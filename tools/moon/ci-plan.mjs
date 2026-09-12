@@ -158,14 +158,23 @@ const wants = (slice, ...names) =>
 // the apt install, the cargo cache restore and `moon setup` before printing
 // that it had nothing to do. Run 34707004415 was three of those.
 //
-// Round-robin over the sorted list, which is what the shard's awk did, so a
-// target lands on exactly one shard and the assignment is deterministic for a
-// given plan. Naming the slice here rather than re-deriving it there is the
-// same move the target list itself was: the shard stops deciding anything.
-const total = Math.min(MAX_SHARDS, targets.length);
+// The unit is the project, not the target. Round-robin over the sorted target
+// list split `kbve-mmorpg:lint` from `kbve-mmorpg:test`, and a crate's lint
+// and test do not share a shard's target directory when they are not on the
+// same shard -- so the one change that affected one crate compiled it twice,
+// on two runners, to run two tasks that would have shared a single build.
+// Grouping first also means a plan that reaches one project is one shard.
+//
+// Deterministic for a given plan, which is what matters: a project lands on
+// exactly one shard. Naming the slice here rather than re-deriving it in the
+// shard is the same move the target list itself was -- the shard stops
+// deciding anything.
+const projects = [...new Set(targets.map((t) => t.split(':')[0]))].sort();
+const total = Math.min(MAX_SHARDS, projects.length);
 const shards = [];
 for (let index = 0; index < total; index++) {
-    const slice = targets.filter((_, i) => i % total === index);
+    const mine = new Set(projects.filter((_, i) => i % total === index));
+    const slice = targets.filter((t) => mine.has(t.split(':')[0]));
     shards.push({
         index,
         total,
