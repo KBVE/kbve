@@ -14,6 +14,7 @@ import {
 	releaseDoc,
 	frontmatterField,
 	TagError,
+	publishConfig,
 } from './verify-tag.mjs';
 
 /** A throwaway tree holding just the manifest files a case needs. */
@@ -382,4 +383,33 @@ test('verify falls back to the verified manifest when no doc names one', () => {
 	const out = verify('demo@1.0.1', root, [], node);
 	assert.equal(out.mdxPath, '');
 	assert.equal(out.versionTomlPath, 'x/version.toml');
+});
+
+// The web-game lane reads this blob to decide what to build and what has to be
+// materialized first. Both answers default to the shape a Vite game already
+// had, so adding them changed nothing for isometric.
+test('publishConfig defaults the web game build task and the lfs remote', () => {
+	const blob = JSON.parse(publishConfig({ config: { env: { ITCH_USER: 'kbve', ITCH_GAME: 'isometric' } } }));
+	assert.equal(blob.deploy_to_itch, true);
+	assert.equal(blob.web_game_task, 'build');
+	assert.equal(blob.lfs_remote, '');
+});
+
+test('publishConfig carries the wasm task and the asset remote a bevy game names', () => {
+	const blob = JSON.parse(
+		publishConfig({
+			config: {
+				env: {
+					ITCH_USER: 'kbve',
+					ITCH_GAME: 'mmorpg',
+					ITCH_CHANNEL: 'html5',
+					WEB_GAME_TASK: 'build-web',
+					LFS_REMOTE: 'arcade',
+				},
+			},
+		}),
+	);
+	assert.equal(blob.itch_channel, 'html5');
+	assert.equal(blob.web_game_task, 'build-web');
+	assert.equal(blob.lfs_remote, 'arcade');
 });

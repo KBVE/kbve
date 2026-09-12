@@ -1,12 +1,29 @@
+#!/usr/bin/env node
+// Serves a built web game with the two headers a SharedArrayBuffer needs.
+//
+// `npx serve` and every other static server in reach sends neither, so a
+// bundle built with shared memory loads, reports `crossOriginIsolated ===
+// false`, and fails when something asks for a SharedArrayBuffer -- which reads
+// as a wasm bug rather than as two missing response headers. itch.io sets the
+// same pair for a game with "SharedArrayBuffer support" switched on, so this is
+// the local shape of the thing the bundle will be served by.
+//
+// Started as isometric's scripts/serve-coi.mjs. It is here because mmorpg needs
+// the same server and a second copy would be a second set of MIME types to
+// forget to update.
+//
+// Usage: node tools/web/serve-coi.mjs [root] [port]   (default: ./dist, 8787)
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const root = resolve(here, '..', 'dist');
-const port = Number(process.env.PORT ?? 8787);
+const root = resolve(process.argv[2] ?? process.env.WEB_ROOT ?? 'dist');
+const port = Number(process.argv[3] ?? process.env.PORT ?? 8787);
 
+// Served rather than guessed: a wasm module handed back as
+// application/octet-stream fails instantiateStreaming, and a .glb as text
+// fails in the gltf loader several seconds later, where it looks like a broken
+// asset.
 const MIME = {
 	'.html': 'text/html; charset=utf-8',
 	'.js': 'text/javascript; charset=utf-8',
@@ -20,12 +37,16 @@ const MIME = {
 	'.gif': 'image/gif',
 	'.svg': 'image/svg+xml',
 	'.webp': 'image/webp',
+	'.ktx2': 'image/ktx2',
 	'.ico': 'image/x-icon',
 	'.ttf': 'font/ttf',
 	'.woff': 'font/woff',
 	'.woff2': 'font/woff2',
+	'.glb': 'model/gltf-binary',
+	'.gltf': 'model/gltf+json',
 	'.wgsl': 'text/plain; charset=utf-8',
 	'.glsl': 'text/plain; charset=utf-8',
+	'.ron': 'text/plain; charset=utf-8',
 };
 
 function coiHeaders(res) {
@@ -46,8 +67,7 @@ async function resolveFile(urlPath) {
 		return null;
 	}
 	try {
-		const body = await readFile(target);
-		return { target, body };
+		return { target, body: await readFile(target) };
 	} catch {
 		return null;
 	}
@@ -73,5 +93,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-	console.log(`isometric COI server: http://localhost:${port}/  (root: ${root})`);
+	console.log(`COI server: http://localhost:${port}/  (root: ${root})`);
 });

@@ -472,6 +472,18 @@ export function publishConfig(node) {
 		itch_game: env.ITCH_GAME ?? '',
 		itch_channel: env.ITCH_CHANNEL ?? '',
 		notarize: env.NOTARIZE === 'true',
+		// Which task produces the bundle. `build` for a Vite game, where it is
+		// the whole build; a rust game inherits `build` from the rust toolchain
+		// and it means `cargo build` for the host, so naming the wasm task here
+		// is what keeps a browser bundle from being a native binary -- and
+		// keeps every CI shard from compiling wasm on nightly to satisfy a task
+		// called `build`.
+		web_game_task: env.WEB_GAME_TASK ?? 'build',
+		// The Forgejo LFS remote holding this game's assets, by the name
+		// tools/lfs/remotes.tsv gives it. A game whose textures and meshes are
+		// LFS pointers builds fine without this and ships a bundle whose
+		// assets are 130-byte text files.
+		lfs_remote: env.LFS_REMOTE ?? '',
 	});
 }
 
