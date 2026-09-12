@@ -114,7 +114,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 Network-capable Python rootfs image used by the **staff-side** Firecracker deployment (`firecracker-ctl-net`). Built as a multi-stage Docker image whose final layer (alpine 3.21 + `/rootfs.ext4`) ships a `cp` entrypoint so the in-cluster stage Job can run the image directly and copy `/rootfs.ext4` onto the firecracker rootfs PVC.
 
-This image is **not** for the public sandbox quick-mode VMs. Those keep the no-network `alpine-python` rootfs from [apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python](apps/vm/firecracker-ctl/rootfs/Dockerfile.alpine-python) — sandboxing without internet egress is the safety property.
+This image is **not** for the public sandbox quick-mode VMs. Those keep the no-network `alpine-python` rootfs from [services/firecracker/rootfs/Dockerfile.alpine-python](services/firecracker/rootfs/Dockerfile.alpine-python) — sandboxing without internet egress is the safety property.
 
 ## What's baked in
 

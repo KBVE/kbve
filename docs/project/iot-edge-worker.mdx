@@ -15,9 +15,9 @@ key: iot_edge_worker
 pipeline: docker
 app_name: iot-edge-worker
 version: "0.0.1"
-source_path: apps/vm/iot/edge-worker
-version_toml: apps/vm/iot/edge-worker/version.toml
-version_target: apps/vm/iot/edge-worker/version.toml
+source_path: services/iot
+version_toml: services/iot/version.toml
+version_target: services/iot/version.toml
 runner: arc-runner-set
 image: kbve/iot-edge-worker
 has_test: false
@@ -48,7 +48,7 @@ bento:
         WireGuard — no inbound ports, no full Talos install, a real kubelet.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/vm/iot/edge-worker
+          href: https://github.com/KBVE/kbve/tree/main/services/iot
           primary: true
           external: true
         - label: Overview

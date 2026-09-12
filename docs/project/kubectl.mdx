@@ -22,9 +22,9 @@ jsonld:
 pipeline: docker
 app_name: kbve-kubectl
 version: "0.1.10"
-source_path: apps/vm/kubectl
-version_toml: apps/vm/kubectl/version.toml
-version_target: apps/vm/kubectl/Cargo.toml
+source_path: services/kubectl
+version_toml: services/kubectl/version.toml
+version_target: services/kubectl/Cargo.toml
 runner: arc-runner-set
 image: kbve/kubectl
 deployment_yamls:
@@ -72,7 +72,7 @@ bento:
         replaces the distroless kubectl image that lacks /bin/sh.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/vm/kubectl
+          href: https://github.com/KBVE/kbve/tree/main/services/kubectl
           primary: true
           external: true
         - label: CLI
@@ -171,7 +171,7 @@ The image is pinned across every manifest in the `deployment_yamls` field above,
 | `apps/kube/kubevirt/runner/job.yaml` | KubeVirt runner orchestration | One-shot Job, kubectl + virtctl |
 | `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer rotator + watchdog | CronJob every 2 min, invokes `kbve-kubectl rotate-gameserver` to (a) compare `gs.spec.image` vs `pod.spec.image` and delete the GameServer on drift, and (b) detect `state=Unhealthy` with a missing pod and delete the stuck GameServer so ArgoCD selfHeal recreates from the spec |
 
-When a new behavior needs to land across all rotator and KubeVirt jobs (RCON-aware save-flush probes, Agones SDK Health calls, retry-with-backoff, ConfigMap-driven rotation policy), extend the Rust CLI in `apps/vm/kubectl/src/`, bump `version.toml`, and every manifest above auto-bumps via the post-publish sync.
+When a new behavior needs to land across all rotator and KubeVirt jobs (RCON-aware save-flush probes, Agones SDK Health calls, retry-with-backoff, ConfigMap-driven rotation policy), extend the Rust CLI in `services/kubectl/src/`, bump `version.toml`, and every manifest above auto-bumps via the post-publish sync.
 
 Or using the Rust CLI directly:
 

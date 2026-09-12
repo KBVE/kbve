@@ -1,0 +1,28 @@
+[package]
+name = "factorio-ctl"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.1"
+edition = "2021"
+rust-version.workspace = true
+publish = false
+description = "REST API service for the Agones-managed Factorio server (status, saves, rotation)"
+
+[dependencies]
+axum = { workspace = true, features = ["default", "macros"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout"] }
+tower-http = { workspace = true, features = ["trace", "cors"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+anyhow = { workspace = true }
+http = { workspace = true }
+chrono = { workspace = true, features = ["clock"] }
+utoipa = { workspace = true, features = ["axum_extras"] }
+kube = { workspace = true, features = ["client", "rustls-tls"] }
+k8s-openapi = { workspace = true, features = ["v1_32"] }
+jedi = { path = "../../../../crates/jedi", features = ["clickhouse"] }
+
+[features]
+default = []

@@ -295,10 +295,12 @@ jobs:
                       apps/rows
                       apps/jobboard
                       services/metrics
-                      apps/vm
+                      services/firecracker
+                      services/kubectl
                       apps/mc/behavior_statetree
                       apps/mc/mc_auth
                       apps/agones/factorio/relay
+                      apps/agones/factorio/ctl
                       apps/agones/palworld/relay
                       apps/cryptothrone/gameserver
                       apps/agones/arpg/server
