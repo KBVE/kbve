@@ -61,6 +61,12 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 | `20260607001923` | `gh_service_event_ops_v2`                   | `gh`        | gh.requeue_audit table (denormalized so it survives purges) + 2 RPCs (service_force_requeue_event / \_purge_old_delivered / \_get_recent_pending_events) + gh.\_normalize_repo_allowlist helper + GH007/GH008                   |
 | `20260607171125` | `profile_service_get_discord_provider_id`   | `profile`   | profile.service_get_discord_provider_id + public.proxy_service_get_discord_provider_id — discord-bootstrap edge fn reaches auth.identities through proxy instead of `.schema('auth')` (PostgREST blocks auth)                   |
 | `20260608014906` | `profile_discord_provider_id_owner`         | `profile`   | ALTER FUNCTION ... OWNER TO postgres so SECURITY DEFINER inherits SELECT on auth.identities (service_role has none). Fixes `permission denied for table identities` 500 cascade across the dashboard                            |
+| `20260807120000` | `stalwart_role_schema`                      | `stalwart`  | Dedicated `stalwart` login role owning the `stalwart` schema (Stalwart's opaque KV store), search_path pinned, public schema revoked                                                                                            |
+| `20260807121000` | `mail_schema_init`                          | `mail`      | `mail.messages` single store (RLS select-own, 90-day pg_cron purge) + `public.stalwart_ingest` called by the herbmail-api MTA hook                                                                                              |
+| `20260911210000` | `stalwart_profile_username_read`            | `profile`   | Grants the `stalwart` role USAGE on `profile` + SELECT on `profile.username` (inert under RLS; superseded by the next migration)                                                                                               |
+| `20260911233000` | `stalwart_rcpt_lookup`                      | `mail`      | `public.stalwart_rcpt(text)` definer: whole-address recipient lookup Stalwart's SQL directory runs at RCPT TO; revokes the direct table grant                                                                                  |
+| `20260912040000` | `mail_outbound`                             | `mail`      | Outbound columns on `mail.messages` (direction, to_addr, message_id, in_reply_to, sent_at, error) + `herbmail_outbound_prepare` (From forced, reply-only, 20/24h cap) + `herbmail_outbound_mark`                             |
+| `20260912120000` | `mail_outbound_hardening`                   | `mail`      | Whole-address compares, spf=pass gate on `from_user_id`, per-user advisory lock around the cap, control-char scrubbing, `<token>` validation for Message-ID/In-Reply-To, timeouts, privilege verification block            |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -113,6 +119,15 @@ Schema container only — n8n TypeORM manages its own 23 tables (workflows, exec
 - **Source**: `../schema/staff/`
 - **Access**: `is_staff()` and `staff_permissions()` are public RPCs (authenticated); `proxy_check_staff()`, `proxy_has_permission()`, `proxy_audit_log()` for authenticated users; `service_grant()`, `service_revoke()`, `service_remove()` for service_role only
 - **Permission layout**: Core roles (bits 0-7), Features (bits 8-15), Admin ops (bits 16-23), Superadmin (bit 30)
+
+### `mail` — herbmail.com mailbox store
+
+1 table (`messages`), 5 functions. Stalwart runs MTA-only and never stores mail: its data-stage hook posts to herbmail-api, which calls `public.stalwart_ingest`; outbound goes through `public.herbmail_outbound_prepare` / `_mark` from herbmail-api and is relayed to Stalwart's pod-only listener. `public.stalwart_rcpt` is the recipient query Stalwart's SQL directory runs at RCPT TO.
+
+- **Source**: `../schema/mail/`
+- **Access**: `authenticated` may SELECT own rows (RLS `user_id = auth.uid()`); every RPC is service_role only, owned by postgres (`profile.username` is RLS-locked), `SECURITY DEFINER` + `search_path = ''`; `stalwart_rcpt` is EXECUTE-only for the `stalwart` role
+- **Policy**: `From` forced to `$username@herbmail.com`; reply-only (recipient must appear as `from_addr` on an inbound row of that user); `mail.outbound_daily_cap()` per rolling 24h under a per-user `pg_advisory_xact_lock`
+- **Hardening**: whole-address comparisons (no `split_part`), `from_user_id` only linked when Stalwart's `Authentication-Results` carries `spf=pass`, CR/LF/control bytes scrubbed from subject/error, `<token>` shape enforced on Message-ID / In-Reply-To, `lock_timeout` / `statement_timeout` on write RPCs, verification DO block asserts definer/owner/search_path/negative grants
 
 ### `public` — Shared utilities
 
