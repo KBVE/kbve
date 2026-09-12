@@ -26,6 +26,7 @@
 //! let bytes = include_bytes!("path/to/quests.binpb");
 //! let db = QuestDb::from_bytes(bytes).expect("Failed to decode quest registry");
 //! ```
+#![deny(missing_docs)]
 
 pub mod json;
 mod proto;
