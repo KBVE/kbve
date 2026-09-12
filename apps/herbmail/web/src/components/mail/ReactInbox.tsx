@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { $auth, openModal } from '@kbve/astro';
-import DOMPurify from 'dompurify';
 import {
 	Inbox,
 	Send,
@@ -12,19 +11,23 @@ import {
 	ArrowLeft,
 	AlertCircle,
 	CheckCircle2,
+	MessagesSquare,
 } from 'lucide-react';
 import { initSupa } from '../../lib/supa';
 import {
 	ApiError,
-	cursorOf,
 	describeSendError,
-	getMessage,
-	listInbox,
+	getMailbox,
+	getThread,
+	listThreads,
 	sendMail,
+	threadCursorOf,
 	type Cursor,
-	type InboxRow,
-	type MessageDetail,
+	type ThreadDetail,
+	type ThreadMessage,
+	type ThreadRow,
 } from '../../lib/api';
+import { MessageBody } from './MessageBody';
 
 const PAGE = 50;
 
@@ -40,8 +43,22 @@ function fmtDate(iso: string): string {
 		: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function counterpart(row: InboxRow): string {
-	return row.direction === 'in' ? row.from_addr : (row.to_addr ?? '');
+/// The mailbox owner is in almost every thread; showing their own address back
+/// to them in the list carries no information.
+function others(participants: string[], self: string | null): string {
+	const rest = participants.filter((p) => !self || p.toLowerCase() !== self.toLowerCase());
+	const list = rest.length > 0 ? rest : participants;
+	return list.join(', ') || '(unknown)';
+}
+
+/// Replies must answer an inbound message: the send policy rejects anything
+/// that is not a reply, and only an inbound message carries a parent to cite.
+function lastInbound(thread: ThreadDetail | null): ThreadMessage | null {
+	if (!thread) return null;
+	for (let i = thread.messages.length - 1; i >= 0; i -= 1) {
+		if (thread.messages[i].direction === 'in') return thread.messages[i];
+	}
+	return null;
 }
 
 function replySubject(subject: string | null): string {
@@ -52,14 +69,15 @@ function replySubject(subject: string | null): string {
 
 export default function ReactInbox() {
 	const auth = useStore($auth);
-	const [rows, setRows] = useState<InboxRow[]>([]);
+	const [rows, setRows] = useState<ThreadRow[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [loadError, setLoadError] = useState<string | null>(null);
 	const [exhausted, setExhausted] = useState(false);
 	const [filter, setFilter] = useState<Filter>('all');
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const [detail, setDetail] = useState<MessageDetail | null>(null);
+	const [detail, setDetail] = useState<ThreadDetail | null>(null);
 	const [detailLoading, setDetailLoading] = useState(false);
+	const [self, setSelf] = useState<string | null>(null);
 	const [composing, setComposing] = useState(false);
 	const [draft, setDraft] = useState('');
 	const [sending, setSending] = useState(false);
@@ -71,18 +89,31 @@ export default function ReactInbox() {
 		initSupa().catch(() => {});
 	}, []);
 
+	useEffect(() => {
+		if (auth.tone !== 'auth') return;
+		let cancelled = false;
+		getMailbox()
+			.then((m) => {
+				if (!cancelled) setSelf(m.address);
+			})
+			.catch(() => {});
+		return () => {
+			cancelled = true;
+		};
+	}, [auth.tone]);
+
 	const load = useCallback(
 		async (cursor?: Cursor | null, dir: Filter = filter) => {
 			setLoading(true);
 			setLoadError(null);
 			try {
-				const { messages } = await listInbox({
+				const { threads } = await listThreads({
 					limit: PAGE,
 					cursor,
 					direction: dir === 'all' ? null : dir,
 				});
-				setRows((prev) => (cursor ? [...prev, ...messages] : messages));
-				setExhausted(messages.length < PAGE);
+				setRows((prev) => (cursor ? [...prev, ...threads] : threads));
+				setExhausted(threads.length < PAGE);
 			} catch (err) {
 				setLoadError(
 					err instanceof ApiError && err.status === 401
@@ -114,9 +145,9 @@ export default function ReactInbox() {
 		setDetailLoading(true);
 		setComposing(false);
 		setSendResult(null);
-		getMessage(selectedId)
-			.then((m) => {
-				if (!cancelled) setDetail(m);
+		getThread(selectedId)
+			.then((t) => {
+				if (!cancelled) setDetail(t);
 			})
 			.catch(() => {
 				if (!cancelled) setDetail(null);
@@ -131,23 +162,27 @@ export default function ReactInbox() {
 
 	const visible = rows;
 
-	const canReply = detail?.direction === 'in';
+	const replyTo = lastInbound(detail);
+	const canReply = replyTo !== null;
 
 	const submitReply = async () => {
-		if (!detail || !canReply || sending) return;
+		if (!detail || !replyTo || sending) return;
 		setSending(true);
 		setSendResult(null);
 		try {
 			await sendMail({
-				to: detail.from_addr,
+				to: replyTo.from_addr,
 				subject: replySubject(detail.subject),
 				body: draft,
-				in_reply_to: detail.message_id,
+				in_reply_to: replyTo.message_id,
 			});
-			setSendResult({ ok: true, text: `Sent to ${detail.from_addr}.` });
+			setSendResult({ ok: true, text: `Sent to ${replyTo.from_addr}.` });
 			setDraft('');
 			setComposing(false);
 			void load(null, filter);
+			void getThread(detail.thread_id)
+				.then(setDetail)
+				.catch(() => {});
 		} catch (err) {
 			setSendResult({ ok: false, text: describeSendError(err) });
 		} finally {
@@ -232,14 +267,14 @@ export default function ReactInbox() {
 
 				<ul className="hm-rows">
 					{visible.map((row) => (
-						<li key={row.id}>
+						<li key={row.thread_id}>
 							<button
 								type="button"
-								className={`hm-row ${row.id === selectedId ? 'is-selected' : ''} ${row.status === 'pending' && row.direction === 'in' ? 'is-unread' : ''}`}
-								onClick={() => setSelectedId(row.id)}
+								className={`hm-row ${row.thread_id === selectedId ? 'is-selected' : ''}`}
+								onClick={() => setSelectedId(row.thread_id)}
 							>
 								<span className="hm-row-dir" aria-hidden="true">
-									{row.direction === 'in' ? (
+									{row.last_direction === 'in' ? (
 										<Inbox size={14} />
 									) : (
 										<Send size={14} />
@@ -248,17 +283,26 @@ export default function ReactInbox() {
 								<span className="hm-row-main">
 									<span className="hm-row-top">
 										<span className="hm-row-who">
-											{counterpart(row)}
+											{others(row.participants, self)}
 										</span>
 										<span className="hm-row-when">
-											{fmtDate(row.received_at)}
+											{fmtDate(row.last_activity)}
 										</span>
 									</span>
 									<span className="hm-row-subject">
 										{row.subject?.trim() || '(no subject)'}
+										{row.message_count > 1 && (
+											<span className="hm-thread-count" title={`${row.message_count} messages`}>
+												<MessagesSquare size={11} aria-hidden="true" />
+												{row.message_count}
+											</span>
+										)}
 									</span>
+									{row.last_snippet && (
+										<span className="hm-row-snippet">{row.last_snippet}</span>
+									)}
 								</span>
-								{row.direction === 'out' && row.status === 'failed' && (
+								{row.has_failure && (
 									<span className="hm-badge hm-badge-error">failed</span>
 								)}
 							</button>
@@ -271,7 +315,9 @@ export default function ReactInbox() {
 						type="button"
 						className="hm-btn hm-btn-ghost hm-more"
 						disabled={loading}
-						onClick={() => void load(cursorOf(rows[rows.length - 1]), filter)}
+						onClick={() =>
+							void load(threadCursorOf(rows[rows.length - 1]), filter)
+						}
 					>
 						Load older
 					</button>
@@ -281,7 +327,7 @@ export default function ReactInbox() {
 			<section className="hm-detail">
 				{!selectedId && (
 					<div className="hm-center hm-muted hm-detail-empty">
-						Select a message.
+						Select a conversation.
 					</div>
 				)}
 
@@ -292,7 +338,7 @@ export default function ReactInbox() {
 				)}
 
 				{selectedId && !detailLoading && !detail && (
-					<div className="hm-center hm-muted">Message unavailable.</div>
+					<div className="hm-center hm-muted">Conversation unavailable.</div>
 				)}
 
 				{detail && !detailLoading && (
@@ -307,59 +353,83 @@ export default function ReactInbox() {
 						</button>
 						<header className="hm-message-head">
 							<h2>{detail.subject?.trim() || '(no subject)'}</h2>
-							<dl>
-								<dt>From</dt>
-								<dd>{detail.from_addr}</dd>
-								<dt>To</dt>
-								<dd>{detail.to_addr ?? 'you'}</dd>
-								<dt>Date</dt>
-								<dd>
-									{new Date(
-										detail.sent_at ?? detail.received_at,
-									).toLocaleString()}
-								</dd>
-								{detail.direction === 'out' && (
-									<>
-										<dt>Status</dt>
-										<dd>
-											{detail.status}
-											{detail.error ? ` (${detail.error})` : ''}
-										</dd>
-									</>
+							<p className="hm-muted hm-thread-meta">
+								{detail.messages.length}{' '}
+								{detail.messages.length === 1 ? 'message' : 'messages'}
+								{' · '}
+								{others(
+									Array.from(
+										new Set(
+											detail.messages.flatMap((m) =>
+												[m.from_addr, m.to_addr].filter(
+													(a): a is string => Boolean(a),
+												),
+											),
+										),
+									),
+									self,
 								)}
-							</dl>
+							</p>
 						</header>
 
-						{detail.body.attachments.length > 0 && (
-							<ul className="hm-attachments">
-								{detail.body.attachments.map((a, i) => (
-									<li key={i}>
-										<Paperclip size={14} />
-										{a.name ?? 'attachment'}{' '}
-										<span className="hm-muted">
-											{a.content_type ?? ''}{' '}
-											{Math.max(1, Math.round(a.size / 1024))} KB
+						<ol className="hm-transcript">
+							{detail.messages.map((m) => (
+								<li
+									key={m.id}
+									className={`hm-turn ${m.direction === 'out' ? 'is-out' : 'is-in'}`}
+								>
+									<div className="hm-turn-head">
+										<span className="hm-turn-who">
+											{m.direction === 'in' ? (
+												<Inbox size={13} aria-hidden="true" />
+											) : (
+												<Send size={13} aria-hidden="true" />
+											)}
+											{m.from_addr}
 										</span>
-									</li>
-								))}
-							</ul>
-						)}
+										<time
+											className="hm-turn-when"
+											dateTime={m.sent_at ?? m.received_at}
+										>
+											{new Date(
+												m.sent_at ?? m.received_at,
+											).toLocaleString()}
+										</time>
+									</div>
 
-						{detail.body.text ? (
-							<pre className="hm-body">{detail.body.text}</pre>
-						) : detail.body.html ? (
-							<div
-								className="hm-body hm-body-html"
-								dangerouslySetInnerHTML={{
-									__html: DOMPurify.sanitize(detail.body.html, {
-										FORBID_TAGS: ['style', 'img', 'svg', 'form', 'input'],
-										FORBID_ATTR: ['style', 'srcset'],
-									}),
-								}}
-							/>
-						) : (
-							<p className="hm-muted">Empty message.</p>
-						)}
+									{m.direction === 'out' && m.error && (
+										<p className="hm-alert hm-alert-error hm-turn-error">
+											<AlertCircle size={14} /> {m.error}
+										</p>
+									)}
+
+									{m.body.attachments.length > 0 && (
+										<ul className="hm-attachments">
+											{m.body.attachments.map((a, i) => (
+												<li key={i}>
+													<Paperclip size={14} />
+													{a.name ?? 'attachment'}{' '}
+													<span className="hm-muted">
+														{a.content_type ?? ''}{' '}
+														{Math.max(
+															1,
+															Math.round(a.size / 1024),
+														)}{' '}
+														KB
+													</span>
+												</li>
+											))}
+										</ul>
+									)}
+
+									<MessageBody
+										text={m.body.text}
+										html={m.body.html}
+										truncated={m.body_truncated}
+									/>
+								</li>
+							))}
+						</ol>
 
 						{sendResult && (
 							<div
@@ -397,7 +467,7 @@ export default function ReactInbox() {
 							>
 								<div className="hm-compose-meta">
 									<span>
-										To <strong>{detail.from_addr}</strong>
+										To <strong>{replyTo?.from_addr}</strong>
 									</span>
 									<span className="hm-muted">
 										{replySubject(detail.subject)}
