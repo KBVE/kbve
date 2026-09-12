@@ -31,6 +31,20 @@ set -euo pipefail
 
 die() { echo "::error::$*" >&2; exit 1; }
 
+# `git lfs install` also installs hooks, and it exits 2 rather than overwriting
+# an existing pre-push -- which husky's is, as soon as anything has run `pnpm
+# install`. The web-game lane sets up JavaScript before it pulls assets, so it
+# hits this every time. A runner's hook is disposable and nothing pushes from
+# one, so overwrite there; on a developer machine keep husky's (it carries the
+# Forgejo mirror logic) and carry on, since the filters are already configured.
+lfs_install_local() {
+	if [ -n "${CI:-}" ]; then
+		"$@" lfs install --local --force
+	else
+		"$@" lfs install --local || true
+	fi
+}
+
 # '.' and '**' both mean the whole checkout, which is how the external-clone
 # path asks for a repo with no subdirectory. Kept distinct from a path prefix
 # because "$include/**" on an empty prefix is "/**", which matches nothing and
@@ -166,7 +180,7 @@ case "$raw_url" in
 	esac
 	echo "::notice::Forgejo LFS auth OK (HTTP $code) — pulling $label from git.kbve.com/$path"
 
-	git -c lfs.url="$auth_url" lfs install --local
+	lfs_install_local git -c lfs.url="$auth_url"
 	git config --local lfs.transfer.maxretries 10
 
 	# Forgejo is single-replica, so a rollout or an LFS-store IO stall
@@ -186,7 +200,7 @@ case "$raw_url" in
 		exit 0
 	fi
 	echo "::notice::Pulling $label from origin (GitHub-native)"
-	git lfs install --local
+	lfs_install_local git
 	git lfs pull --include="$pathspec"
 	;;
 esac

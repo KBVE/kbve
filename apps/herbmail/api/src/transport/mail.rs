@@ -179,6 +179,35 @@ fn relay_target() -> (String, u16) {
     (host, port)
 }
 
+/// Strip the stored `<id@host>` brackets; `mail_builder` writes its own.
+fn unbracket(value: &str) -> &str {
+    let v = value.trim();
+    v.strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .unwrap_or(v)
+}
+
+fn render_mime(
+    from: &str,
+    to: &str,
+    subject: &str,
+    body: &str,
+    message_id: &str,
+    in_reply_to: Option<&str>,
+) -> Result<Vec<u8>, String> {
+    let mut message = MessageBuilder::new()
+        .from(from.to_string())
+        .to(to.to_string())
+        .subject(subject.to_string())
+        .text_body(body.to_string())
+        .message_id(unbracket(message_id).to_string());
+    if let Some(parent) = in_reply_to {
+        let parent = unbracket(parent).to_string();
+        message = message.in_reply_to(parent.clone()).references(parent);
+    }
+    message.write_to_vec().map_err(|e| format!("render: {e}"))
+}
+
 async fn relay(
     from: &str,
     to: &str,
@@ -187,18 +216,7 @@ async fn relay(
     message_id: &str,
     in_reply_to: Option<&str>,
 ) -> Result<(), String> {
-    let mut message = MessageBuilder::new()
-        .from(from.to_string())
-        .to(to.to_string())
-        .subject(subject.to_string())
-        .text_body(body.to_string())
-        .message_id(message_id.to_string());
-    if let Some(parent) = in_reply_to {
-        message = message
-            .in_reply_to(parent.to_string())
-            .references(parent.to_string());
-    }
-    let raw = message.write_to_vec().map_err(|e| format!("render: {e}"))?;
+    let raw = render_mime(from, to, subject, body, message_id, in_reply_to)?;
     let (host, port) = relay_target();
     let mut client = SmtpClientBuilder::new(host, port)
         .map_err(|e| format!("relay target: {e}"))?
@@ -631,6 +649,33 @@ mod tests {
         assert_eq!(message_id_token("abc@example.com"), None);
         assert_eq!(message_id_token("<a b@example.com>"), None);
         assert_eq!(message_id_token("<>"), None);
+    }
+
+    #[test]
+    fn rendered_ids_are_bracketed_exactly_once() {
+        let raw = render_mime(
+            "h0lybyte@herbmail.com",
+            "someone@example.com",
+            "Re: Hey mate",
+            "body",
+            "<abc-123@herbmail.com>",
+            Some("<parent-9@example.com>"),
+        )
+        .unwrap();
+        let headers = String::from_utf8(raw).unwrap();
+
+        assert!(headers.contains("Message-ID: <abc-123@herbmail.com>\r\n"));
+        assert!(headers.contains("In-Reply-To: <parent-9@example.com>\r\n"));
+        assert!(headers.contains("References: <parent-9@example.com>\r\n"));
+        assert!(!headers.contains("<<"));
+        assert!(!headers.contains(">>"));
+    }
+
+    #[test]
+    fn unbracket_leaves_bare_ids_alone() {
+        assert_eq!(unbracket("<a@b.com>"), "a@b.com");
+        assert_eq!(unbracket(" <a@b.com> "), "a@b.com");
+        assert_eq!(unbracket("a@b.com"), "a@b.com");
     }
 
     #[test]
