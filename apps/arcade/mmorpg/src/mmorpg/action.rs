@@ -15,6 +15,7 @@
 //! Every clip here is driven by a message from the `combat` crate, so an NPC
 //! swinging a sword animates through the identical path as the player.
 
+use avian3d::prelude::{CoefficientCombine, Friction};
 use bevy::animation::RepeatAnimation;
 use bevy::animation::graph::AnimationNodeIndex;
 use bevy::prelude::*;
@@ -287,6 +288,9 @@ fn flinch_on_hit(
     }
 }
 
+/// How much the ground grips a body that has stopped driving itself.
+const CORPSE_FRICTION: f32 = 0.9;
+
 /// Death, which is the one clip that owns the whole body.
 ///
 /// Played through the locomotion layer rather than the arms one, and the
@@ -317,10 +321,13 @@ fn drop_on_death(
             .play(&mut player, locomotion.death.node, DEATH_BLEND)
             .set_repeat(RepeatAnimation::Never);
 
-        commands
-            .entity(death.entity)
-            .remove::<Action>()
-            .insert(Frozen);
+        // The character's zero friction is a controller trick, and on a corpse it
+        // is what lets the ground carry it off. A body that is no longer driving
+        // itself should rest on the ground like anything else.
+        commands.entity(death.entity).remove::<Action>().insert((
+            Frozen,
+            Friction::new(CORPSE_FRICTION).with_combine_rule(CoefficientCombine::Average),
+        ));
     }
 }
 
