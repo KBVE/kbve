@@ -7,13 +7,13 @@ tags: ['rust', 'docker']
 tasks:
     containerx:
         deps: ['protobuf:build']
-        script: 'docker buildx build --load -f services/firecracker/Dockerfile -t kbve/firecracker-ctl:latest .'
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/firecracker-ctl:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
         deps: ['protobuf:build']
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache,mode=max -f services/firecracker/Dockerfile -t ghcr.io/kbve/firecracker-ctl:latest -t kbve/firecracker-ctl:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache,mode=max -f $projectSource/Dockerfile -t ghcr.io/kbve/firecracker-ctl:latest -t kbve/firecracker-ctl:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

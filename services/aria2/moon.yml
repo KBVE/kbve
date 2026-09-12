@@ -6,12 +6,12 @@ tags: ['docker']
 
 tasks:
     containerx:
-        script: 'docker buildx build --load -f services/aria2/Dockerfile -t kbve/aria2-proxy:latest .'
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/aria2-proxy:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache,mode=max -f services/aria2/Dockerfile -t ghcr.io/kbve/aria2-proxy:latest -t kbve/aria2-proxy:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache,mode=max -f $projectSource/Dockerfile -t ghcr.io/kbve/aria2-proxy:latest -t kbve/aria2-proxy:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
