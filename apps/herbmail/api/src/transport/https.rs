@@ -100,10 +100,17 @@ async fn health() -> impl IntoResponse {
     "OK"
 }
 
-/// Set Cache-Control based on request path.
+/// Set Cache-Control based on request path; only 2xx responses are cacheable.
 async fn cache_headers(request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
     let mut response = next.run(request).await;
+
+    if !response.status().is_success() {
+        response
+            .headers_mut()
+            .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+        return response;
+    }
 
     let cache_value = if path.starts_with("/_astro/") {
         // Content-hashed Vite bundles — cache forever
@@ -287,6 +294,32 @@ mod tests {
             .to_str()
             .unwrap();
         assert!(cc.contains("86400"));
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_errors_are_not_cacheable() {
+        let app = Router::new()
+            .route(
+                "/bimi/logo.svg",
+                get(|| async { (StatusCode::NOT_FOUND, "missing") }),
+            )
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/bimi/logo.svg")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            response.headers().get(header::CACHE_CONTROL).unwrap(),
+            "no-store"
+        );
     }
 
     #[tokio::test]
