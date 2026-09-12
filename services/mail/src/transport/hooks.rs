@@ -101,6 +101,21 @@ fn reject(status: u16, message: &str) -> Json<Value> {
     }))
 }
 
+/// The 550 this service hands back names the domain the message was actually
+/// addressed to. herbmail-api hard-coded `herbmail.com`; mail is shared across
+/// domains, so a wrong name in the bounce would mislead the sending MTA.
+fn no_such_user(recipients: &[&str]) -> String {
+    match recipients
+        .iter()
+        .find_map(|r| r.rsplit_once('@'))
+        .map(|(_, domain)| domain.trim().to_ascii_lowercase())
+        .filter(|d| !d.is_empty())
+    {
+        Some(domain) => format!("no such user at {domain}"),
+        None => "no such user".to_string(),
+    }
+}
+
 fn bearer_authorized(headers: &HeaderMap) -> Option<bool> {
     let secret = std::env::var("STALWART_HOOK_SECRET").ok()?;
     if secret.is_empty() {
@@ -190,7 +205,7 @@ async fn stalwart_hook(Json(req): Json<HookRequest>) -> Result<Json<Value>, Stat
     if accepted > 0 {
         Ok(discard())
     } else {
-        Ok(reject(550, "no such user at herbmail.com"))
+        Ok(reject(550, &no_such_user(&recipients)))
     }
 }
 
@@ -215,6 +230,25 @@ mod tests {
             }
         })
         .to_string()
+    }
+
+    #[test]
+    fn the_bounce_names_the_domain_the_message_was_addressed_to() {
+        assert_eq!(
+            no_such_user(&["h0lybyte@HerbMail.com"]),
+            "no such user at herbmail.com"
+        );
+        assert_eq!(
+            no_such_user(&["someone@kbve.com", "other@herbmail.com"]),
+            "no such user at kbve.com"
+        );
+    }
+
+    #[test]
+    fn an_address_without_a_domain_falls_back_to_the_bare_bounce() {
+        assert_eq!(no_such_user(&[]), "no such user");
+        assert_eq!(no_such_user(&["postmaster"]), "no such user");
+        assert_eq!(no_such_user(&["postmaster@"]), "no such user");
     }
 
     fn request(auth: Option<&str>, body: String) -> axum::http::Request<Body> {
