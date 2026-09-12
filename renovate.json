@@ -1,0 +1,66 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended",
+		":dependencyDashboard"
+	],
+	"baseBranchPatterns": [
+		"dev"
+	],
+	"enabledManagers": [
+		"kubernetes"
+	],
+	"kubernetes": {
+		"managerFilePatterns": [
+			"/^apps/kube/.+\\.ya?ml$/"
+		]
+	},
+	"prConcurrentLimit": 3,
+	"prHourlyLimit": 2,
+	"labels": [
+		"dependencies",
+		"kubernetes",
+		"update"
+	],
+	"schedule": [
+		"* 0-6 * * 1"
+	],
+	"commitMessagePrefix": "fix(kube):",
+	"packageRules": [
+		{
+			"matchDatasources": [
+				"kubernetes-api"
+			],
+			"enabled": false
+		},
+		{
+			"matchPackageNames": [
+				"/^ghcr\\.io\\/kbve\\//"
+			],
+			"enabled": false
+		},
+		{
+			"matchUpdateTypes": [
+				"major"
+			],
+			"addLabels": [
+				"major"
+			],
+			"minimumReleaseAge": "7 days"
+		},
+		{
+			"matchUpdateTypes": [
+				"digest"
+			],
+			"addLabels": [
+				"security"
+			]
+		}
+	],
+	"vulnerabilityAlerts": {
+		"labels": [
+			"security"
+		],
+		"schedule": null
+	}
+}
