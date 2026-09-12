@@ -37,3 +37,77 @@ message ErrorGroup {
 message ErrorGroupList {
   repeated ErrorGroup groups = 1;
 }
+
+// Performance lens — one Web Vitals sample. `value` is milliseconds for the
+// duration metrics (LCP/INP/FCP/TTFB) and a unitless ratio for CLS; `rating` is
+// the browser's own good / needs-improvement / poor verdict, carried so the
+// dashboard does not re-derive thresholds that the spec keeps moving.
+message PerfEvent {
+  string project = 1;
+  string platform = 2;
+  string release = 3;
+  string environment = 4;
+  string metric = 5;
+  double value = 6;
+  string rating = 7;
+  string navigation_type = 8;
+  string url = 9;
+  string user_id = 10;
+  string session_id = 11;
+  google.protobuf.Struct extra = 12;
+}
+
+message PerfBatch {
+  repeated PerfEvent events = 1;
+}
+
+// Product lens — a named client event. Deliberately not ErrorEvent-shaped: it
+// has no message/stack/fingerprint, and its `name` is a small fixed vocabulary.
+message ProductEvent {
+  string project = 1;
+  string platform = 2;
+  string release = 3;
+  string environment = 4;
+  string name = 5;
+  string url = 6;
+  string user_id = 7;
+  string session_id = 8;
+  google.protobuf.Struct extra = 9;
+}
+
+message ProductBatch {
+  repeated ProductEvent events = 1;
+}
+
+// Read-side rollups. Counts and quantiles are strings for the same reason
+// ErrorGroup's are: they come back stringified so a UInt64 past 2^53 survives
+// the trip through JSON intact.
+message PerfSummary {
+  string project = 1;
+  string metric = 2;
+  string samples = 3;
+  string sessions = 4;
+  string p50 = 5;
+  string p75 = 6;
+  string p95 = 7;
+  string first_seen = 8;
+  string last_seen = 9;
+}
+
+message PerfSummaryList {
+  repeated PerfSummary summaries = 1;
+}
+
+message EventCount {
+  string project = 1;
+  string name = 2;
+  string events = 3;
+  string sessions = 4;
+  string users = 5;
+  string first_seen = 6;
+  string last_seen = 7;
+}
+
+message EventCountList {
+  repeated EventCount counts = 1;
+}
