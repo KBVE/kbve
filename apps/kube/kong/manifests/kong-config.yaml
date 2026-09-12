@@ -13,7 +13,7 @@ data:
         ###\nplugins:\n  - name: cors\n    config:\n      origins:\n        - https://([a-z0-9-]+\\\
         .)?discord\\.sh\n        - https://([a-z0-9-]+\\.)?meme\\.sh\n        - https://([a-z0-9-]+\\\
         .)?kbve\\.com\n        - https://([a-z0-9-]+\\.)?chuckrpg\\.com\n        - https://([a-z0-9-]+\\\
-        .)?cryptothrone\\.com\n        - http://localhost:4321\n        - http://localhost:3000\n\
+        .)?cryptothrone\\.com\n        - https://([a-z0-9-]+\\.)?herbmail\\.com\n        - http://localhost:4321\n        - http://localhost:3000\n\
         \        - http://localhost:3333\n      methods:\n        - GET\n        - POST\n\
         \        - PUT\n        - DELETE\n        - OPTIONS\n        - PATCH\n       \
         \ - HEAD\n      headers:\n        - Accept\n        - Accept-Version\n       \
