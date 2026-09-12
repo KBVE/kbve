@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Decides what ci.yml's shards run, and which toolchains they have to
-// provision, by asking the project graph what the change actually touches.
+// Decides what ci.yml's shards run, which toolchains each has to provision,
+// and how many shards there are, by asking the project graph what the change
+// actually touches.
 //
 // Was affected-toolchains.mjs, which answered only the second half. The first
 // half used to be `moon ci ':lint' ':test' ':typecheck' ':check'` in the shard,
@@ -24,9 +25,12 @@
 // than as a missed detection.
 //
 // Does NOT fail open on the target list. An empty list means "nothing to run",
-// and a detection that guessed it would report green having tested nothing. A
-// range this cannot resolve falls back to the whole graph's CI tasks; a moon
-// that cannot answer at all exits non-zero, because that is a real break.
+// and a detection that guessed it would report green having tested nothing --
+// now by skipping the shard job outright rather than starting runners that
+// find nothing to do, which makes the same wrong answer louder rather than
+// quieter. A range this cannot resolve falls back to the whole graph's CI
+// tasks; a moon that cannot answer at all exits non-zero, because that is a
+// real break.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -35,6 +39,10 @@ import { appendFileSync } from 'node:fs';
 // publish -- has a workflow of its own with the registry credentials, the
 // docker daemon or the Playwright browsers it needs.
 const CI_TASKS = new Set(['lint', 'test', 'typecheck', 'check']);
+
+// The most shards to split the plan across. Fewer are used when there is less
+// to run than this.
+const MAX_SHARDS = 3;
 
 // GitHub only accepts a multi-line output through a heredoc, and the delimiter
 // has to be one the value cannot contain.
@@ -121,27 +129,60 @@ if (!scoped) {
     }
 }
 
-const targets = [];
-const toolchains = new Set();
+// The toolchains a target needs, kept per target rather than unioned, so a
+// shard can be asked what *it* needs instead of what the run needs.
+const needs = new Map();
 for (const [project, tasks] of Object.entries(byProject)) {
     for (const [id, task] of Object.entries(tasks)) {
         if (!CI_TASKS.has(id)) continue;
-        targets.push(`${project}:${id}`);
-        for (const t of task.toolchains ?? []) toolchains.add(t);
+        const t = new Set(task.toolchains ?? []);
         // uv projects declare `toolchain: system` and shell out, so the task
         // does not name python. The command is the only signal.
-        if (String(task.command ?? '').startsWith('uv')) toolchains.add('uv');
+        if (String(task.command ?? '').startsWith('uv')) t.add('uv');
+        needs.set(`${project}:${id}`, t);
     }
 }
-targets.sort();
+
+const targets = [...needs.keys()].sort();
 
 // Fail open. An unscoped list is the whole graph, which needs everything, and
 // a scoped one is answered from the tasks themselves.
-const rust = !scoped || toolchains.has('rust');
-const python = !scoped || toolchains.has('python') || toolchains.has('uv');
+const wants = (slice, ...names) =>
+    !scoped || slice.some((t) => names.some((n) => needs.get(t).has(n)));
 
+// One shard per slice, and no slice is empty. The matrix used to be the
+// literal [0, 1, 2]: a plan with two targets still started a third runner,
+// and a plan with none started three, each paying a full-history checkout,
+// the apt install, the cargo cache restore and `moon setup` before printing
+// that it had nothing to do. Run 34707004415 was three of those.
+//
+// Round-robin over the sorted list, which is what the shard's awk did, so a
+// target lands on exactly one shard and the assignment is deterministic for a
+// given plan. Naming the slice here rather than re-deriving it there is the
+// same move the target list itself was: the shard stops deciding anything.
+const total = Math.min(MAX_SHARDS, targets.length);
+const shards = [];
+for (let index = 0; index < total; index++) {
+    const slice = targets.filter((_, i) => i % total === index);
+    shards.push({
+        index,
+        total,
+        targets: slice.join('\n'),
+        // Per shard, not per run. Clearing the runner's disk for a cargo
+        // target directory is two minutes, and it was being paid by all three
+        // shards whenever any one of them held a rust target.
+        rust: wants(slice, 'rust'),
+        python: wants(slice, 'python', 'uv'),
+    });
+}
+
+const union = new Set([...needs.values()].flatMap((t) => [...t]));
 console.log(`base ${scoped ? base.slice(0, 12) : 'none (whole graph)'}, ${targets.length} ci target(s)`);
-console.log(`toolchains: ${[...toolchains].sort().join(', ') || 'none'} -> rust=${rust} python=${python}`);
-console.log(targets.join('\n'));
+console.log(`toolchains: ${[...union].sort().join(', ') || 'none'}`);
+for (const s of shards) {
+    console.log(`shard ${s.index}/${s.total}: ${s.targets.split('\n').length} target(s), rust=${s.rust} python=${s.python}`);
+    console.log(s.targets);
+}
+if (!shards.length) console.log('nothing affected; no shard will run');
 
-emit({ rust, python, targets: targets.join('\n') });
+emit({ shards: JSON.stringify(shards) });
