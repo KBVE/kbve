@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-11T05:59:21Z",
+  "generated_at": "2026-09-12T05:40:06Z",
   "node": {
-    "count": 65,
+    "count": 72,
     "major": 28,
     "items": [
       {
@@ -120,7 +120,7 @@
         "name": "@tanstack/react-router",
         "current": "1.170.32",
         "wanted": "1.170.32",
-        "latest": "1.170.33",
+        "latest": "1.170.34",
         "type": "dependencies",
         "major": false
       },
@@ -144,9 +144,33 @@
         "name": "@types/node",
         "current": "18.19.17",
         "wanted": "18.19.17",
-        "latest": "26.5.0",
+        "latest": "22.20.2",
         "type": "devDependencies",
         "major": true
+      },
+      {
+        "name": "@types/react",
+        "current": "19.2.18",
+        "wanted": "19.2.18",
+        "latest": "19.3.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "@types/react-dom",
+        "current": "19.2.7",
+        "wanted": "19.2.7",
+        "latest": "19.3.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "@types/react-is",
+        "current": "19.2.0",
+        "wanted": "19.2.0",
+        "latest": "19.3.0",
+        "type": "devDependencies",
+        "major": false
       },
       {
         "name": "@typescript-eslint/eslint-plugin",
@@ -277,6 +301,14 @@
         "major": false
       },
       {
+        "name": "happy-dom",
+        "current": "20.14.0",
+        "wanted": "20.14.0",
+        "latest": "20.14.3",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "jsdom",
         "current": "29.1.1",
         "wanted": "29.1.1",
@@ -349,6 +381,14 @@
         "major": true
       },
       {
+        "name": "postprocessing",
+        "current": "6.39.4",
+        "wanted": "6.39.4",
+        "latest": "6.39.5",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "prettier-plugin-astro",
         "current": "0.14.1",
         "wanted": "0.14.1",
@@ -360,7 +400,7 @@
         "name": "react",
         "current": "19.2.3",
         "wanted": "19.2.3",
-        "latest": "19.2.8",
+        "latest": "19.3.0",
         "type": "devDependencies",
         "major": false
       },
@@ -368,7 +408,7 @@
         "name": "react-dom",
         "current": "19.2.3",
         "wanted": "19.2.3",
-        "latest": "19.2.8",
+        "latest": "19.3.0",
         "type": "devDependencies",
         "major": false
       },
@@ -376,7 +416,7 @@
         "name": "react-is",
         "current": "19.2.4",
         "wanted": "19.2.4",
-        "latest": "19.2.8",
+        "latest": "19.3.0",
         "type": "dependencies",
         "major": false
       },
@@ -469,6 +509,14 @@
         "major": false
       },
       {
+        "name": "three-mesh-bvh",
+        "current": "0.9.14",
+        "wanted": "0.9.14",
+        "latest": "0.9.15",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "typegpu",
         "current": "0.11.9",
         "wanted": "0.11.9",
@@ -523,6 +571,14 @@
         "latest": "6.0.0",
         "type": "devDependencies",
         "major": true
+      },
+      {
+        "name": "zod",
+        "current": "4.5.4",
+        "wanted": "4.5.4",
+        "latest": "4.6.1",
+        "type": "dependencies",
+        "major": false
       }
     ]
   },
@@ -551,7 +607,7 @@
       {
         "name": "actix-server",
         "current": "2.6.0",
-        "latest": "2.9.2",
+        "latest": "2.9.4",
         "major": false
       },
       {
@@ -761,7 +817,7 @@
       {
         "name": "aws-sdk-s3",
         "current": "1.138.1",
-        "latest": "1.146.0",
+        "latest": "1.146.1",
         "major": false
       },
       {
@@ -1283,7 +1339,7 @@
       {
         "name": "bytemuck_derive",
         "current": "1.11.0",
-        "latest": "1.12.0",
+        "latest": "1.12.1",
         "major": false
       },
       {
@@ -1811,7 +1867,7 @@
       {
         "name": "libredox",
         "current": "0.1.18",
-        "latest": "0.1.23",
+        "latest": "0.1.24",
         "major": false
       },
       {
@@ -2398,6 +2454,6 @@
       }
     ]
   },
-  "total": 376,
+  "total": 383,
   "major_total": 29
 }
