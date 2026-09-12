@@ -9,7 +9,7 @@ compiles to a native binary and to a browser WebGPU bundle.
 | --------------------- | ------------------------ | -------------------------- |
 | `apps/arcade/isometric` | orthographic             | 2.5D sprites               |
 | `apps/arcade/colony`  | orthographic             | 3D geometry, 2D billboards |
-| `apps/arcade/mmorpg`  | perspective third-person | 3D                         |
+| `apps/arcade/kbve-mmorpg`  | perspective third-person | 3D                         |
 
 ## Run
 
@@ -99,7 +99,7 @@ Other players arrive as capsules with a name over them, tinted by whether they
 are a guest — not the full character rig, which is driven by the local animation
 and IK systems and is its own piece of work to point at a replicated transform.
 
-The server is `apps/agones/mmorpg/server`.
+The server is `apps/agones/kbve-mmorpg/server`.
 
 ## Browser limits
 

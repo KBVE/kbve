@@ -1,6 +1,6 @@
 # mmorpg_net
 
-Wire protocol for `apps/arcade/mmorpg` and `apps/agones/mmorpg/server`: replicated
+Wire protocol for `apps/arcade/kbve-mmorpg` and `apps/agones/kbve-mmorpg/server`: replicated
 components, the per-tick input, and the channels they travel on.
 
 Separate from `bevy_kbve_net`, which is isometric's protocol — tiles, creatures,

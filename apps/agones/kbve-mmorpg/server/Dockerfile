@@ -16,17 +16,17 @@
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 ENV CARGO_INCREMENTAL=0
 
-COPY apps/agones/mmorpg/server/Cargo.workspace.toml Cargo.toml
+COPY apps/agones/kbve-mmorpg/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/agones/mmorpg/server/Cargo.toml apps/agones/mmorpg/server/Cargo.toml
+COPY apps/agones/kbve-mmorpg/server/Cargo.toml apps/agones/kbve-mmorpg/server/Cargo.toml
 COPY crates/mmorpg_net/Cargo.toml crates/mmorpg_net/Cargo.toml
 COPY crates/bevy_kbve_net/Cargo.toml crates/bevy_kbve_net/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 
-RUN mkdir -p apps/agones/mmorpg/server/src && \
-    echo "fn main() {}" > apps/agones/mmorpg/server/src/main.rs && \
+RUN mkdir -p apps/agones/kbve-mmorpg/server/src && \
+    echo "fn main() {}" > apps/agones/kbve-mmorpg/server/src/main.rs && \
     mkdir -p crates/mmorpg_net/src && \
     echo "" > crates/mmorpg_net/src/lib.rs && \
     mkdir -p crates/bevy_kbve_net/src && \
@@ -74,7 +74,7 @@ ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 
-COPY apps/agones/mmorpg/server/Cargo.workspace.toml Cargo.toml
+COPY apps/agones/kbve-mmorpg/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY crates/mmorpg_net crates/mmorpg_net
@@ -82,7 +82,7 @@ COPY crates/bevy_kbve_net crates/bevy_kbve_net
 COPY crates/jedi crates/jedi
 COPY crates/kbve-proto crates/kbve-proto
 COPY packages/proto packages/proto
-COPY apps/agones/mmorpg/server apps/agones/mmorpg/server
+COPY apps/agones/kbve-mmorpg/server apps/agones/kbve-mmorpg/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
