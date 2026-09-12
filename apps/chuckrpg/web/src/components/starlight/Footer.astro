@@ -1,8 +1,16 @@
 ---
 import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Footer.astro';
+import { buildInfo } from '@/lib/build-info';
 
 const currentYear = new Date().getFullYear();
+const buildLabel = [
+	buildInfo.version ? `v${buildInfo.version}` : null,
+	buildInfo.commit,
+]
+	.filter(Boolean)
+	.join(' \u00b7 ');
+const buildTitle = `Built ${buildInfo.builtAt}`;
 ---
 
 <Default {...Astro.props}><slot /></Default>
@@ -62,6 +70,25 @@ const currentYear = new Date().getFullYear();
 				KBVE
 			</a>
 		</span>
+		<div class="ck-footer__meta">
+			{
+				buildLabel && buildInfo.commitUrl ? (
+					<a
+						class="ck-footer__version"
+						href={buildInfo.commitUrl}
+						title={buildTitle}
+						target="_blank"
+						rel="noopener noreferrer">
+						{buildLabel}
+					</a>
+				) : buildLabel ? (
+					<span class="ck-footer__version" title={buildTitle}>
+						{buildLabel}
+					</span>
+				) : null
+			}
+		</div>
+
 		<div class="ck-footer__badges">
 			<a
 				href="https://github.com/kbve/kbve"
@@ -210,6 +237,30 @@ const currentYear = new Date().getFullYear();
 		color: var(--ck-firelight);
 	}
 
+	.ck-footer__meta {
+		display: flex;
+		align-items: center;
+	}
+
+	.ck-footer__version {
+		font-family: var(--sl-font-mono, ui-monospace, monospace);
+		font-size: 0.6875rem;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3, #6b6356);
+		text-decoration: none;
+		padding: 0.15rem 0.5rem;
+		border-radius: 0.375rem;
+		border: 1px solid
+			color-mix(in srgb, var(--ck-firelight) 12%, transparent);
+		background: color-mix(in srgb, var(--ck-firelight) 5%, transparent);
+		transition: color 150ms ease, border-color 150ms ease;
+	}
+
+	a.ck-footer__version:hover {
+		color: var(--ck-firelight);
+		border-color: color-mix(in srgb, var(--ck-firelight) 35%, transparent);
+	}
+
 	.ck-footer__badges {
 		display: flex;
 		align-items: center;
@@ -258,6 +309,10 @@ const currentYear = new Date().getFullYear();
 			flex-direction: column;
 			gap: 1rem;
 			text-align: center;
+		}
+
+		.ck-footer__meta {
+			justify-content: center;
 		}
 	}
 </style>
