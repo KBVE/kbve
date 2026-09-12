@@ -49,10 +49,24 @@ jobs:
     # altered the results of -- and under a busy runner pool the cost is the
     # queued job rather than its wall clock.
     #
+    # Push is narrowed for the same reason, and it is where the cost actually
+    # is: `Analyze (rust)` takes 58 to 73 minutes (runs 34707883257, 34708298860
+    # and 34709067024 were 4385s, 3887s and 3511s), it runs on every push to
+    # dev, and the concurrency group below gives each push its own lane and
+    # cancels nothing -- so a burst of merges is a burst of hour-long jobs held
+    # concurrently. Nineteen of the last forty commits on dev touched no rust
+    # at all, and each of them paid that hour to re-analyse a tree the change
+    # could not have altered the rust findings of.
+    #
+    # Safe to narrow because the Monday schedule is not narrowed: it analyses
+    # all three languages over the whole tree whatever changed. Narrowing a
+    # push trades a week of latency on a finding the diff does not touch, not
+    # the finding itself.
+    #
     # The file list comes from the API rather than a checkout: a diff this job
-    # only counts extensions in is not worth fetching the history for. The API
-    # truncates at 3000 files, and a diff that large is treated as "no idea",
-    # which is the same answer a push gets.
+    # only counts extensions in is not worth fetching the history for. Both
+    # endpoints cap -- pulls/files at 3000 files, compare at 300 -- and a diff
+    # at the cap is one this job cannot describe, so it runs everything.
     languages:
         name: Pick languages
         runs-on: ubuntu-latest
@@ -63,6 +77,9 @@ jobs:
         outputs:
             matrix: ${{ steps.pick.outputs.matrix }}
             any: ${{ steps.pick.outputs.any }}
+            # Whether rust is in the matrix, which is what decides if this run
+            # has anything to say about the rust tracker's issue.
+            rust: ${{ steps.pick.outputs.rust }}
         steps:
             - name: Pick the languages this change touches
               id: pick
@@ -71,50 +88,73 @@ jobs:
                   REPO: ${{ github.repository }}
                   PR: ${{ github.event.pull_request.number }}
                   EVENT: ${{ github.event_name }}
+                  BEFORE: ${{ github.event.before }}
+                  SHA: ${{ github.sha }}
               run: |
                   set -euo pipefail
 
                   js='{"language":"javascript-typescript","build-mode":"none","timeout":60}'
                   py='{"language":"python","build-mode":"none","timeout":60}'
-                  # Rust is not in the pull request matrix; see the note on
-                  # `analyze`. On push and on the schedule it is the whole
-                  # reason the workflow runs, so it is never narrowed away.
                   rs='{"language":"rust","build-mode":"none","timeout":360}'
 
-                  if [ "$EVENT" != "pull_request" ]; then
+                  all() {
                     printf 'matrix=[%s,%s,%s]\n' "$js" "$py" "$rs" >> "$GITHUB_OUTPUT"
-                    echo "any=true" >> "$GITHUB_OUTPUT"
+                    printf 'any=true\nrust=true\n' >> "$GITHUB_OUTPUT"
                     exit 0
-                  fi
+                  }
+
+                  # The schedule is the backstop the narrowing below leans on,
+                  # and a manual run is someone asking for the whole thing.
+                  case "$EVENT" in
+                    pull_request)
+                      gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > files.txt
+                      cap=3000
+                      ;;
+                    push)
+                      # A new branch has no `before` to compare against, and a
+                      # zero sha is how GitHub spells that.
+                      case "$BEFORE" in
+                        ''|0000000000000000000000000000000000000000) all ;;
+                      esac
+                      gh api "repos/$REPO/compare/$BEFORE...$SHA" --jq '.files[]?.filename' > files.txt
+                      cap=300
+                      ;;
+                    *) all ;;
+                  esac
+
+                  count=$(wc -l < files.txt)
+                  echo "::notice::$count changed files"
+                  # `cmd && all` would be a failing AND-list under `set -e`
+                  # whenever the condition is false, so both of these are
+                  # spelled as ifs.
+                  if [ "$count" -ge "$cap" ]; then all; fi
+
+                  # The config and the workflow decide what every extractor
+                  # sees, so a change to either is a change to every language.
+                  if grep -qE '^\.github/(workflows/ci-codeql\.yml|codeql/)' files.txt; then all; fi
+
+                  entries=""
+                  want_rust=false
+                  add() { entries="${entries:+$entries,}$1"; }
 
                   # A file rather than a pipe into grep: `grep -q` closes the
                   # pipe on its first match, and under pipefail the writer's
                   # EPIPE is the status the pipeline reports, so a match would
                   # read as no match.
-                  gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > files.txt
-                  count=$(wc -l < files.txt)
-                  echo "::notice::$count changed files"
-
-                  want_js=false
-                  want_py=false
-                  # The API stops at 3000 files, so a diff at the cap is a diff
-                  # this job cannot describe -- same answer a push gets. The
-                  # config and the workflow decide what every extractor sees,
-                  # so a change to either is a change to both languages.
-                  if [ "$count" -ge 3000 ] ||
-                     grep -qE '^\.github/(workflows/ci-codeql\.yml|codeql/)' files.txt; then
-                    want_js=true
-                    want_py=true
-                  else
-                    grep -qE '\.[cm]?[jt]sx?$' files.txt && want_js=true || true
-                    grep -qE '\.pyi?$' files.txt && want_py=true || true
+                  grep -qE '\.[cm]?[jt]sx?$' files.txt && add "$js" || true
+                  grep -qE '\.pyi?$' files.txt && add "$py" || true
+                  # Rust is not in the pull request matrix at all: it cannot
+                  # finish inside one, which is what moved it to push and to the
+                  # schedule in the first place. Cargo manifests count because a
+                  # dependency edit changes what the extractor resolves without
+                  # touching a .rs file.
+                  if [ "$EVENT" != "pull_request" ] &&
+                     grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$' files.txt; then
+                    add "$rs"
+                    want_rust=true
                   fi
 
-                  entries=""
-                  if [ "$want_js" = true ]; then entries="$js"; fi
-                  if [ "$want_py" = true ]; then entries="${entries:+$entries,}$py"; fi
-
-                  echo "matrix=[$entries]" >> "$GITHUB_OUTPUT"
+                  printf 'matrix=[%s]\nrust=%s\n' "$entries" "$want_rust" >> "$GITHUB_OUTPUT"
                   if [ -z "$entries" ]; then
                     echo "any=false" >> "$GITHUB_OUTPUT"
                     echo "::notice::No CodeQL language touched by this change"
@@ -204,10 +244,14 @@ jobs:
     # as rust today; if one of the other two starts breaking, the tracker will
     # say rust and the run link will say otherwise.
     #
-    # Pull requests are skipped because rust is not in their matrix at all.
+    # Pull requests are skipped because rust is not in their matrix at all, and
+    # so is any run that narrowed rust away: `analyze` reports the matrix
+    # result, so a push that only analysed javascript would otherwise report
+    # green for a language it never ran and close an open rust issue on the
+    # strength of it.
     track-rust:
         name: Track CodeQL Rust
-        if: always() && github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request' && (needs.languages.result == 'failure' || needs.languages.outputs.rust == 'true')
         needs: [languages, analyze]
         permissions:
             actions: read
