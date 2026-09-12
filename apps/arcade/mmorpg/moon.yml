@@ -25,6 +25,28 @@ env:
     WASM_BINDGEN_VERSION: '0.2.126'
     MMORPG_WEB_PORT: '4321'
 
+    # Where a release of this game ships. A `mmorpg@<semver>` tag resolves to
+    # the `web-game` lane through the tag above, builds the bundle and pushes
+    # it to itch with butler.
+    ITCH_USER: 'kbve'
+    ITCH_GAME: 'mmorpg'
+    # html5 is the channel itch serves in the browser.
+    ITCH_CHANNEL: 'html5'
+
+    # The wasm bundle is built by nightly rust rebuilding std with atomics via
+    # -Z build-std, so the release lane installs that toolchain.
+    WEB_GAME_NEEDS_RUST: 'true'
+    # Not `build`. This is a rust project, so `build` comes from the rust
+    # toolchain and means a native `cargo build` -- the release lane would
+    # produce a linux binary and then fail looking for a bundle. Naming the
+    # wasm task here also keeps it out of `moon ci`, where every shard would
+    # otherwise compile wasm on nightly.
+    WEB_GAME_TASK: 'build-web'
+    # assets/ is LFS on the arcade Forgejo remote. Without this the release
+    # runner builds against 130-byte pointer files: the build succeeds, the
+    # upload succeeds, and the player gets a world with no meshes in it.
+    LFS_REMOTE: 'arcade'
+
 # build/test/lint/format/run are inherited from the rust toolchain tasks.
 tasks:
     # Bevy resolves its graphics backend at compile time, so the browser
@@ -35,35 +57,81 @@ tasks:
         deps: ['protobuf:build']
         preset: 'server'
 
-    # Stable toolchain, no -Z build-std, no atomics: this is the single-threaded
-    # wasm bundle. isometric needs the nightly shared-memory build because it
-    # runs the sim on a worker; this one does not, and paying for that lane
-    # would mean COOP/COEP headers on every host that serves the game.
-    build-wasm:
+    # The browser bundle, and the one the release lane ships.
+    #
+    # Shared memory, which is what SharedArrayBuffer means on this side of the
+    # wire: atomics and bulk-memory in the target features, `--shared-memory`
+    # with an imported memory at link time, and std rebuilt with -Z build-std so
+    # the standard library agrees with the rest of the module about both. That
+    # last one is nightly-only, which is why this task pins the toolchain rather
+    # than taking rust-toolchain.toml's 1.98.0.
+    #
+    # The export list is not decoration. wasm-bindgen injects the per-worker
+    # thread-id glue by looking those symbols up, and recent nightly rustc no
+    # longer emits __heap_base on its own, so dropping any of them fails the
+    # bindgen step with "failed to prepare module for threading". isometric's
+    # .cargo/config.toml carries the same list for the same reason; here it is
+    # inline, so a stray config file cannot change what this produces.
+    #
+    # Serving it needs cross-origin isolation -- `serve-web` locally, and the
+    # "SharedArrayBuffer support" switch on the itch page, which is what makes
+    # itch send COOP/COEP. Without those the module will not instantiate at all,
+    # because a shared memory demands a SharedArrayBuffer to back it.
+    #
+    # What this does not yet buy is a threaded bevy schedule: bevy 0.19 gates
+    # `multi_threaded` off on wasm32 outright (`cfg(all(not(target_arch =
+    # "wasm32"), feature = "multi_threaded"))` in bevy_tasks). The ECS still runs
+    # on one thread. What it does buy is a module that can share memory with a
+    # worker at all -- the half that cannot be added later without rebuilding
+    # std -- so anything spawning its own workers has somewhere to put them.
+    #
+    # RUSTUP_TOOLCHAIN rather than `cargo +nightly`: under moon's rust toolchain
+    # the `+nightly` form is not passed to a real rustup shim and dies.
+    build-web:
         # Inherited rust tasks pick the generated tree up through `^:build`;
         # a script task has to name it.
         deps: ['protobuf:build']
         script: |
             set -euo pipefail
             command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@$WASM_BINDGEN_VERSION --locked
-            RUSTFLAGS="${RUSTFLAGS:-} -C target-feature=+simd128" \
-                cargo build --release --target wasm32-unknown-unknown --no-default-features --features webgpu
-            mkdir -p web
+            RUSTUP_TOOLCHAIN=nightly \
+            RUSTFLAGS="-C target-feature=+atomics,+bulk-memory,+mutable-globals,+reference-types,+simd128 \
+                -C llvm-args=--wasm-enable-sjlj \
+                -C link-arg=--import-memory \
+                -C link-arg=--shared-memory \
+                -C link-arg=--max-memory=4294967296 \
+                -C link-arg=--export=__heap_base \
+                -C link-arg=--export=__wasm_init_tls \
+                -C link-arg=--export=__tls_size \
+                -C link-arg=--export=__tls_align \
+                -C link-arg=--export=__tls_base" \
+                cargo build --release --target wasm32-unknown-unknown \
+                    -Z build-std=std,panic_abort \
+                    --no-default-features --features webgpu
+            rm -rf dist
+            mkdir -p dist
             wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/mmorpg.wasm \
-                --out-dir web/pkg --target web --out-name mmorpg
-            cp index.html web/index.html
+                --out-dir dist/pkg --target web --out-name mmorpg
+            cp index.html dist/index.html
+            # bevy resolves an asset path against the page, so the tree has to
+            # sit beside index.html rather than be fetched from the repo.
+            cp -R assets dist/assets
+            du -sh dist
         inputs:
             - '@group(sources)'
             - '@group(manifests)'
             - 'index.html'
+            - 'assets/**/*'
         outputs:
-            - 'web'
+            - 'dist'
 
-    # Serves the bundle the way a browser needs it: over http, with the wasm
-    # mime type. Opening web/index.html from the filesystem fails the module
-    # fetch before any of this runs.
-    serve-wasm:
-        script: 'npx --yes serve web -l $MMORPG_WEB_PORT'
-        deps: ['build-wasm']
+    # Serves dist with the two headers a SharedArrayBuffer needs. The bundle
+    # that ships today does not require them, but the server that stands in for
+    # itch should behave like itch with SharedArrayBuffer support switched on --
+    # otherwise the threaded build's first failure is a missing response header
+    # discovered in production. `npx serve` sends neither.
+    serve-web:
+        script: 'node ../../../tools/web/serve-coi.mjs dist $MMORPG_WEB_PORT'
+        deps: ['build-web']
         preset: 'server'
         toolchain: 'node'

@@ -39,7 +39,7 @@ tasks:
         script: 'pnpm build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/ && cp public/wasm-worker.js dist/wasm-worker.js && cp public/safari-shim.js dist/safari-shim.js && cp -r wasm-pkg/snippets dist/assets/snippets'
 
     serve-dist:
-        command: 'node scripts/serve-coi.mjs'
+        command: 'node ../../../tools/web/serve-coi.mjs dist'
         toolchains: ['node']
         preset: 'server'
 
