@@ -107,3 +107,96 @@ END;
 $$;
 
 -- ===========================================
+
+-- ===========================================
+-- THREADING (mirror of 20260912210000_mail_threads)
+-- ===========================================
+
+
+-- Conversation grouping for the herbmail inbox. Every message carries the id of
+-- the message that started its conversation, so a reply arriving months later
+-- still lands on the original thread instead of appearing as a loose row.
+--
+-- The root is resolved by walking in_reply_to -> message_id within one mailbox.
+-- Threading is per user_id: two mailboxes that happen to see the same RFC
+-- message id keep separate threads, and the walk can never cross between them.
+--
+-- herbmail_inbox_list / herbmail_message_get are deliberately left alone. Two
+-- services call them today (herbmail-api and services/mail), so the thread
+-- surface is additive: new functions, existing signatures untouched.
+
+ALTER TABLE mail.messages
+    ADD COLUMN IF NOT EXISTS thread_id uuid;
+
+-- Resolve each message to the root of its reply chain. Messages whose parent is
+-- absent (the other side of the conversation was never delivered here) root on
+-- themselves, which is also the single-message case.
+WITH RECURSIVE walk AS (
+    SELECT m.id, m.user_id, m.id AS root_id, m.in_reply_to, 0 AS depth
+      FROM mail.messages AS m
+     WHERE m.thread_id IS NULL
+
+    UNION ALL
+
+    SELECT w.id, w.user_id, parent.id AS root_id, parent.in_reply_to, w.depth + 1
+      FROM walk AS w
+      JOIN mail.messages AS parent
+        ON parent.user_id = w.user_id
+       AND parent.message_id IS NOT NULL
+       AND parent.message_id = w.in_reply_to
+       AND parent.id <> w.id
+     WHERE w.in_reply_to IS NOT NULL
+       AND w.depth < 100
+),
+roots AS (
+    SELECT DISTINCT ON (id) id, root_id
+      FROM walk
+     ORDER BY id, depth DESC
+)
+UPDATE mail.messages AS m
+   SET thread_id = roots.root_id
+  FROM roots
+ WHERE m.id = roots.id
+   AND m.thread_id IS NULL;
+
+-- New rows inherit their parent's thread, or start one of their own. Doing this
+-- in the database rather than the API keeps both services consistent without
+-- either having to know the rule.
+CREATE OR REPLACE FUNCTION mail.assign_thread()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF NEW.thread_id IS NOT NULL THEN
+        RETURN NEW;
+    END IF;
+
+    IF NEW.in_reply_to IS NOT NULL THEN
+        SELECT parent.thread_id
+          INTO NEW.thread_id
+          FROM mail.messages AS parent
+         WHERE parent.user_id = NEW.user_id
+           AND parent.message_id = NEW.in_reply_to
+           AND parent.thread_id IS NOT NULL
+         ORDER BY parent.received_at ASC
+         LIMIT 1;
+    END IF;
+
+    NEW.thread_id := coalesce(NEW.thread_id, NEW.id);
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS messages_assign_thread ON mail.messages;
+CREATE TRIGGER messages_assign_thread
+    BEFORE INSERT ON mail.messages
+    FOR EACH ROW
+    EXECUTE FUNCTION mail.assign_thread();
+
+CREATE INDEX IF NOT EXISTS messages_thread_idx
+    ON mail.messages (user_id, thread_id, received_at ASC);
+
+CREATE INDEX IF NOT EXISTS messages_thread_activity_idx
+    ON mail.messages (user_id, thread_id, received_at DESC);
