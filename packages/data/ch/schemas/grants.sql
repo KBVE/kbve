@@ -3,7 +3,7 @@
 -- The `kbve_ingest` CH user is the single ingest identity for the direct-write
 -- pipelines (renamed from the legacy `logflare` user — Logflare-the-service is
 -- no longer in the path):
---   • apps/metrics  (Rust frontend telemetry)  → telemetry.*
+--   • services/metrics  (Rust frontend telemetry)  → telemetry.*
 --   • Vector (DaemonSet)                        → observability.*
 --   • mc presence snapshots (apps/kbve)         → mc.*
 --   • factorio relay + factorio-ctl (agones)    → gameops.* (write)

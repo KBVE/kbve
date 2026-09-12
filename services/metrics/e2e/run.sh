@@ -2,7 +2,7 @@
 # End-to-end test: boots real ClickHouse + the metrics binary, drives the public
 # ingest endpoint, and asserts rows land in CH correctly sanitized.
 #
-# Usage: apps/metrics/e2e/run.sh
+# Usage: services/metrics/e2e/run.sh
 # Requires: docker compose, curl.
 set -euo pipefail
 
