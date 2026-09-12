@@ -227,7 +227,7 @@ Expected: passes (no reference to the deleted symbols). (If no `check-desktop` t
 - [ ] **Step 9: Commit** (proto source + hand edit + ALL regenerated artifacts together, so the tree is self-consistent):
 
 ```bash
-git add packages/data/proto/item/itemdb.proto packages/rust/bevy/bevy_items packages/data/codegen/descriptors/itemdb.binpb packages/data/codegen/generated/itemdb-schema.ts packages/data/codegen/generated/itemdb-data.json packages/data/codegen/generated/itemdb-data.binpb packages/data/codegen/generated/itemdb.json packages/unreal/KBVEItemDB apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb
+git add packages/data/proto/item/itemdb.proto packages/rust/bevy/bevy_items packages/data/codegen/descriptors/itemdb.binpb packages/data/codegen/generated/itemdb-schema.ts packages/data/codegen/generated/itemdb-data.json packages/data/codegen/generated/itemdb-data.binpb packages/data/codegen/generated/itemdb.json packages/unreal/KBVEItemDB apps/rareicon/unity/Assets/StreamingAssets/itemdb.json apps/rareicon/unity/Assets/StreamingAssets/itemdb.binpb
 git status --porcelain
 git commit -m "refactor(itemdb): remove dead SkillingType/SkillingInfo proto types (superseded by professiondb)"
 ```

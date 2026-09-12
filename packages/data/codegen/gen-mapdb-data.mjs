@@ -11,8 +11,8 @@
  * Outputs:
  *   packages/data/codegen/generated/mapdb-data.json    (proto-canonical camelCase JSON)
  *   packages/data/codegen/generated/mapdb-data.binpb   (wire-format proto binary)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json   (same JSON, mirrored)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb  (same binary, mirrored)
+ *   apps/rareicon/unity/Assets/StreamingAssets/mapdb.json   (same JSON, mirrored)
+ *   apps/rareicon/unity/Assets/StreamingAssets/mapdb.binpb  (same binary, mirrored)
  *
  * Usage:
  *   node packages/data/codegen/gen-mapdb-data.mjs
@@ -167,7 +167,7 @@ function main() {
 			name: 'rareicon',
 			dir: resolve(
 				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+				'apps/rareicon/unity/Assets/StreamingAssets',
 			),
 		},
 	];

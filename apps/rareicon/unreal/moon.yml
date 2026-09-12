@@ -1,0 +1,171 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['unreal-game', 'ue5-server']
+
+# The game module links KBVEUnr, whose staticlib is built from crates/unr
+# rather than committed. Declaring it means a fresh clone builds instead of
+# hitting the Build.cs "missing libunr.a" guard.
+dependsOn:
+    - 'KBVEUnr'
+    - 'KBVEWorld'
+    - 'KBVEMover'
+    # The loading screen is built from the shared Slate library.
+    - 'KBVEUI'
+    # Ray queries against the procedural world, which exists as vertex and index
+    # arrays before it exists as anything with collision on it.
+    - 'KBVETinyBVH'
+    # The frame-timing readout the inherited `perf` task talks to. Without it
+    # that task has nothing to connect to, which is why the only numbers this
+    # project could produce were its own build timings.
+    - 'KBVEPerf'
+    # build-world and build-input run the editor scripts shipped there.
+    # 'kbve' is the Rust crate; the python package is 'kbve-py'.
+    - 'kbve-py'
+
+tasks:
+    lfs-push:
+        script: './kbve.sh -lfs rareicon push'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-pull:
+        script: './kbve.sh -lfs rareicon pull'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-fetch:
+        script: './kbve.sh -lfs rareicon fetch --all'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-register:
+        script: './kbve.sh -lfs rareicon register'
+        options:
+            runFromWorkspaceRoot: true
+    # The game module links KBVEUnr, whose staticlib is built rather than
+    # committed, so every target has to wait on it. Deps merge with the
+    # inherited task rather than replacing it.
+    build-editor:
+        deps: ['KBVEUnr:sync-unr']
+    build-game:
+        deps: ['KBVEUnr:sync-unr']
+    build-server:
+        deps: ['KBVEUnr:sync-unr']
+    # Rig the weapon sources and import them. Separate from build-textures
+    # because it needs Blender as well: PolyHaven ships firearms as loose rigid
+    # parts with no armature, so the bolt and trigger bones are generated from
+    # the geometry rather than authored, and the FBX that produces is what the
+    # editor imports.
+    import-weapons:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal/scripts/import-weapons.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Stage and import the rifle locomotion clips. Separate from import-weapons
+    # because it needs no Blender and no ImageMagick -- these are authored
+    # animations on a compatible skeleton, so the whole job is a copy and an
+    # editor import.
+    import-animations:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal/scripts/import-animations.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # The armoury: freeze the idle, park the camera on the weapon, photograph
+    # the hold and quit.
+    #
+    # A bench rather than a session in the editor, because judging a grip by
+    # chasing a walking character with a screenshot tool is how six rounds of
+    # this were spent. Nothing here needs a person: it runs headless, writes one
+    # PNG and prints the reach and roll numbers beside it, so a hold can be
+    # compared against the last one instead of remembered.
+    #
+    # Off screen, deliberately. A -game window steals focus and captures the
+    # mouse, so a bench meant to run while someone else works cannot own a
+    # window; -RenderOffScreen renders to a surface instead and the screenshot
+    # comes out the same.
+    #
+    # Everything said once is kept and the running roll is kept only at its last
+    # value. Trimming to the tail instead threw away every line that is printed
+    # once -- the derived hand frame, each finger's wrap -- because a figure
+    # reprinted sixty times a second fills any window from the end.
+    armoury:
+        deps: ['~:build-editor']
+        script: >-
+            rm -f apps/rareicon/unreal/Saved/Screenshots/MacEditor/*.png;
+            "${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Binaries/Mac/UnrealEditor-Cmd"
+            "$PWD/apps/rareicon/unreal/RareIcon.uproject" /Game/Map/L_RareIconWorld
+            -game -unattended -nosound -nosplash -RenderOffScreen -resx=1600 -resy=900 -stdout
+            -ExecCmds="rareicon.Grip.Lab 1,rareicon.Weapon.DrawBore 1,rareicon.Grip.IKReport 1,kbve.Grip.Trace 1,rareicon.Weapon.GripShot 4"
+            2>&1 | sed -E 's/^\[[^]]*\]\[ *[0-9]+\]//'
+            | grep -E "grip (reach|ik|wrap):|derived hand frame|roll added vs clip"
+            | awk '/roll added vs clip/ { roll = $0; next } !seen[$0]++ { print }
+            END { if (roll) print roll }'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    regen-project-files:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
+        options:
+            cache: false
+    open:
+        script: 'open apps/rareicon/unreal/RareIcon.uproject'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    clean:
+        script: 'rm -rf Binaries Build DerivedDataCache Intermediate Saved'
+
+env:
+    # The engine configuration this project builds with, in the shape the
+    # build workflows already take.
+    #
+    # Mac only, and that is a constraint rather than a preference: the game
+    # module links KBVEUnr, and `libunr.a` is cross-compiled per platform with
+    # only the host target wired up so far. Declaring Win64/Linux here would
+    # hand CI a build that fails in Build.cs on a missing library. Widen this
+    # and KBVEUnr's UE_SUPPORTED_PLATFORMS together, never separately.
+    ENGINE_CONFIG: '{"version":"5.8.2","project_path":"apps/rareicon/unreal","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
+    # The monorepo shell utils-unreal-build.yml reads build.toml from.
+    UE_SHELL_PATH: 'apps/rareicon/unreal'
+    # What .moon/tasks/unreal.yml needs to drive this project. Everything else
+    # about the editor workflow is inherited from that file.
+    UE_PROJECT: 'apps/rareicon/unreal/RareIcon.uproject'
+    UE_TARGET: 'RareIconEditor'
+    UE_GAME_TARGET: 'RareIcon'
+    UE_SERVER_TARGET: 'RareIconServer'
+    UE_MODULE: 'RareIcon'
+    UE_LOG_PREFIX: 'rareicon'
+    UE_WORLD_CONFIG: 'apps/rareicon/unreal/scripts/config/world.json'
+    UE_WEAPON_CONFIG: 'apps/rareicon/unreal/scripts/config/weapons.json'
+    UE_INPUT_CONFIG: 'apps/rareicon/unreal/scripts/config/input.json'
+    UE_TEXTURE_CONFIG: 'apps/rareicon/unreal/scripts/config/textures.json'
+    # Not the default two-core hosted runner: an Unreal compile.
+    CI_RUNNER: 'arc-runner-ue'
+    # ITCH_USER / ITCH_GAME are deliberately absent, which is what keeps a
+    # release off itch: Steam is the target being brought up first, and itch
+    # is a browser download, so its bundle is quarantined and Gatekeeper
+    # refuses one that is not notarized. Pushing an Unreal build to the page
+    # today would replace a working Unity build with one that opens as
+    # "damaged". Set both in the same change that turns NOTARIZE on. They were
+    # unity-rareicon's before, and are not there either, so nothing publishes
+    # to the page meanwhile and what is live stays live.
+    # The Steam apps a release uploads to, as JSON because this one is
+    # genuinely structured -- two apps, each with a branch and one with a
+    # promotion target. The demo's depots are described under Steam/; the full
+    # game has none yet and is skipped with a notice until it does.
+    #
+    # Which depots an upload actually fills follows ENGINE_CONFIG's
+    # build_targets above, so while that says Mac the Steam build carries the
+    # macOS depot alone and the other two keep whatever is already live.
+    #
+    # NOTARIZE is not set, and Steam does not need it to be: the Steam client
+    # does not quarantine depot content, so Gatekeeper never runs its
+    # notarization check on a game it installed. Turning it on needs the
+    # project to bake its bundle id and Info.plist template first
+    # (Config/Mac/MacEngine.ini) -- a notarized bundle cannot be patched
+    # afterwards.
+    STEAM_APPS: '[{"app_id":"3791950","label":"demo","branch":"beta","promote_to_branch":"default"},{"app_id":"2238370","label":"main","branch":"beta"}]'

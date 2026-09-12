@@ -12,10 +12,10 @@ tags:
 key: unreal_rareicon
 pipeline: ue5_server
 app_name: unreal-rareicon
-shell_path: apps/rareicon/unreal-rareicon
+shell_path: apps/rareicon/unreal
 version: "0.0.1"
-source_path: apps/rareicon/unreal-rareicon
-version_toml: apps/rareicon/unreal-rareicon/version.toml
+source_path: apps/rareicon/unreal
+version_toml: apps/rareicon/unreal/version.toml
 runner: arc-runner-ue
 author: h0lybyte
 license: KBVE
@@ -33,7 +33,7 @@ jsonld:
         - question: Which Unreal Engine image does RareIcon use?
           answer: It uses the cached ghcr.io/epicgames/unreal-engine:dev-5.7.4 stock Epic Games Docker image, so no custom engine build is required for CI.
         - question: How is a RareIcon server build triggered?
-          answer: Trigger the CI - Unreal Engine workflow in GitHub Actions, select the dedicated-server task, and set shell_path to apps/rareicon/unreal-rareicon. Build config lives in build.toml and version.toml under that path.
+          answer: Trigger the CI - Unreal Engine workflow in GitHub Actions, select the dedicated-server task, and set shell_path to apps/rareicon/unreal. Build config lives in build.toml and version.toml under that path.
 bento:
     badge: ue5 · server · gaming
     title: UE5 Linux dedicated server build for
@@ -43,7 +43,7 @@ bento:
         Unreal Engine Docker image on the arc-runner-ue Kubernetes runner for CI.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unreal-rareicon
+          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unreal
           primary: true
           external: true
         - label: Build
@@ -104,7 +104,7 @@ Uses the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` Docker image on the 
 
 ### Shell Project
 
-The build configuration lives in the monorepo at `apps/rareicon/unreal-rareicon/`:
+The build configuration lives in the monorepo at `apps/rareicon/unreal/`:
 
 - `build.toml` — game repo, .uproject path, server target, UE image tag
 - `version.toml` — current build version
@@ -115,7 +115,7 @@ Trigger via GitHub Actions:
 
 1. Go to **CI - Unreal Engine** workflow
 2. Select task: `dedicated-server`
-3. Set `shell_path`: `apps/rareicon/unreal-rareicon`
+3. Set `shell_path`: `apps/rareicon/unreal`
 
 </BentoProse>
 

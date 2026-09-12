@@ -29,7 +29,7 @@
  *
  * Outputs:
  *   packages/data/codegen/generated/abilitydb.<locale>.json|.binpb
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/abilitydb.<locale>.json|.binpb
+ *   apps/rareicon/unity/Assets/StreamingAssets/abilitydb.<locale>.json|.binpb
  *   apps/friendslop/godot-friendslop/assets/abilitydb/abilitydb.<locale>.json|.binpb
  *
  * Usage:
@@ -172,7 +172,7 @@ function main() {
 			name: 'rareicon',
 			dir: resolve(
 				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+				'apps/rareicon/unity/Assets/StreamingAssets',
 			),
 		},
 		{

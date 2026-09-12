@@ -1,6 +1,6 @@
 # Main-thread audit — Rareicon DOTS
 
-Inventory of where the Unity DOTS build does work on the main thread, plus a ranked list of consolidations. Scope: `apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Systems/`.
+Inventory of where the Unity DOTS build does work on the main thread, plus a ranked list of consolidations. Scope: `apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/Systems/`.
 
 There are ~30 `SystemBase` (managed, main-thread) systems and ~64 Bursted `ISystem` structs. Most `SystemBase` usage is justified — `UnityEngine.Object` allocation, `Shader.SetGlobal*`, one-shot init, input polling, UI messaging. A handful do per-frame entity iteration on the main thread that could move to jobs, and several Bursted systems chain jobs serially where one would do.
 

@@ -15,15 +15,15 @@ const repoRoot = resolve(__dirname, '../../..');
 
 const SRC_ROOT = resolve(
 	repoRoot,
-	'apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment',
+	'apps/rareicon/unity/Assets/_RareIcon/Textures/Environment',
 );
 const ATLAS_OUT = resolve(
 	repoRoot,
-	'apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png',
+	'apps/rareicon/unity/Assets/StreamingAssets/hextile-atlas.png',
 );
 const SOURCE_OUT = resolve(
 	repoRoot,
-	'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs',
+	'apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs',
 );
 
 const TILE_W = 64;

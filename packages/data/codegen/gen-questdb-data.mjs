@@ -11,8 +11,8 @@
  * Outputs:
  *   packages/data/codegen/generated/questdb-data.json   (proto-canonical camelCase JSON)
  *   packages/data/codegen/generated/questdb-data.binpb  (wire-format proto binary)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json   (mirror)
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb  (mirror)
+ *   apps/rareicon/unity/Assets/StreamingAssets/questdb.json   (mirror)
+ *   apps/rareicon/unity/Assets/StreamingAssets/questdb.binpb  (mirror)
  *   apps/friendslop/godot-friendslop/assets/questdb/questdb.json       (mirror)
  *   apps/friendslop/godot-friendslop/assets/questdb/questdb.binpb      (mirror)
  *
@@ -136,7 +136,7 @@ function main() {
 			name: 'rareicon',
 			dir: resolve(
 				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
+				'apps/rareicon/unity/Assets/StreamingAssets',
 			),
 		},
 		{

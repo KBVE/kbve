@@ -37,7 +37,7 @@ Every mdx carries a string `ref` (e.g. `"iron-vein"`). At runtime, Rareicon keys
 A build-time codegen step (extending the existing `gen-mapdb-zod.mjs`) emits:
 
 ```csharp
-// apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/Data/MapdbRefs.cs (generated)
+// apps/rareicon/unity/Assets/_RareIcon/Scripts/Data/MapdbRefs.cs (generated)
 public static class MapdbRefs
 {
     public const uint Capital       = 0x...;

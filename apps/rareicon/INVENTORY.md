@@ -525,7 +525,7 @@ The refactor is "done" when **every one of these is true**. Treat this as a CI c
 
 ### 11.3 Verification commands
 
-Before declaring the refactor complete, run these from `apps/rareicon/unity-rareicon/`:
+Before declaring the refactor complete, run these from `apps/rareicon/unity/`:
 
 ```bash
 # Nothing should match any of these after the split:

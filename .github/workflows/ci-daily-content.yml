@@ -265,7 +265,7 @@ jobs:
                   apps/kbve/astro-kbve/public/graphify/
                   apps/kbve/astro-kbve/src/data/
                   packages/data/codegen/generated/
-                  apps/rareicon/unity-rareicon/Assets/StreamingAssets/
+                  apps/rareicon/unity/Assets/StreamingAssets/
                   '
 
                   blocked=0

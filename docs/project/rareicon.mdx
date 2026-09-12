@@ -15,9 +15,9 @@ key: rareicon
 pipeline: docker
 app_name: axum-rareicon
 version: "0.1.3"
-source_path: apps/rareicon/axum-rareicon
-version_toml: apps/rareicon/axum-rareicon/version.toml
-version_target: apps/rareicon/axum-rareicon/Cargo.toml
+source_path: apps/rareicon/api
+version_toml: apps/rareicon/api/version.toml
+version_target: apps/rareicon/api/Cargo.toml
 runner: ubuntu-latest
 image: kbve/rareicon
 deployment_yaml: apps/kube/rareicon/manifest/deployment.yaml
@@ -56,7 +56,7 @@ bento:
         game's own machine-learning system, so no two playthroughs are alike.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/axum-rareicon
+          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/api
           primary: true
           external: true
         - label: Features

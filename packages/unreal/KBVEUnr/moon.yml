@@ -16,7 +16,7 @@ env:
     # are added to the sync task.
     #
     # Two consumers move with this value and must not drift from it:
-    # apps/rareicon/unreal-rareicon's ENGINE_CONFIG build_targets, and the
+    # apps/rareicon/unreal's ENGINE_CONFIG build_targets, and the
     # ue5-server lane, whose Linux container build needs a Linux libunr.a
     # produced before UBT runs.
     UE_SUPPORTED_PLATFORMS: 'Mac'

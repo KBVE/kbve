@@ -91,7 +91,7 @@ projects:
         # pointing at a fork; both had a dispatch manifest entry and no moon.yml,
         # so no release tag could name them.
         unreal-chuck: 'apps/chuckrpg/unreal'
-        unreal-rareicon: 'apps/rareicon/unreal-rareicon'
+        unreal-rareicon: 'apps/rareicon/unreal'
 
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/web'
@@ -101,11 +101,11 @@ projects:
         herbmail-web: 'apps/herbmail/web'
         astro-irc: 'apps/irc/web'
         astro-memes: 'apps/memes/astro-memes'
-        astro-rareicon: 'apps/rareicon/astro-rareicon'
+        astro-rareicon: 'apps/rareicon/web'
 
         # Browser suites for those sites
         astro-cryptothrone-e2e: 'apps/cryptothrone/web/e2e'
-        astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
+        astro-rareicon-e2e: 'apps/rareicon/web/e2e'
         discordsh-web-e2e: 'apps/discordsh/web/e2e'
         herbmail-api-e2e: 'apps/herbmail/api/e2e'
         irc-e2e: 'apps/irc/api/e2e'
@@ -115,7 +115,7 @@ projects:
         astro-e2e: 'packages/npm/astro-e2e'
 
         # Writes the icon catalogue into astro-rareicon's content directory
-        icons-codegen: 'apps/rareicon/icons-codegen'
+        icons-codegen: 'apps/rareicon/codegen'
         # Named 'protobuf' because the crates that came from KBVE/workspace
         # declare dependsOn: ['protobuf']; the directory is packages/proto.
         protobuf: 'packages/proto'
@@ -163,7 +163,7 @@ projects:
         herbmail-api: 'apps/herbmail/api'
         axum-kbve: 'apps/kbve/axum-kbve'
         axum-memes: 'apps/memes/axum-memes'
-        axum-rareicon: 'apps/rareicon/axum-rareicon'
+        axum-rareicon: 'apps/rareicon/api'
         axum-rentearth: 'apps/rentearth/axum-rentearth'
         cryptothrone-server: 'apps/cryptothrone/gameserver'
         discordsh-bot: 'apps/discordsh/bot'
@@ -228,7 +228,7 @@ projects:
         axum-chuckrpg-e2e: 'apps/chuckrpg/api/e2e'
         discordsh-api-e2e: 'apps/discordsh/api/e2e'
         axum-kbve-e2e: 'apps/kbve/axum-kbve-e2e'
-        axum-rareicon-e2e: 'apps/rareicon/axum-rareicon-e2e'
+        axum-rareicon-e2e: 'apps/rareicon/api/e2e'
         devops-e2e: 'packages/npm/devops-e2e'
         discordsh-bot-e2e: 'apps/discordsh/bot/e2e'
         droid-e2e: 'packages/npm/droid-e2e'
@@ -256,12 +256,13 @@ projects:
         herbmail: 'apps/herbmail'
         irc: 'apps/irc'
         memes: 'apps/memes'
+        rareicon: 'apps/rareicon'
 
         # Game clients and engines
         agones-palworld-chef-food: 'apps/agones/palworld/mods/chef_paldon_yumsay'
         arpg: 'apps/agones/arpg'
         kbve-react-native: 'apps/kbve/kbve-react-native'
-        unity-rareicon: 'apps/rareicon/unity-rareicon'
+        unity-rareicon: 'apps/rareicon/unity'
         unreal-cleanroom: 'apps/chuckrpg/cleanroom'
         unreal-rentearth: 'apps/rentearth/unreal-rentearth'
 
