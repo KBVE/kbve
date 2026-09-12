@@ -20,15 +20,22 @@ CREATE OR REPLACE FUNCTION public.stalwart_rcpt(p_address text)
 RETURNS TABLE (email text, type text, description text)
 LANGUAGE sql
 STABLE
+STRICT
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+    -- The whole address is compared, never a split fragment, so
+    -- 'alice@herbmail.com@evil.example' cannot resolve. The shape
+    -- check mirrors profile.username's CHECK constraints
+    -- (lowercase [a-z0-9_-], 3..63 chars), which with the unique
+    -- index on username makes LIMIT 1 deterministic.
     SELECT lower(u.username) || '@herbmail.com' AS email,
            'individual'::text AS type,
            u.username::text AS description
       FROM profile.username AS u
-     WHERE lower(split_part(p_address, '@', 2)) = 'herbmail.com'
-       AND lower(u.username) = lower(split_part(p_address, '@', 1))
+     WHERE octet_length(p_address) BETWEEN 16 AND 254
+       AND lower(p_address) ~ '^[a-z0-9_-]{3,63}@herbmail[.]com$'
+       AND lower(p_address) = u.username || '@herbmail.com'
      LIMIT 1;
 $$;
 
