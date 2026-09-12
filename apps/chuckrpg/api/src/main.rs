@@ -4,7 +4,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::{Html, IntoResponse, Json, Redirect, Response},
-    routing::get,
+    routing::{any, get},
 };
 use jedi::entity::error::JediError;
 use jedi::entity::itch::{ClientVersion, ItchClient, ItchPlatform};
@@ -141,10 +141,32 @@ async fn main() {
 
     tracing::info!("serving static files from {}", static_dir.display());
 
+    // ServeDir's own miss is a bare 404 with an empty body. The site build
+    // already emits a themed 404.html at the root, so read it once at startup
+    // and hand it back with the status ServeDir was going to return anyway.
+    let not_found_page = match std::fs::read_to_string(static_dir.join("404.html")) {
+        Ok(html) => Some(html),
+        Err(e) => {
+            tracing::warn!("no 404.html in {}: {e}", static_dir.display());
+            None
+        }
+    };
+
+    let not_found_svc = any(move || {
+        let page = not_found_page.clone();
+        async move {
+            match page {
+                Some(html) => (StatusCode::NOT_FOUND, Html(html)).into_response(),
+                None => (StatusCode::NOT_FOUND, "Not Found").into_response(),
+            }
+        }
+    });
+
     let static_svc = ServeDir::new(&static_dir)
         .precompressed_br()
         .precompressed_gzip()
-        .append_index_html_on_directories(true);
+        .append_index_html_on_directories(true)
+        .not_found_service(not_found_svc);
 
     let app: Router = match download_state() {
         Some(state) => {
