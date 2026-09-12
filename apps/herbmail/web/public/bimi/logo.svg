@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
+<title>herbmail</title>
+<rect width="512" height="512" fill="#0f2a1d"/>
+<path d="M256 96c-88 0-152 66-152 156 0 74 46 132 116 156 6-42 22-84 52-122-18 52-26 96-24 132 2 0 5 0 8 0 88 0 152-66 152-156S344 96 256 96z" fill="#7ed957"/>
+<path d="M248 328c22-66 60-116 112-152" fill="none" stroke="#0f2a1d" stroke-width="14" stroke-linecap="round"/>
+</svg>
