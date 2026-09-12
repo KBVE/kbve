@@ -32,6 +32,7 @@ tasks:
             - 'buf.yaml'
         outputs:
             - 'gen/**/*'
+            - '/crates/kbve-proto/src/gen/**/*'
 
     # Runs in the moon graph rather than in a workflow: it needs no secrets and
     # no toolchain buf does not already bring, so a path filter in YAML would

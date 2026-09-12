@@ -183,14 +183,14 @@ jobs:
     # and even before that they were paying query time for code the queries
     # cannot say anything useful about.
     #
-    # packages/proto/verify/rust is the third, and it is unextractable by
-    # construction rather than by toolchain: its body is one
-    # `include!("../../../gen/rust/mod.rs")` over a directory
-    # packages/proto/.gitignore keeps out of the tree, so on a fresh checkout
-    # the include target does not exist. The extractor logs
-    # "failed to load file `../../../gen/rust/mod.rs`" and then takes the same
-    # vfs panic. Nothing depends on this crate; it exists so generated code
-    # that does not compile fails at the schema rather than downstream.
+    # packages/proto/verify/rust is the third. Its body is one `include!` of
+    # crates/kbve-proto/src/gen/mod.rs, a thousand-file generated tree it pulls
+    # in wholesale from outside its own directory. It stays excluded: the
+    # extractor has nothing to say about generated code, kbve-proto already
+    # carries the same tree for it to walk, and this crate reaches it by a
+    # relative path that leaves the extractor resolving a second copy. Nothing
+    # depends on this crate; it exists so generated code that does not compile
+    # fails at the schema rather than downstream.
     #
     # apps/arcade/colony is the fourth, and it is the whole crate rather than
     # the one file that breaks. .gitattributes runs src/private/** through

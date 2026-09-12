@@ -9,9 +9,15 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# rust is not under gen/ with the others. Its output is committed inside
+# crates/kbve-proto so that `cargo package` carries it -- a path that escapes
+# the package root is not, and the published crate would fail to compile for
+# everyone who installed it from the registry.
 status=0
-for lang in ts rust csharp python; do
-  count=$(find "gen/$lang" -type f 2>/dev/null | wc -l | tr -d ' ')
+for entry in ts:gen/ts rust:../../crates/kbve-proto/src/gen csharp:gen/csharp python:gen/python; do
+  lang="${entry%%:*}"
+  dir="${entry#*:}"
+  count=$(find "$dir" -type f 2>/dev/null | wc -l | tr -d ' ')
   printf '%-8s %s files\n' "$lang" "$count"
   if [ "$count" -eq 0 ]; then
     echo "::error::no output generated for $lang"

@@ -4,7 +4,13 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Rust view of the workspace protobuf schemas."
+description = "Rust view of the KBVE protobuf schemas -- generated prost types for the item, npc, quest, map, spell, dialogue and service domains."
+authors = ["kbve", "h0lybyte"]
+rust-version.workspace = true
+homepage = "https://kbve.com/"
+keywords = ["protobuf", "prost", "grpc", "schema", "codegen"]
+categories = ["encoding", "network-programming"]
+readme = "README.md"
 
 # The message types are the default. gRPC is not.
 #
@@ -30,3 +36,7 @@ serde_json = { workspace = true }
 tonic = { workspace = true, optional = true }
 tonic-prost = { workspace = true, optional = true }
 ulid = { workspace = true, default-features = false }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
