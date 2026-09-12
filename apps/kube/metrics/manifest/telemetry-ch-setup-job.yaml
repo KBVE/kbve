@@ -22,7 +22,7 @@ data:
         echo "ClickHouse connection OK."
 
         echo "Creating telemetry database..."
-        curl -sf --max-time 10 \
+        curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
           -d "CREATE DATABASE IF NOT EXISTS telemetry ON CLUSTER 'cluster'" || {
           echo "ERROR: Failed to create telemetry database"
@@ -62,31 +62,15 @@ data:
         }
         echo "Table 'telemetry.errors_raw' ready."
 
-        echo "Enforcing 30-day TTL on errors_raw..."
+        echo "Enforcing TTL on errors_raw..."
         curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
           -d "ALTER TABLE telemetry.errors_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
           echo "ERROR: Failed to apply TTL to errors_raw"
           exit 1
         }
-        echo "TTL on 'telemetry.errors_raw' enforced at 30 days."
+        echo "TTL on 'telemetry.errors_raw' enforced."
 
-        echo "Creating errors_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS telemetry.errors_distributed ON CLUSTER 'cluster'
-        AS telemetry.errors_raw
-        ENGINE = Distributed('cluster', 'telemetry', 'errors_raw', cityHash64(fingerprint))
-        " || {
-          echo "ERROR: Failed to create errors_distributed table"
-          exit 1
-        }
-        echo "Table 'telemetry.errors_distributed' ready."
-
-        # Defense-in-depth tripwires on the raw table (canonical list:
-        # packages/data/ch/schemas/telemetry.sql). Caps sit above the metrics
-        # ingest clamps; ADD CONSTRAINT only checks future inserts (no backfill).
         echo "Applying sanitization constraints on errors_raw..."
         for c in \
           "chk_project_len CHECK length(project) > 0 AND length(project) <= 256" \
@@ -103,28 +87,6 @@ data:
           }
         done
         echo "Constraints on 'telemetry.errors_raw' applied."
-
-        echo "Creating error_groups view (fingerprint rollup)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE VIEW IF NOT EXISTS telemetry.error_groups ON CLUSTER 'cluster'
-        AS SELECT
-            project,
-            fingerprint,
-            any(error_type)  AS error_type,
-            any(message)     AS sample_message,
-            count()          AS events,
-            uniq(session_id) AS sessions,
-            min(timestamp)   AS first_seen,
-            max(timestamp)   AS last_seen
-        FROM telemetry.errors_distributed
-        GROUP BY project, fingerprint
-        " || {
-          echo "ERROR: Failed to create error_groups view"
-          exit 1
-        }
-        echo "View 'telemetry.error_groups' ready."
 
         echo "Creating perf_raw table (ReplicatedMergeTree, 30d TTL)..."
         curl -sf --max-time 30 \
@@ -157,27 +119,14 @@ data:
         }
         echo "Table 'telemetry.perf_raw' ready."
 
-        echo "Enforcing 30-day TTL on perf_raw..."
+        echo "Enforcing TTL on perf_raw..."
         curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
           -d "ALTER TABLE telemetry.perf_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
           echo "ERROR: Failed to apply TTL to perf_raw"
           exit 1
         }
-        echo "TTL on 'telemetry.perf_raw' enforced at 30 days."
-
-        echo "Creating perf_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS telemetry.perf_distributed ON CLUSTER 'cluster'
-        AS telemetry.perf_raw
-        ENGINE = Distributed('cluster', 'telemetry', 'perf_raw', cityHash64(session_id))
-        " || {
-          echo "ERROR: Failed to create perf_distributed table"
-          exit 1
-        }
-        echo "Table 'telemetry.perf_distributed' ready."
+        echo "TTL on 'telemetry.perf_raw' enforced."
 
         echo "Applying sanitization constraints on perf_raw..."
         for c in \
@@ -193,29 +142,6 @@ data:
           }
         done
         echo "Constraints on 'telemetry.perf_raw' applied."
-
-        echo "Creating perf_summary view (metric quantile rollup)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE VIEW IF NOT EXISTS telemetry.perf_summary ON CLUSTER 'cluster'
-        AS SELECT
-            project,
-            metric,
-            count()               AS samples,
-            uniq(session_id)      AS sessions,
-            quantile(0.50)(value) AS p50,
-            quantile(0.75)(value) AS p75,
-            quantile(0.95)(value) AS p95,
-            min(timestamp)        AS first_seen,
-            max(timestamp)        AS last_seen
-        FROM telemetry.perf_distributed
-        GROUP BY project, metric
-        " || {
-          echo "ERROR: Failed to create perf_summary view"
-          exit 1
-        }
-        echo "View 'telemetry.perf_summary' ready."
 
         echo "Creating events_raw table (ReplicatedMergeTree, 30d TTL)..."
         curl -sf --max-time 30 \
@@ -245,27 +171,14 @@ data:
         }
         echo "Table 'telemetry.events_raw' ready."
 
-        echo "Enforcing 30-day TTL on events_raw..."
+        echo "Enforcing TTL on events_raw..."
         curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
           -d "ALTER TABLE telemetry.events_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
           echo "ERROR: Failed to apply TTL to events_raw"
           exit 1
         }
-        echo "TTL on 'telemetry.events_raw' enforced at 30 days."
-
-        echo "Creating events_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
-        CREATE TABLE IF NOT EXISTS telemetry.events_distributed ON CLUSTER 'cluster'
-        AS telemetry.events_raw
-        ENGINE = Distributed('cluster', 'telemetry', 'events_raw', cityHash64(session_id))
-        " || {
-          echo "ERROR: Failed to create events_distributed table"
-          exit 1
-        }
-        echo "Table 'telemetry.events_distributed' ready."
+        echo "TTL on 'telemetry.events_raw' enforced."
 
         echo "Applying sanitization constraints on events_raw..."
         for c in \
@@ -281,7 +194,91 @@ data:
         done
         echo "Constraints on 'telemetry.events_raw' applied."
 
-        echo "Creating event_counts view (name rollup)..."
+        echo "Creating errors_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS telemetry.errors_distributed ON CLUSTER 'cluster'
+        AS telemetry.errors_raw
+        ENGINE = Distributed('cluster', 'telemetry', 'errors_raw', cityHash64(fingerprint))
+        " || {
+          echo "ERROR: Failed to create errors_distributed table"
+          exit 1
+        }
+        echo "Table 'telemetry.errors_distributed' ready."
+
+        echo "Creating perf_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS telemetry.perf_distributed ON CLUSTER 'cluster'
+        AS telemetry.perf_raw
+        ENGINE = Distributed('cluster', 'telemetry', 'perf_raw', cityHash64(session_id))
+        " || {
+          echo "ERROR: Failed to create perf_distributed table"
+          exit 1
+        }
+        echo "Table 'telemetry.perf_distributed' ready."
+
+        echo "Creating events_distributed table (Distributed)..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE TABLE IF NOT EXISTS telemetry.events_distributed ON CLUSTER 'cluster'
+        AS telemetry.events_raw
+        ENGINE = Distributed('cluster', 'telemetry', 'events_raw', cityHash64(session_id))
+        " || {
+          echo "ERROR: Failed to create events_distributed table"
+          exit 1
+        }
+        echo "Table 'telemetry.events_distributed' ready."
+
+        echo "Creating error_groups view..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE VIEW IF NOT EXISTS telemetry.error_groups ON CLUSTER 'cluster'
+        AS SELECT
+            project,
+            fingerprint,
+            any(error_type)  AS error_type,
+            any(message)     AS sample_message,
+            count()          AS events,
+            uniq(session_id) AS sessions,
+            min(timestamp)   AS first_seen,
+            max(timestamp)   AS last_seen
+        FROM telemetry.errors_distributed
+        GROUP BY project, fingerprint
+        " || {
+          echo "ERROR: Failed to create error_groups view"
+          exit 1
+        }
+        echo "View 'telemetry.error_groups' ready."
+
+        echo "Creating perf_summary view..."
+        curl -sf --max-time 30 \
+          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
+          -d "
+        CREATE VIEW IF NOT EXISTS telemetry.perf_summary ON CLUSTER 'cluster'
+        AS SELECT
+            project,
+            metric,
+            count()                    AS samples,
+            uniq(session_id)           AS sessions,
+            quantile(0.50)(value)      AS p50,
+            quantile(0.75)(value)      AS p75,
+            quantile(0.95)(value)      AS p95,
+            min(timestamp)             AS first_seen,
+            max(timestamp)             AS last_seen
+        FROM telemetry.perf_distributed
+        GROUP BY project, metric
+        " || {
+          echo "ERROR: Failed to create perf_summary view"
+          exit 1
+        }
+        echo "View 'telemetry.perf_summary' ready."
+
+        echo "Creating event_counts view..."
         curl -sf --max-time 30 \
           "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
           -d "

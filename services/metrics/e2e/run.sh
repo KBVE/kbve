@@ -49,13 +49,16 @@ code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$INGEST" \
     -d '{"events":[{"project":"e2e","message":"no token"}]}')
 [ "$code" = "401" ] || fail "expected 401 without token, got $code"
 
+# The control character is written as a JSON \u escape, not as a raw byte: a
+# raw 0x01 inside a string is invalid JSON and serde rejects the whole body
+# before the sanitizer is reached, so the raw form tested nothing.
 echo "==> Case 2: valid batch is accepted (202)"
 body=$(curl -s -X POST "$INGEST" \
     -H 'content-type: application/json' \
     -H "x-kbve-ingest: $TOKEN" \
     -d '{"events":[{
           "project":"e2e",
-          "message":"boomctrl",
+          "message":"boom\u0001ctrl",
           "platform":"HACKER",
           "environment":"chaos",
           "error_type":"TypeError",
@@ -82,6 +85,61 @@ message=$(ch "SELECT message FROM telemetry.errors_distributed WHERE project='e2
 url=$(ch "SELECT url FROM telemetry.errors_distributed WHERE project='e2e' LIMIT 1")
 [ "$url" = "https://example.com/p" ] || fail "url query string not stripped (got '$url')"
 
+echo "==> Case 4: every table and view the schema source defines exists"
+# The DDL is generated from packages/data/ch/schemas/telemetry.sql into both the
+# production setup job and init/01-telemetry.sql. Asserting the object list here
+# is what makes the generated init a real check on the source rather than a copy
+# that happens to be applied.
+for obj in errors_distributed perf_distributed events_distributed \
+    error_groups perf_summary event_counts; do
+    found=$(ch "SELECT count() FROM system.tables WHERE database='telemetry' AND name='$obj'")
+    [ "$found" = "1" ] || fail "telemetry.$obj missing from the applied schema"
+done
+
+echo "==> Case 5: recovery drill -- the schema is wiped and rebuilt from source"
+# The question this answers: if ClickHouse comes back empty, does anything
+# notice, and can the schema be put back from what is in the repo? Both halves
+# have failed before -- readiness used to latch on its first success, so a
+# service whose database vanished went on reporting ready while discarding every
+# row it accepted.
+ch "DROP DATABASE telemetry SYNC" >/dev/null
+
+degraded=""
+for _ in $(seq 1 30); do
+    code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5500/readiness || true)
+    if [ "$code" = "503" ]; then
+        degraded=1
+        break
+    fi
+    sleep 1
+done
+[ -n "$degraded" ] || fail "readiness stayed green after the database was dropped"
+
+# Rebuild from the generated artifact, exactly as a restored cluster would.
+docker compose exec -T clickhouse clickhouse-client --multiquery \
+    < init/01-telemetry.sql || fail "could not reapply the schema from init/01-telemetry.sql"
+
+recovered=""
+for _ in $(seq 1 30); do
+    code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5500/readiness || true)
+    if [ "$code" = "200" ]; then
+        recovered=1
+        break
+    fi
+    sleep 1
+done
+[ -n "$recovered" ] || fail "readiness never recovered after the schema was reapplied"
+
+echo "==> Case 6: ingest works again after recovery"
+body=$(curl -s -X POST "$INGEST" \
+    -H 'content-type: application/json' \
+    -H "x-kbve-ingest: $TOKEN" \
+    -d '{"events":[{"project":"e2e","message":"after the wipe"}]}')
+echo "$body" | grep -q '"accepted":1' || fail "expected accepted:1 after recovery, got $body"
+sleep 3
+count=$(ch "SELECT count() FROM telemetry.errors_distributed WHERE project='e2e'")
+[ "$count" -ge 1 ] || fail "no rows landed after recovery, got $count"
+
 PASS=1
-echo "==> PASS: ingest -> sanitize -> ClickHouse verified end to end"
+echo "==> PASS: ingest -> sanitize -> ClickHouse, and full schema loss -> recovery"
 [ "$PASS" = "1" ]

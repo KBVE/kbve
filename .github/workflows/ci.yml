@@ -242,6 +242,14 @@ jobs:
               if: matrix.index == 0
               run: node packages/data/codegen/check-data-artifacts.mjs
 
+            # The telemetry DDL is written once in packages/data/ch/schemas and
+            # fanned out to what prod applies (the PreSync hook's ConfigMap) and
+            # what e2e applies. Editing the source without regenerating leaves
+            # the cluster on the old schema and the harness testing it.
+            - name: Check ClickHouse telemetry artifacts are not stale
+              if: matrix.index == 0
+              run: node packages/data/codegen/gen-ch-telemetry.mjs --check
+
             # Provision the rust toolchain before moon does. moon sets it up once
             # per cargo workspace root -- the root one and hardware/esp32c6-display,
             # which is excluded from the root members and carries its own manifest
