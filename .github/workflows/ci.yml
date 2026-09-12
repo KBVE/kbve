@@ -92,8 +92,28 @@ jobs:
     # it costs today. It does not fail open on the target list -- an empty list
     # would report green having run nothing -- so an unresolvable range widens
     # to the whole graph and a moon that cannot answer fails the job.
+    # Not on the dev->main release pull request, for the reason ci-codeql.yml
+    # spells out: its head branch is dev, so its head sha is a commit this
+    # workflow already ran on when it was pushed, and check runs belong to the
+    # sha rather than to the run that made them. `gh pr checks` on release pull
+    # request 17232 returns `Plan the run` from run 34719264034 -- the push's
+    # run, not the pull request's -- so the pull request was already showing the
+    # push's answer while a second copy of it queued behind.
+    #
+    # The copy is also the expensive one. A pull request measures its diff
+    # against the base, so this plans every target affected since the last
+    # release rather than since the last merge, which on a large release
+    # approaches the whole graph: three full shards with rust, per dev merge,
+    # and the concurrency above deliberately does not cancel them.
+    #
+    # What is lost is the only run that would have seen the release as a whole.
+    # Coverage rests instead on each push having been planned against the
+    # commit before it, which is a tree already containing every merge that
+    # preceded it -- and on main running this workflow itself once the release
+    # pull request lands.
     toolchains:
         name: Plan the run
+        if: github.head_ref != 'dev'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         outputs:
