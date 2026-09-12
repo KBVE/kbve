@@ -24,7 +24,7 @@ def _ctx(tmp_path, inputs):
 
 def _out_dir(ctx) -> Path:
     repo_root = repo_root_for(ctx.content_root)
-    return repo_root / "apps" / "kbve" / "astro-kbve" / "public" / "graphify"
+    return repo_root / "packages" / "data" / "graph" / "monorepo"
 
 
 def test_graphify_needs_tags():
@@ -50,7 +50,8 @@ def test_graphify_build_reports_output_on_success(tmp_path):
     assert result.skipped is False
     assert result.route == "graphify"
     assert (out_dir / "overview.json").exists()
-    assert any("public/graphify" in c for c in result.changed)
+    assert any("packages/data/graph/monorepo/overview.json" in c for c in result.changed)
+    assert any("packages/data/graph/monorepo/dir" in c for c in result.changed)
 
 
 def test_graphify_build_skips_gracefully_on_failure(tmp_path):

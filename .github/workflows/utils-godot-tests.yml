@@ -43,7 +43,7 @@ jobs:
               with:
                   sparse-checkout: |
                       /*
-                      !/apps/kbve/astro-kbve/public/graphify
+                      !/packages/data/graph/monorepo
                   sparse-checkout-cone-mode: false
 
             - name: Install build prerequisites

@@ -23,7 +23,7 @@ moon run graphify-wrapper:install
 moon run graphify-wrapper:build-monorepo
 ```
 
-Output: `packages/data/graphify/output/monorepo/graph.json`
+Output: `packages/data/graph/output/monorepo/graph.json`
 
 ### Build App-Specific Graph
 
@@ -31,7 +31,7 @@ Output: `packages/data/graphify/output/monorepo/graph.json`
 moon run graphify-wrapper:build-app --app=herbmail
 ```
 
-Output: `packages/data/graphify/output/apps/herbmail/graph.json`
+Output: `packages/data/graph/output/apps/herbmail/graph.json`
 
 ### Query the Graph
 
@@ -45,11 +45,11 @@ moon run graphify-wrapper:query --q="Where is user authentication handled?"
 moon run graphify-wrapper:export-web
 ```
 
-Copies to: `apps/kbve/astro-kbve/public/graphify/monorepo.json`
+Copies to: `packages/data/graph/monorepo/graphify-export.json`
 
 ## Configuration
 
-Edit `packages/data/graphify/configs/.graphify.yml` to customize:
+Edit `packages/data/graph/configs/.graphify.yml` to customize:
 
 - LLM backend (Ollama, Anthropic, etc.)
 - File ignore patterns
