@@ -22,9 +22,9 @@ use bevy_behavior::{
 };
 use bevy_pathfinder::flow_field::FlowField;
 use bevy_pathfinder::grid::BlockGrid;
-use combat::{Combatant, Dead};
+use combat::{CombatSystems, Combatant, Dead};
 
-use super::character::MoveIntent;
+use super::character::{CharacterSystems, MoveIntent};
 use super::combat::Faction;
 use super::nav::{build_grid, cell_to_world, world_to_cell};
 use super::player::Player;
@@ -232,7 +232,13 @@ impl Plugin for NpcPlugin {
         app.init_resource::<Pursuit>()
             .init_resource::<DummyBrain>()
             .add_systems(Startup, build_nav_grid)
-            .add_systems(Update, (route_to_player, steer_dummies).chain());
+            .add_systems(
+                Update,
+                (route_to_player, steer_dummies)
+                    .chain()
+                    .after(CombatSystems)
+                    .before(CharacterSystems),
+            );
     }
 }
 
@@ -442,6 +448,44 @@ mod tests {
             decide(&view(position, home, None)),
             vec![NpcAction::Hold],
             "a dummy already home kept shuffling toward its post"
+        );
+    }
+
+    #[test]
+    fn a_corpse_is_not_steered() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins).init_resource::<Pursuit>();
+        app.init_resource::<DummyBrain>();
+        app.add_systems(Update, steer_dummies);
+
+        app.world_mut()
+            .spawn((Player, Transform::from_xyz(0.0, 0.0, 4.0)));
+        let corpse = app
+            .world_mut()
+            .spawn((
+                Transform::from_xyz(0.0, 0.0, 0.0),
+                Post(Vec3::ZERO),
+                Faction::Hostile,
+                Combatant::new(220, 100, combat::Stats::default()),
+                MoveIntent {
+                    wish: Vec3::X,
+                    ..default()
+                },
+                Dead,
+            ))
+            .id();
+
+        app.update();
+
+        let intent = app
+            .world()
+            .entity(corpse)
+            .get::<MoveIntent>()
+            .expect("the corpse lost its move intent");
+        assert_eq!(
+            intent.wish,
+            Vec3::X,
+            "the corpse was steered; only the living are"
         );
     }
 

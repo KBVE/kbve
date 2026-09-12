@@ -21,3 +21,7 @@ spec:
           port: 587
           targetPort: 587
           protocol: TCP
+        - name: relay
+          port: 2525
+          targetPort: 2525
+          protocol: TCP

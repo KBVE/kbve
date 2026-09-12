@@ -32,6 +32,17 @@ async fn main() -> anyhow::Result<()> {
 
     info!("HerbMail v{}", env!("CARGO_PKG_VERSION"));
 
+    match (
+        std::env::var("SUPABASE_URL"),
+        std::env::var("SUPABASE_ANON_KEY"),
+    ) {
+        (Ok(url), Ok(anon)) => {
+            let jwt_cache = jedi::jwt_cache::init_jwt_cache(url, anon);
+            tokio::spawn(jwt_cache.run_cleanup_task());
+        }
+        _ => tracing::warn!("SUPABASE_URL / SUPABASE_ANON_KEY unset; /mail/send is disabled"),
+    }
+
     // Transports
     let http = tokio::spawn(transport::https::serve());
 

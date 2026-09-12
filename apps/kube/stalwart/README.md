@@ -64,20 +64,64 @@ they persist in postgres, not on the PVC.
    as `stalwart-hook-secret` here; the deployment injects it as
    `STALWART_HOOK_SECRET`. Seal the same value into `herbmail` with
    `apps/kube/herbmail/seal-stalwart-hook-secret.sh`.
-5. **Registry config** (web-admin, or `x:*/set` over `/jmap` with the
-   recovery admin as basic auth): local domain `herbmail.com` with a
-   catch-all address (Stalwart validates RCPT against its own directory;
-   the hook is what maps `$username@herbmail.com` to a profile, so unknown
-   local recipients must get past RCPT); MTA hook url
-   `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
-   stages `data`, auth Bearer of type *Environment variable* named
-   `STALWART_HOOK_SECRET` (never paste the token — a wrong literal here
-   fails every settings reload with `Failed to read secret from file`, and
-   the hook silently never runs); submission listener on 587; a `Stdout`
-   tracer, since the default `Log` tracer writes to `/var/log/stalwart`,
-   which does not exist in the pod, so nothing is logged anywhere.
+5. **Registry config** — Stalwart 0.16 keeps every setting as a registry
+   object. The admin UI is one client; the other is JMAP: `POST /jmap` with
+   `using: ["urn:ietf:params:jmap:core","urn:stalwart:jmap"]` and
+   `x:<Object>/get|set|query` (basic auth as the recovery admin works).
+   `GET /api/schema` lists every object and field. Objects that must exist:
+   - `x:Domain` `herbmail.com`, no catch-all address.
+   - `x:Directory` of type `Sql` with an inline `PostgreSql` store
+     (kilobase-rw, db `supabase`, user `stalwart`, `authSecret` =
+     *Environment variable* `STALWART_DB_PASSWORD`), `queryRecipient` and
+     `queryLogin` both `SELECT email, type, description FROM
+     public.stalwart_rcpt($1)`, `columnEmail` `email`, `columnClass` `type`,
+     `columnDescription` `description`, and `queryMemberOf` /
+     `queryEmailAliases` set to null (the registry defaults them to tables
+     that do not exist, which fails every RCPT with 451).
+   - `x:Authentication` singleton `directoryId` = that directory. Per-domain
+     `directoryId` is enterprise-only; community edition only consults the
+     default directory, so RCPT TO is validated by `stalwart_rcpt` against
+     `profile.username` and unknown local parts get 550 at RCPT. A catch-all
+     address does not work here: Stalwart rewrites the envelope to the
+     catch-all account before DATA and the hook payload carries no original
+     recipient.
+   - `x:MtaHook` url
+     `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
+     stages `data`, enable `true`, auth Bearer of type *Environment variable*
+     `STALWART_HOOK_SECRET` (a wrong literal here fails every settings reload
+     with `Failed to read secret from file` and the hook silently never runs).
+   - `x:NetworkListener` `[::]:587` protocol `smtp`, implicit TLS off, next to
+     the default 25 and 465.
+   - `x:Certificate` pointing at `/opt/stalwart-tls/tls.crt` and `tls.key`.
+   - `x:Tracer` of type `Stdout`; the default `Log` tracer writes to
+     `/var/log/stalwart`, which does not exist in the pod, so delete it.
+   - `x:Action` `ReloadSettings` after any change; listener and certificate
+     changes still need `kubectl rollout restart deployment/stalwart`.
 6. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
    `/opt/stalwart-tls`; point the TLS cert/key paths there in admin.
+
+## Outbound (reply-only)
+
+herbmail-api `POST /mail/send` (Supabase JWT) is the only sender. The
+`From` is forced to `$username@herbmail.com`, `public.herbmail_outbound_prepare`
+enforces reply-only (the recipient must have written to that user before) and a
+daily cap, and the message is relayed to Stalwart's internal listener, which
+DKIM-signs and delivers via MX. Registry objects, applied over `/jmap`:
+
+- `x:NetworkListener` `relay`: bind `[::]:2525`, protocol `smtp`, `useTls` off.
+  Exposed on the ClusterIP service only, never on `stalwart-lb`, so only pods
+  can reach it.
+- `x:MtaStageAuth` `require`: `local_port != 25 && local_port != 2525`.
+- `x:MtaStageRcpt` `allowRelaying`: `!is_empty(authenticated_as) || local_port == 2525`.
+- `x:MtaStageMail` `isSenderAllowed`: first match
+  `local_port == 2525 && sender_domain != 'herbmail.com'` → `false`, then the
+  default, so the relay port can only originate `@herbmail.com`.
+- `x:MtaOutboundThrottle`: one keyed on `sender` (30 per hour) and one keyed on
+  `sender_domain` (500 per hour), so an API bug cannot burn the domain's
+  reputation past these.
+
+SPF `ip4:` of the LB, PTR `mail.herbmail.com`, DKIM and DMARC are already in
+DNS.
 
 ## Local lab (dry-run the whole thing)
 
