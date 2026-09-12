@@ -1,6 +1,6 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
-# Dedicated server for apps/arcade/mmorpg. Headless bevy + avian3d, replicated
+# Dedicated server for apps/arcade/kbve-mmorpg. Headless bevy + avian3d, replicated
 # with lightyear over a WebSocket, hosted on Agones.
 layer: 'application'
 language: 'rust'
@@ -18,7 +18,7 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     container-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/mmorpg-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/mmorpg-server:buildcache,mode=max -f apps/agones/mmorpg/server/Dockerfile -t kbve/mmorpg-server:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/mmorpg-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/mmorpg-server:buildcache,mode=max -f apps/agones/kbve-mmorpg/server/Dockerfile -t kbve/mmorpg-server:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

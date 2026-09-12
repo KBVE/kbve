@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/agones/mmorpg/server",
+    "apps/agones/kbve-mmorpg/server",
     "crates/mmorpg_net",
     "crates/bevy_kbve_net",
     "crates/jedi",

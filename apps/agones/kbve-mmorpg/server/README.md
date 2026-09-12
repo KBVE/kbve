@@ -1,6 +1,6 @@
 # mmorpg-server
 
-Dedicated server for `apps/arcade/mmorpg`. Headless bevy + avian3d for the
+Dedicated server for `apps/arcade/kbve-mmorpg`. Headless bevy + avian3d for the
 simulation, lightyear for replication over a WebSocket, Agones for the
 lifecycle.
 

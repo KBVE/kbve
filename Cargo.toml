@@ -31,10 +31,10 @@ members = [
 	'apps/agones/arpg/server',
 	'apps/agones/herbmail/server',
 	'apps/agones/friendslop/server',
-	'apps/agones/mmorpg/server',
+	'apps/agones/kbve-mmorpg/server',
 	'apps/media/reel',
 	'apps/arcade/colony',
-	'apps/arcade/mmorpg',
+	'apps/arcade/kbve-mmorpg',
 ]
 
 exclude = [
