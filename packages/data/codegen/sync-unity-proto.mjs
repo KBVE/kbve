@@ -44,7 +44,7 @@ const TARGETS = [
 		name: 'rareicon',
 		dir: resolve(
 			repoRoot,
-			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto',
+			'apps/rareicon/unity/Assets/_RareIcon/Generated/Proto',
 		),
 	},
 ];

@@ -1,0 +1,31 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+# Aggregate only. Each child keeps its own moon.yml, manifest and Dockerfile;
+# nothing here is built. `inputs: []` keeps the project hash off the tree --
+# this root contains the Unity and Unreal working copies.
+tasks:
+    # The vitest suite runs first, off `deps`: it owns its own container and
+    # tears it down. The playwright docker suite has no lifecycle of its own --
+    # it expects a service already listening on 4325 -- so the script boots one
+    # for it and removes it either way.
+    e2e:
+        script: >-
+            docker rm -f axum-rareicon-e2e 2>/dev/null || true;
+            docker run -d --name axum-rareicon-e2e -p 4325:4323
+            -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4323 -e RUST_LOG=info
+            kbve/rareicon:latest &&
+            moon run astro-rareicon-e2e:e2e-docker; EC=$?;
+            docker rm -f axum-rareicon-e2e 2>/dev/null || true; exit $EC
+        deps: ['axum-rareicon:test', 'axum-rareicon-e2e:e2e']
+        inputs: []
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container:
+        deps: ['axum-rareicon:container']
+        inputs: []
+        options:
+            cache: false

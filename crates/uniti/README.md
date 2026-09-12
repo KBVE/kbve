@@ -2,7 +2,7 @@
 
 C FFI bridge from KBVE Bevy game logic crates to Unity via `csbindgen`.
 
-Builds as a `cdylib` (`libuniti.dylib` / `uniti.dll` / `libuniti.so`) and is consumed by the Unity-side `Uniti.g.cs` bindings inside `apps/rareicon/unity-rareicon/`.
+Builds as a `cdylib` (`libuniti.dylib` / `uniti.dll` / `libuniti.so`) and is consumed by the Unity-side `Uniti.g.cs` bindings inside `apps/rareicon/unity/`.
 
 ## Bundled Surface
 
@@ -29,7 +29,7 @@ moon run uniti:build-all
 `build.rs` runs `csbindgen` to emit the C# wrapper consumed by Unity. The generated file lives at:
 
 ```
-apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/Native/Uniti.g.cs
+apps/rareicon/unity/Assets/_RareIcon/Scripts/Native/Uniti.g.cs
 ```
 
 ## License

@@ -797,7 +797,7 @@
         "name": "astro-rareicon",
         "type": "application",
         "data": {
-          "root": "apps/rareicon/astro-rareicon",
+          "root": "apps/rareicon/web",
           "name": "astro-rareicon",
           "layer": "application",
           "stack": "frontend",
@@ -811,7 +811,7 @@
         "name": "astro-rareicon-e2e",
         "type": "automation",
         "data": {
-          "root": "apps/rareicon/astro-rareicon-e2e",
+          "root": "apps/rareicon/web/e2e",
           "name": "astro-rareicon-e2e",
           "layer": "automation",
           "stack": "unknown",
@@ -913,7 +913,7 @@
         "name": "axum-rareicon",
         "type": "application",
         "data": {
-          "root": "apps/rareicon/axum-rareicon",
+          "root": "apps/rareicon/api",
           "name": "axum-rareicon",
           "layer": "application",
           "stack": "unknown",
@@ -928,7 +928,7 @@
         "name": "axum-rareicon-e2e",
         "type": "application",
         "data": {
-          "root": "apps/rareicon/axum-rareicon-e2e",
+          "root": "apps/rareicon/api/e2e",
           "name": "axum-rareicon-e2e",
           "layer": "application",
           "stack": "unknown",
@@ -2042,7 +2042,7 @@
         "name": "icons-codegen",
         "type": "tool",
         "data": {
-          "root": "apps/rareicon/icons-codegen",
+          "root": "apps/rareicon/codegen",
           "name": "icons-codegen",
           "layer": "tool",
           "stack": "unknown",
@@ -2801,7 +2801,7 @@
         "name": "unity-rareicon",
         "type": "application",
         "data": {
-          "root": "apps/rareicon/unity-rareicon",
+          "root": "apps/rareicon/unity",
           "name": "unity-rareicon",
           "layer": "application",
           "stack": "unknown",
@@ -2867,7 +2867,7 @@
         "name": "unreal-rareicon",
         "type": "application",
         "data": {
-          "root": "apps/rareicon/unreal-rareicon",
+          "root": "apps/rareicon/unreal",
           "name": "unreal-rareicon",
           "layer": "application",
           "stack": "unknown",

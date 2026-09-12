@@ -7,8 +7,8 @@
  *   apps/kbve/astro-kbve/public/<img path>                   (referenced PNGs)
  *
  * Outputs:
- *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png
- *   apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs
+ *   apps/rareicon/unity/Assets/StreamingAssets/itemdb-atlas.png
+ *   apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs
  *
  * Layout:
  *   2048 x 2048 atlas, 32 x 32 grid, 64 x 64 per tile. Max 1024 slots.
@@ -45,8 +45,8 @@ const repoRoot = resolve(__dirname, '../../..');
 
 const MDX_DIR     = resolve(repoRoot, 'docs/itemdb');
 const ASSET_ROOT  = resolve(repoRoot, 'apps/kbve/astro-kbve/public');
-const ATLAS_OUT   = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png');
-const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs');
+const ATLAS_OUT   = resolve(repoRoot, 'apps/rareicon/unity/Assets/StreamingAssets/itemdb-atlas.png');
+const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs');
 
 // Web (cryptothrone / Phaser) consumes the same atlas: the PNG lands in the
 // app's public dir and a generated TS module mirrors the C# constants so the

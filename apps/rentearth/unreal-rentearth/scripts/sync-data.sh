@@ -26,7 +26,7 @@ FILES=(
 )
 
 # Atlas PNG lives next to the unity output (same codegen, different consumer).
-ATLAS_SRC="apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png"
+ATLAS_SRC="apps/rareicon/unity/Assets/StreamingAssets/itemdb-atlas.png"
 ATLAS_DST="$DST_DIR/itemdb-atlas.png"
 
 if [ ! -d "$SRC_DIR" ]; then

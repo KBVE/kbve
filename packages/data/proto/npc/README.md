@@ -30,7 +30,7 @@ Each game used to maintain its own NPC enum / struct. That meant identical creat
 | --------------------------------------- | ----------------------------------------------------------------------- |
 | Rust struct via `prost`                 | `packages/rust/bevy/bevy_npc` → `NpcDb` resource.                       |
 | TypeScript Zod via `gen-npcdb-zod.mjs`  | Astro / Rareicon Unity build pipelines.                                 |
-| C# via `protoc` (Rareicon Unity client) | `apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto/Npc.cs`. |
+| C# via `protoc` (Rareicon Unity client) | `apps/rareicon/unity/Assets/_RareIcon/Generated/Proto/Npc.cs`. |
 
 ## Conventions
 
@@ -42,6 +42,6 @@ Each game used to maintain its own NPC enum / struct. That meant identical creat
 ## Related
 
 - Bevy adapter: [`packages/rust/bevy/bevy_npc`](../../../../packages/rust/bevy/bevy_npc/).
-- Unity adapter (Rareicon): `apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/`.
+- Unity adapter (Rareicon): `apps/rareicon/unity/Assets/_RareIcon/Generated/`.
 - Codegen: [`../../codegen/gen-npcdb-zod.mjs`](../../codegen/gen-npcdb-zod.mjs), [`../../codegen/gen-npcdb-data.mjs`](../../codegen/gen-npcdb-data.mjs).
 - Source MDX: `docs/npcdb/`.

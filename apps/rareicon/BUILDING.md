@@ -1,6 +1,6 @@
 # Buildings architecture — Rareicon DOTS
 
-Design reference for the building subsystem. Scope: everything under `apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/` that touches the `Building` component. This doc is the spec; the `ECS/DB/Buildings/` code is the implementation.
+Design reference for the building subsystem. Scope: everything under `apps/rareicon/unity/Assets/_RareIcon/Scripts/ECS/` that touches the `Building` component. This doc is the spec; the `ECS/DB/Buildings/` code is the implementation.
 
 **Target location** is `ECS/DB/Buildings/` alongside the other authoritative domains (`DB/Hex`, `DB/Combat`, `DB/Logistics`, `DB/Professions`, `DB/Quests`). This matches the convention already in place for every other major subsystem. See §10 for the DB event pipeline and §11 for offloaded-chunk ghost simulation.
 

@@ -52,7 +52,7 @@ const runtimeFileName = 'professiondb-runtime.json';
 const runtimeOutputPath = resolve(generatedDir, runtimeFileName);
 const DEFAULT_HARVEST_WEIGHT = 100;
 const RUNTIME_SYNC_TARGETS = [
-	resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/StreamingAssets'),
+	resolve(repoRoot, 'apps/rareicon/unity/Assets/StreamingAssets'),
 ];
 
 const ENUM_PREFIX = {

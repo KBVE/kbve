@@ -20,7 +20,7 @@ _DRIFT_PATHS = (
     "packages/data/codegen/generated/professiondb-data.binpb",
     "packages/data/codegen/generated/professiondb-runtime.json",
     "packages/data/codegen/generated/xref-index.json",
-    "apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json",
+    "apps/rareicon/unity/Assets/StreamingAssets/professiondb-runtime.json",
 )
 
 

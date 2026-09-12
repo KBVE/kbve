@@ -12,8 +12,8 @@ tags:
 key: unity_rareicon
 pipeline: unity
 app_name: rareicon
-source_path: apps/rareicon/unity-rareicon
-version_toml: apps/rareicon/unity-rareicon/version.toml
+source_path: apps/rareicon/unity
+version_toml: apps/rareicon/unity/version.toml
 version: "0.1.9"
 runner: ubuntu-latest
 author: h0lybyte
@@ -36,7 +36,7 @@ jsonld:
           answer: It uses the unity pipeline; ci-main.yml dispatches to ci-unity.yml whenever the MDX version outpaces version.toml. The engine build targets are StandaloneLinux64, StandaloneWindows64, StandaloneOSX, Android, and iOS.
 engine:
     version: "6000.3.10f1"
-    project_path: apps/rareicon/unity-rareicon
+    project_path: apps/rareicon/unity
     build_targets:
         - StandaloneLinux64
         - StandaloneWindows64
@@ -64,7 +64,7 @@ bento:
         shipping to itch.io as Win/Linux/macOS standalone and to Steam as a demo.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unity-rareicon
+          href: https://github.com/KBVE/kbve/tree/main/apps/rareicon/unity
           primary: true
           external: true
         - label: Build
@@ -118,7 +118,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="overview" eyebrow="The client" heading="Overview">
 
-RareIcon Unity client. Source: `apps/rareicon/unity-rareicon`. ECS DOTS world (Hex / Items / Logistics / Buildings / Units / Combat / Professions / Quests).
+RareIcon Unity client. Source: `apps/rareicon/unity`. ECS DOTS world (Hex / Items / Logistics / Buildings / Units / Combat / Professions / Quests).
 
 </BentoProse>
 
