@@ -15,7 +15,9 @@ use lightyear::input::native::prelude::ActionState;
 use lightyear::netcode::prelude::server::TokenUserData;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
-use mmorpg_net::{Guest, MMORPG_PROTOCOL_ID, MmorpgProtocolPlugin, PlayerId, PlayerInput, PlayerName, TICK_HZ};
+use mmorpg_net::{
+    Guest, MMORPG_PROTOCOL_ID, MmorpgProtocolPlugin, PlayerId, PlayerInput, PlayerName, TICK_HZ,
+};
 
 use crate::token::unpack_identity;
 
@@ -60,9 +62,7 @@ pub fn build(private_key: [u8; 32], game_addr: SocketAddr) -> App {
 
     // Headless: no window, no renderer, no audio. `ScheduleRunnerPlugin` drives
     // the loop at the tick rate instead of a compositor doing it.
-    app.add_plugins(
-        MinimalPlugins.set(bevy::app::ScheduleRunnerPlugin::run_loop(tick)),
-    );
+    app.add_plugins(MinimalPlugins.set(bevy::app::ScheduleRunnerPlugin::run_loop(tick)));
     app.add_plugins(bevy::state::app::StatesPlugin);
     app.add_plugins(bevy::transform::TransformPlugin);
 
@@ -76,7 +76,9 @@ pub fn build(private_key: [u8; 32], game_addr: SocketAddr) -> App {
     );
     app.add_plugins(lightyear_avian3d::prelude::LightyearAvianPlugin::default());
 
-    app.add_plugins(ServerPlugins { tick_duration: tick });
+    app.add_plugins(ServerPlugins {
+        tick_duration: tick,
+    });
     app.add_plugins(MmorpgProtocolPlugin);
 
     app.insert_resource(NetcodeKey(private_key));
@@ -118,7 +120,10 @@ fn start_listening(mut commands: Commands, key: Res<NetcodeKey>, addr: Res<GameA
 
     commands.trigger(Start { entity: server });
     commands.insert_resource(ServerEntity(server));
-    info!("[mmorpg-server/sim] listening for players on ws://{}", addr.0);
+    info!(
+        "[mmorpg-server/sim] listening for players on ws://{}",
+        addr.0
+    );
 }
 
 /// A floor, so a character that spawns at head height lands instead of falling
@@ -233,7 +238,11 @@ fn drive_players(mut players: Query<(&ActionState<PlayerInput>, &mut LinearVeloc
             continue;
         };
         let dir = intent.to_world_dir();
-        let speed = if intent.sprint { SPRINT_SPEED } else { WALK_SPEED };
+        let speed = if intent.sprint {
+            SPRINT_SPEED
+        } else {
+            WALK_SPEED
+        };
         velocity.0.x = dir.x * speed;
         velocity.0.z = dir.z * speed;
     }

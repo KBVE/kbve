@@ -30,8 +30,7 @@ fn env_or<T: std::str::FromStr>(key: &str, fallback: T) -> T {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info,mmorpg_server=debug".into()),
+            EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,mmorpg_server=debug".into()),
         )
         .init();
 
@@ -45,8 +44,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Where a browser should point. Inside a cluster the address the socket
     // binds says nothing about the URL a player reaches it by, so the manifest
     // states it.
-    let public_ws_url = std::env::var("MMORPG_PUBLIC_WS_URL")
-        .unwrap_or_else(|_| format!("ws://{game_addr}"));
+    let public_ws_url =
+        std::env::var("MMORPG_PUBLIC_WS_URL").unwrap_or_else(|_| format!("ws://{game_addr}"));
 
     let private_key = bevy_kbve_net::net_config::load_private_key();
     if private_key == bevy_kbve_net::net_config::DEV_PRIVATE_KEY {

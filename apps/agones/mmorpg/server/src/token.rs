@@ -155,7 +155,11 @@ async fn issue(
 
 /// Write an identity into the token's signed `user_data`.
 fn pack_identity(who: &Identity) -> [u8; USER_DATA_BYTES] {
-    let prefix = if who.guest { GUEST_PREFIX } else { ACCOUNT_PREFIX };
+    let prefix = if who.guest {
+        GUEST_PREFIX
+    } else {
+        ACCOUNT_PREFIX
+    };
     bevy_kbve_net::net_config::pack_user_data(&format!("{prefix}{}", who.name))
 }
 
