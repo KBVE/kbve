@@ -23,6 +23,12 @@ const legalLinks = [
   { href: 'https://kbve.com/legal/tos/', label: 'Terms' },
   { href: 'https://kbve.com/legal/', label: 'Legal' },
 ];
+
+const version = import.meta.env.PUBLIC_HERBMAIL_VERSION ?? 'dev';
+const releaseHref =
+  version === 'dev'
+    ? 'https://github.com/kbve/kbve/releases'
+    : `https://github.com/kbve/kbve/releases/tag/herbmail-api%40${version}`;
 ---
 
 <DroidProvider client:only="react" workerURLs={workerURLs} />
@@ -84,7 +90,10 @@ const legalLinks = [
 
     <div class="kf-bottom">
       <div class="kf-bottom-content">
-        <p class="kf-copyright">&copy; {new Date().getFullYear()} KBVE. All rights reserved.</p>
+        <p class="kf-copyright">
+          &copy; {new Date().getFullYear()} KBVE. All rights reserved.
+          <a class="kf-version" href={releaseHref} rel="noopener">v{version}</a>
+        </p>
         <nav class="kf-legal" aria-label="Legal">
           {legalLinks.map((link) => (
             <a href={link.href} class="kf-legal-link">{link.label}</a>
@@ -339,6 +348,24 @@ const legalLinks = [
     font-size: 0.75rem;
     color: var(--sl-color-gray-3);
     margin: 0;
+  }
+
+  .kf-version {
+    margin-inline-start: 0.5rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    font-family: var(--sl-font-mono, ui-monospace, monospace);
+    font-size: 0.7rem;
+    color: var(--sl-color-gray-3);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .kf-version:hover,
+  .kf-version:focus-visible {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-3);
   }
 
   .kf-legal {

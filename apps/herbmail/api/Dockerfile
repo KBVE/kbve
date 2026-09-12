@@ -28,6 +28,10 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
 COPY apps/herbmail/web/ apps/herbmail/web/
 
+# The site renders the API version in its footer, and the crate manifest is the
+# only place that version lives. Copied in so the astro build can read it.
+COPY apps/herbmail/api/Cargo.toml /app/apps/herbmail/api/Cargo.toml
+
 WORKDIR /app/apps/herbmail/web
 RUN --mount=type=cache,target=/tmp/astro-cache,id=herbmail-web-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
