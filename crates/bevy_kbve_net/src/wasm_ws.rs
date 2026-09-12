@@ -18,7 +18,7 @@ use bevy::prelude::*;
 use bytes::Bytes;
 use lightyear::prelude::*;
 use wasm_bindgen::prelude::*;
-use web_sys::{BinaryType, CloseEvent, Event, MessageEvent, WebSocket};
+use web_sys::{BinaryType, Event, MessageEvent, WebSocket};
 
 /// Received packet buffer shared between the JS `on_message` callback and
 /// the bevy `wasm_ws_recv` system. `Arc<Mutex<Vec<Bytes>>>` is safe because

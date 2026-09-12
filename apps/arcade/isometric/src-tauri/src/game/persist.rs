@@ -175,10 +175,10 @@ fn receive_loads(
     // Inventory
     if let Some(ref req) = pending.inventory {
         if let Some(result) = req.try_recv() {
-            if let Ok(Some(cached_inv)) = result {
-                if let Some(mut inv) = inventory_q {
-                    *inv = cached_inv;
-                }
+            if let Ok(Some(cached_inv)) = result
+                && let Some(mut inv) = inventory_q
+            {
+                *inv = cached_inv;
             }
             pending.inventory = None;
         } else {
@@ -374,12 +374,11 @@ fn receive_waypoint_graph_cache(
         return;
     };
     if let Some(result) = req.try_recv() {
-        if let Ok(Some(cached)) = result {
-            if !cached.waypoints.is_empty() {
-                if let Some(mut graph) = graph {
-                    *graph = cached;
-                }
-            }
+        if let Ok(Some(cached)) = result
+            && !cached.waypoints.is_empty()
+            && let Some(mut graph) = graph
+        {
+            *graph = cached;
         }
         state.load_pending = None;
         state.load_done = true;

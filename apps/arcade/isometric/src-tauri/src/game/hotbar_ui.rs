@@ -29,9 +29,7 @@ struct HotbarSlotQty {
 }
 
 #[derive(Component)]
-struct HotbarSlotKey {
-    slot: usize,
-}
+struct HotbarSlotKey;
 
 pub struct HotbarUiPlugin;
 
@@ -99,7 +97,7 @@ fn spawn_hotbar(mut commands: Commands) {
                             left: Val::Px(3.0),
                             ..default()
                         },
-                        HotbarSlotKey { slot: i },
+                        HotbarSlotKey,
                     ));
                     slot.spawn((
                         Text::new(""),

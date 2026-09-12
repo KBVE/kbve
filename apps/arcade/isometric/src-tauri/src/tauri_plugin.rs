@@ -90,14 +90,14 @@ mod desktop {
         }
 
         let window_wrapper = WindowWrapper::new(tauri_window);
-        if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper) {
-            if let Ok((entity, mut window)) = windows.single_mut() {
-                if let Some(size) = inner {
-                    window.resolution.set(size.width as f32, size.height as f32);
-                    window.resolution.set_scale_factor(scale);
-                }
-                commands.entity(entity).insert(raw_handle);
+        if let Ok(raw_handle) = RawHandleWrapper::new(&window_wrapper)
+            && let Ok((entity, mut window)) = windows.single_mut()
+        {
+            if let Some(size) = inner {
+                window.resolution.set(size.width as f32, size.height as f32);
+                window.resolution.set_scale_factor(scale);
             }
+            commands.entity(entity).insert(raw_handle);
         }
     }
 

@@ -26,7 +26,7 @@ use bevy_kbve_net::{
 };
 
 use super::actions::{ChoppingTree, CollectingForageable, MiningRock};
-use super::creatures::{Creature, CreatureState, RenderKind};
+use super::creatures::{Creature, CreatureState};
 use super::inventory::ItemKind;
 use super::player::{FallDamageEvent, Player};
 use super::scene_objects::CollectEvent;
@@ -77,15 +77,15 @@ struct PlayerNameLabel;
 /// (e.g. "wss://kbve.com/ws").
 /// `jwt` is the Supabase access token for authentication.
 pub fn request_go_online(server_url: &str, jwt: &str) {
-    if !server_url.is_empty() {
-        if let Ok(mut guard) = SERVER_URL_OVERRIDE.lock() {
-            *guard = Some(server_url.to_owned());
-        }
+    if !server_url.is_empty()
+        && let Ok(mut guard) = SERVER_URL_OVERRIDE.lock()
+    {
+        *guard = Some(server_url.to_owned());
     }
-    if !jwt.is_empty() {
-        if let Ok(mut guard) = AUTH_JWT.lock() {
-            *guard = Some(jwt.to_owned());
-        }
+    if !jwt.is_empty()
+        && let Ok(mut guard) = AUTH_JWT.lock()
+    {
+        *guard = Some(jwt.to_owned());
     }
     GO_ONLINE_REQUESTED.store(true, Ordering::Release);
 }
@@ -520,6 +520,7 @@ fn cleanup_pending_despawn(mut commands: Commands, query: Query<Entity, With<Pen
 
 /// Timer resource for throttling heartbeat logs.
 #[derive(Resource)]
+#[allow(dead_code)]
 struct HeartbeatTimer(Timer);
 
 impl Default for HeartbeatTimer {
@@ -529,6 +530,9 @@ impl Default for HeartbeatTimer {
 }
 
 /// Periodic system that logs connection state every ~2 seconds for debugging.
+/// Unregistered like `debug_post_netcode_send`: add it to `build()` when a
+/// connection problem needs watching.
+#[allow(dead_code)]
 fn debug_connection_heartbeat(
     time: Res<Time>,
     mut timer: Local<HeartbeatTimer>,
@@ -573,6 +577,7 @@ fn debug_connection_heartbeat(
 /// PostUpdate diagnostic: logs link.send AFTER netcode writes packets but BEFORE
 /// aeronet drains them to the WebSocket. Kept as dead code for future debugging;
 /// register in plugin build() when needed.
+#[allow(dead_code)]
 fn debug_post_netcode_send(
     query: Query<
         (
@@ -605,6 +610,9 @@ fn debug_post_netcode_send(
 ///
 /// **Desktop**: generates a token locally (shared dev key, no HTTP roundtrip).
 /// **WASM**: fires an async fetch to `/api/v1/auth/game-token`, result polled by `poll_token_fetch_result`.
+/// `commands` is the desktop path's: WASM connects from `poll_token_fetch_result`
+/// once the fetch lands, so it never spawns anything here.
+#[cfg_attr(target_arch = "wasm32", allow(unused_mut, unused_variables))]
 fn poll_go_online_request(
     mut commands: Commands,
     addr: Res<GameServerAddr>,
@@ -909,22 +917,6 @@ fn poll_token_fetch_result(
     connect_to_server(&mut commands, &transport, &result.token_bytes);
 }
 
-/// Check if the browser supports the WebTransport API.
-/// Safari does not support WebTransport — returns false so the client falls back to WebSocket.
-#[cfg(target_arch = "wasm32")]
-fn has_webtransport_support() -> bool {
-    use wasm_bindgen::prelude::*;
-
-    let global = js_sys::global();
-    let wt = js_sys::Reflect::get(&global, &JsValue::from_str("WebTransport"));
-    matches!(wt, Ok(val) if !val.is_undefined())
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn has_webtransport_support() -> bool {
-    true
-}
-
 /// Result from the game-token API.
 #[cfg(target_arch = "wasm32")]
 struct GameTokenResult {
@@ -959,10 +951,10 @@ async fn fetch_game_token(
     };
     let body = serde_json::json!({ "jwt": jwt, "transport": transport }).to_string();
 
-    let mut opts = RequestInit::new();
-    opts.method("POST");
-    opts.mode(RequestMode::Cors);
-    opts.body(Some(&wasm_bindgen::JsValue::from_str(&body)));
+    let opts = RequestInit::new();
+    opts.set_method("POST");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_body(&wasm_bindgen::JsValue::from_str(&body));
 
     let request = Request::new_with_str_and_init(&url, &opts)
         .map_err(|e| format!("Request::new failed: {e:?}"))?;
@@ -1904,9 +1896,7 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 let ws_config = ClientConfig::builder().with_no_cert_validation();
                 let ws_io = WebSocketClientIo::from_url(ws_config, url.clone());
 
-                let client_entity = commands
-                    .spawn((netcode, ws_io, ReplicationReceiver))
-                    .id();
+                let client_entity = commands.spawn((netcode, ws_io, ReplicationReceiver)).id();
 
                 info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");
                 commands.trigger(Connect {
@@ -1999,24 +1989,6 @@ fn receive_time_sync(
                 }
             }
         }
-    }
-}
-
-/// Map a protocol `CreatureKind` to a client `RenderKind` for entity matching.
-fn creature_kind_to_render_kind(kind: CreatureKind) -> RenderKind {
-    match kind {
-        CreatureKind::Firefly => RenderKind::Emissive,
-        CreatureKind::Butterfly => RenderKind::Billboard,
-        CreatureKind::Frog => RenderKind::Sprite,
-    }
-}
-
-/// Map a protocol `CreatureKind` to a `ProtoNpcId` for the shared capture tracker.
-fn creature_kind_to_npc_id(kind: CreatureKind) -> ProtoNpcId {
-    match kind {
-        CreatureKind::Firefly => ProtoNpcId::from_ref("meadow-firefly"),
-        CreatureKind::Butterfly => ProtoNpcId::from_ref("woodland-butterfly"),
-        CreatureKind::Frog => ProtoNpcId::from_ref("green-toad"),
     }
 }
 

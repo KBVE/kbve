@@ -3,6 +3,7 @@
 //! On WASM, calls `window.__telemetry(level, message, stack)` (injected by bug-report-shim.js).
 //! On desktop, logs to bevy's tracing backend directly (no HTTP roundtrip needed).
 
+#[cfg(not(target_arch = "wasm32"))]
 use bevy::log;
 
 /// Report a warning to the telemetry endpoint.
