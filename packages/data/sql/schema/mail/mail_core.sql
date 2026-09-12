@@ -200,3 +200,66 @@ CREATE INDEX IF NOT EXISTS messages_thread_idx
 
 CREATE INDEX IF NOT EXISTS messages_thread_activity_idx
     ON mail.messages (user_id, thread_id, received_at DESC);
+
+-- ===========================================
+-- THREADING HARDENING (mirror of 20260912220000_mail_threads_hardening)
+-- ===========================================
+
+
+-- Three defects in 20260912210000_mail_threads, found by auditing the objects
+-- it actually created rather than the SQL that was meant to create them.
+
+-- 1. mail.assign_thread was created SECURITY DEFINER and never had its default
+--    PUBLIC execute revoked, unlike every other definer function in this
+--    schema. Trigger functions are invoked by the system and do not need the
+--    grant, so nothing depends on it being there.
+REVOKE ALL ON FUNCTION mail.assign_thread() FROM PUBLIC, anon, authenticated;
+
+-- 2. The trigger trusted a caller-supplied thread_id verbatim. Nothing sets it
+--    today, but the rule "a thread belongs to one mailbox" was enforced only by
+--    callers behaving; an insert naming another mailbox's thread was accepted
+--    and grafted a message into that conversation. Reads stayed scoped by
+--    user_id, so this was pollution rather than disclosure. The database now
+--    enforces the rule: a supplied thread_id is honoured only if it already
+--    exists in this mailbox, otherwise it is resolved from scratch.
+CREATE OR REPLACE FUNCTION mail.assign_thread()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    known boolean;
+BEGIN
+    IF NEW.thread_id IS NOT NULL THEN
+        SELECT EXISTS (
+            SELECT 1
+              FROM mail.messages AS own
+             WHERE own.user_id = NEW.user_id
+               AND own.thread_id = NEW.thread_id
+        ) INTO known;
+
+        IF known THEN
+            RETURN NEW;
+        END IF;
+
+        NEW.thread_id := NULL;
+    END IF;
+
+    IF NEW.in_reply_to IS NOT NULL THEN
+        SELECT parent.thread_id
+          INTO NEW.thread_id
+          FROM mail.messages AS parent
+         WHERE parent.user_id = NEW.user_id
+           AND parent.message_id = NEW.in_reply_to
+           AND parent.thread_id IS NOT NULL
+         ORDER BY parent.received_at ASC
+         LIMIT 1;
+    END IF;
+
+    NEW.thread_id := coalesce(NEW.thread_id, NEW.id);
+    RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION mail.assign_thread() FROM PUBLIC, anon, authenticated;
