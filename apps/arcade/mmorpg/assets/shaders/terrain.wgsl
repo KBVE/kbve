@@ -26,6 +26,36 @@ struct TerrainParams {
 @group(#{MATERIAL_BIND_GROUP}) @binding(103) var normals: texture_2d_array<f32>;
 @group(#{MATERIAL_BIND_GROUP}) @binding(104) var normals_sampler: sampler;
 
+struct BloodParams {
+    origin: vec2<f32>,
+    extent: f32,
+    threshold: f32,
+    color: vec3<f32>,
+    roughness: f32,
+    blending: f32,
+}
+
+@group(#{MATERIAL_BIND_GROUP}) @binding(105) var<uniform> blood: BloodParams;
+@group(#{MATERIAL_BIND_GROUP}) @binding(106) var blood_mask: texture_2d<f32>;
+@group(#{MATERIAL_BIND_GROUP}) @binding(107) var blood_mask_sampler: sampler;
+
+/// Coverage the blood mask holds under a world position, zero off the patch it covers.
+///
+/// Sampled before the patch test rather than inside it: a texture read under
+/// non-uniform control flow has no defined derivatives.
+fn blood_coverage(world_xz: vec2<f32>) -> f32 {
+    let local = (world_xz - blood.origin) / max(blood.extent, 1.0);
+    let covered = blood.extent > 0.0
+        && all(local >= vec2(0.0))
+        && all(local <= vec2(1.0));
+    let sampled = textureSample(
+        blood_mask,
+        blood_mask_sampler,
+        clamp(local, vec2(0.0), vec2(1.0)),
+    ).r;
+    return select(0.0, sampled, covered);
+}
+
 fn hash21(p: vec2<f32>) -> f32 {
     var h = fract(p * vec2(0.1031, 0.1030));
     h += dot(h, h.yx + 33.33);
@@ -132,6 +162,24 @@ fn fragment(in: VertexOutput, @builtin(front_facing) is_front: bool) -> Fragment
         pbr_input.material.perceptual_roughness,
         terrain.wet_roughness,
         wetness,
+    );
+
+    // Thresholded rather than faded in from zero, so stains keep an edge and
+    // overlapping brushes read as one pool instead of a bloom.
+    let coverage = blood_coverage(in.world_position.xz);
+    let stained = smoothstep(blood.threshold, blood.threshold + 0.12, coverage);
+    pbr_input.material.base_color = vec4(
+        mix(
+            pbr_input.material.base_color.rgb,
+            mix(blood.color, pbr_input.material.base_color.rgb, blood.blending),
+            stained,
+        ),
+        pbr_input.material.base_color.a,
+    );
+    pbr_input.material.perceptual_roughness = mix(
+        pbr_input.material.perceptual_roughness,
+        blood.roughness,
+        stained,
     );
     pbr_input.material.base_color = alpha_discard(pbr_input.material, pbr_input.material.base_color);
 

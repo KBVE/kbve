@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod action;
+pub mod blood;
 pub mod camera;
 pub mod character;
 pub mod combat;
@@ -43,6 +44,7 @@ impl Plugin for MmorpgPlugin {
             target_ring::TargetRingPlugin,
             ui::UiPlugin,
         ))
+        .add_plugins(blood::BloodPlugin)
         .add_systems(Startup, slow_motion);
     }
 }
