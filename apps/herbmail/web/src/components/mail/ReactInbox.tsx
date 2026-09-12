@@ -51,6 +51,20 @@ function others(participants: string[], self: string | null): string {
 	return list.join(', ') || '(unknown)';
 }
 
+/// Quote what is being answered, the way every mail client does, so the reply
+/// still reads as a reply once it leaves this thread and lands in a client that
+/// knows nothing about it.
+function quoted(msg: ThreadMessage | null): string {
+	if (!msg) return '';
+	const body = (msg.body.text ?? '').trim();
+	if (!body) return '';
+	const when = new Date(msg.sent_at ?? msg.received_at).toLocaleString();
+	const lines = body.split('\n').slice(0, 200);
+	return `\n\nOn ${when}, ${msg.from_addr} wrote:\n${lines
+		.map((l) => `> ${l}`)
+		.join('\n')}\n`;
+}
+
 /// Replies must answer an inbound message: the send policy rejects anything
 /// that is not a reply, and only an inbound message carries a parent to cite.
 function lastInbound(thread: ThreadDetail | null): ThreadMessage | null {
@@ -162,6 +176,38 @@ export default function ReactInbox() {
 
 	const visible = rows;
 
+	// Keyboard navigation. Skipped whenever focus is in a field, so typing a
+	// reply never moves the selection out from under the draft.
+	useEffect(() => {
+		if (auth.tone !== 'auth') return;
+		const onKey = (e: KeyboardEvent) => {
+			const el = e.target as HTMLElement | null;
+			const tag = el?.tagName;
+			if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+			if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+			if (e.key === 'Escape' && selectedId) {
+				e.preventDefault();
+				setSelectedId(null);
+				return;
+			}
+
+			const down = e.key === 'ArrowDown' || e.key === 'j';
+			const up = e.key === 'ArrowUp' || e.key === 'k';
+			if (!down && !up) return;
+			if (rows.length === 0) return;
+			e.preventDefault();
+
+			const at = rows.findIndex((r) => r.thread_id === selectedId);
+			const next = down
+				? Math.min(at < 0 ? 0 : at + 1, rows.length - 1)
+				: Math.max(at < 0 ? 0 : at - 1, 0);
+			setSelectedId(rows[next].thread_id);
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, [auth.tone, rows, selectedId]);
+
 	const replyTo = lastInbound(detail);
 	const canReply = replyTo !== null;
 
@@ -271,6 +317,12 @@ export default function ReactInbox() {
 							<button
 								type="button"
 								className={`hm-row ${row.thread_id === selectedId ? 'is-selected' : ''}`}
+								ref={
+									row.thread_id === selectedId
+										? (el) =>
+												el?.scrollIntoView({ block: 'nearest' })
+										: undefined
+								}
 								onClick={() => setSelectedId(row.thread_id)}
 							>
 								<span className="hm-row-dir" aria-hidden="true">
@@ -451,6 +503,7 @@ export default function ReactInbox() {
 								onClick={() => {
 									setComposing(true);
 									setSendResult(null);
+									if (!draft.trim()) setDraft(quoted(replyTo));
 								}}
 							>
 								<Reply size={16} /> Reply

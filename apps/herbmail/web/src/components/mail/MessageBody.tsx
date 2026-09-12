@@ -65,21 +65,39 @@ export function MessageBody({ text, html, truncated }: Props) {
 	// forbids them), so the frame cannot report its own height. allow-same-origin
 	// lets the parent measure it instead, which is only safe *because* scripts
 	// are withheld -- granting both is what makes a sandbox meaningless.
+	//
+	// Measuring once is not enough: images arrive after load, and revealing them
+	// reflows the document. A single measurement renders a tall message as a
+	// sliver, so the parent observes the body instead of sampling it.
 	useEffect(() => {
 		if (!srcdoc) return;
 		const frame = frameRef.current;
 		if (!frame) return;
+
+		let observer: ResizeObserver | null = null;
+
 		const measure = () => {
-			const doc = frame.contentDocument;
-			if (!doc?.body) return;
-			const next = Math.min(doc.body.scrollHeight + 16, MAX_HEIGHT);
-			if (next > 0) setHeight(next);
+			const body = frame.contentDocument?.body;
+			if (!body) return;
+			const next = Math.min(body.scrollHeight + 16, MAX_HEIGHT);
+			if (next > 0) setHeight((prev) => (prev === next ? prev : next));
 		};
-		frame.addEventListener('load', measure);
-		const timer = window.setTimeout(measure, 120);
+
+		const attach = () => {
+			measure();
+			const body = frame.contentDocument?.body;
+			if (!body || typeof ResizeObserver === 'undefined') return;
+			observer?.disconnect();
+			observer = new ResizeObserver(measure);
+			observer.observe(body);
+		};
+
+		frame.addEventListener('load', attach);
+		attach();
+
 		return () => {
-			frame.removeEventListener('load', measure);
-			window.clearTimeout(timer);
+			frame.removeEventListener('load', attach);
+			observer?.disconnect();
 		};
 	}, [srcdoc]);
 
