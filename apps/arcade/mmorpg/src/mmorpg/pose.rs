@@ -6,7 +6,7 @@
 use bevy::app::AnimationSystems;
 use bevy::prelude::*;
 
-use super::action::Action;
+use super::action::{Action, Frozen};
 use super::character::{Cadence, Flight, LowerBody, MoveIntent, Shot};
 use super::foot_ik::FootGoal;
 use super::rig::{PoseClip, PoseSample, PoseSet, Rig};
@@ -433,7 +433,10 @@ fn blend(idle: PoseSample, moving: PoseSample, mix: f32) -> PoseSample {
     }
 }
 
-/// Every character the pose player drives, with the intent and inertia that pick which clip plays.
+/// A corpse keeps the pose its death clip put it in, so the pose player skips it.
+type Living = Without<Frozen>;
+
+/// Every living character the pose player drives, with the intent and inertia that pick which clip plays.
 type PosedCharacters<'w, 's> = Query<
     'w,
     's,
@@ -445,6 +448,7 @@ type PosedCharacters<'w, 's> = Query<
         Option<&'static MoveIntent>,
         Option<&'static mut Inertia>,
     ),
+    Living,
 >;
 
 #[allow(clippy::too_many_arguments)]
@@ -1220,5 +1224,25 @@ fn play_pose(
             *bodies = 0;
             *frames = 0;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `Living` is what keeps `play_pose` off a corpse; widening it back to no
+    /// filter is what let the pose player overwrite the death clip every frame.
+    #[test]
+    fn the_pose_player_skips_a_frozen_body() {
+        let mut world = World::new();
+        let living = world.spawn_empty().id();
+        let corpse = world.spawn(Frozen).id();
+
+        let mut posed = world.query_filtered::<Entity, Living>();
+        let matched: Vec<Entity> = posed.iter(&world).collect();
+
+        assert!(matched.contains(&living));
+        assert!(!matched.contains(&corpse));
     }
 }
