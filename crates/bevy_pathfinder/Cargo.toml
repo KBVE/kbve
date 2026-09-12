@@ -33,3 +33,7 @@ serde = { workspace = true, features = ["derive"] }
 
 # Bevy — only pulled in under the `bevy` feature.
 bevy = { workspace = true, optional = true, features = ["bevy_state"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

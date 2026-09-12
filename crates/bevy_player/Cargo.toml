@@ -19,3 +19,7 @@ serde = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

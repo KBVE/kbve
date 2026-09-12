@@ -41,3 +41,7 @@ bevy = { workspace = true, optional = true, features = ["bevy_state", "bevy_log"
 # `professions` feature since bevy_items itself has a hard (non-optional)
 # bevy dep.
 bevy_items = { version = "0.1", path = "../bevy_items", optional = true, default-features = false }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
