@@ -242,6 +242,40 @@ echo "==> Case 11: an unknown project reads as empty, not as an error"
 body=$(read_api "/api/v1/perf?project=nope")
 echo "$body" | grep -q '"perf":\[\]' || fail "expected an empty list for an unknown project: $body"
 
+echo "==> Case 12: a window excludes rows older than it"
+# Two samples for one metric, eight days apart. A 24h window must see only the
+# recent one; the all-time view must see both.
+ch "INSERT INTO telemetry.perf_distributed (timestamp, project, metric, value, session_id)
+    VALUES (now() - INTERVAL 8 DAY, 'win', 'lcp', 5000, 'old'),
+           (now(), 'win', 'lcp', 1000, 'new')" >/dev/null
+sleep 1
+
+recent=$(read_api "/api/v1/perf?project=win&since_hours=24")
+echo "    24h: $recent"
+echo "$recent" | grep -q '"samples":"1"' || fail "a 24h window should see one sample: $recent"
+
+alltime=$(read_api "/api/v1/perf?project=win")
+echo "$alltime" | grep -q '"samples":"2"' || fail "the all-time read should see both: $alltime"
+
+echo "==> Case 13: a window wide enough agrees with the view it replaces"
+# The windowed path aggregates from the base table while the default path reads
+# the rollup view. They are two pieces of SQL that must mean the same thing, so
+# a window covering every row has to produce the same answer -- otherwise the
+# number a dashboard shows depends on whether a window was asked for.
+wide=$(read_api "/api/v1/perf?project=win&since_hours=720")
+for field in '"samples":"2"' '"metric":"lcp"'; do
+    echo "$wide" | grep -q "$field" || fail "wide window missing $field: $wide"
+    echo "$alltime" | grep -q "$field" || fail "all-time missing $field: $alltime"
+done
+wide_p75=$(echo "$wide" | sed 's/.*"p75":"\([^"]*\)".*/\1/')
+view_p75=$(echo "$alltime" | sed 's/.*"p75":"\([^"]*\)".*/\1/')
+[ "$wide_p75" = "$view_p75" ] || fail "windowed p75 ($wide_p75) != view p75 ($view_p75)"
+
+echo "==> Case 14: the window is clamped rather than trusted"
+# Far past the 30-day TTL. Clamped, so it still answers instead of erroring.
+huge=$(read_api "/api/v1/product?project=e2e&since_hours=999999")
+echo "$huge" | grep -q '"product":' || fail "an over-long window should clamp, not fail: $huge"
+
 PASS=1
-echo "==> PASS: three lenses ingested and rolled up, schema loss -> recovery, and the staff-gated read API"
+echo "==> PASS: three lenses, schema recovery, the read API, and windowed rollups"
 [ "$PASS" = "1" ]

@@ -224,3 +224,50 @@ describe('rollup normalizers', () => {
 		expect(normalizeProductEvent({}).events).toBe(0);
 	});
 });
+
+describe('time window', () => {
+	it('omits the parameter for all-time rather than sending zero', async () => {
+		// The service clamps the window to a minimum of one hour, so
+		// since_hours=0 would ask for the last hour and render an empty
+		// dashboard that reads as an outage rather than as "all time".
+		const spy = stubFetch({ perf: [] });
+		const store = createTelemetryPerfStream({ getToken: async () => 't' });
+		store.setParams({ since_hours: 0 });
+		await store.refresh();
+		expect(spy.mock.calls.at(-1)![0]).not.toContain('since_hours');
+	});
+
+	it('sends a selected window on every rollup read', async () => {
+		for (const [make, key, path] of [
+			[createTelemetryPerfStream, 'perf', '/api/v1/perf'],
+			[createTelemetryProductStream, 'product', '/api/v1/product'],
+			[createTelemetryGroupsStream, 'groups', '/api/v1/groups'],
+		] as const) {
+			const spy = stubFetch({ [key]: [] });
+			const store = make({ getToken: async () => 't' });
+			store.setParams({ since_hours: 168 });
+			await store.refresh();
+			const url = spy.mock.calls.at(-1)![0] as string;
+			expect(url).toContain(path);
+			expect(url).toContain('since_hours=168');
+		}
+	});
+
+	it('accepts the value as a string, which is what a control emits', async () => {
+		const spy = stubFetch({ product: [] });
+		const store = createTelemetryProductStream({ getToken: async () => 't' });
+		store.setParams({ since_hours: '24' });
+		await store.refresh();
+		expect(spy.mock.calls.at(-1)![0]).toContain('since_hours=24');
+	});
+
+	it('ignores a value that is not a number', async () => {
+		// A malformed param must not reach the query, where it would be a 400
+		// for every row on the page.
+		const spy = stubFetch({ perf: [] });
+		const store = createTelemetryPerfStream({ getToken: async () => 't' });
+		store.setParams({ since_hours: 'yesterday' });
+		await store.refresh();
+		expect(spy.mock.calls.at(-1)![0]).not.toContain('since_hours');
+	});
+});

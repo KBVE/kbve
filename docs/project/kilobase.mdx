@@ -16,6 +16,13 @@ source_path: apps/kbve/kilobase
 version_toml: apps/kbve/kilobase/version.toml
 runner: ubuntu-latest
 image: kbve/kilobase
+# Deliberate, not an oversight: apps/kbve/kilobase/moon.yml sets
+# runInCI: false on `test` because cargo needs the Postgres/pgrx
+# toolchain (postgresql-server-dev-17, cargo pgrx init) that only the
+# Dockerfile installs -- without it everything dies in pgrx-bindgen.
+# Flipping this to true would make release.yml run `moon run
+# kilobase:test`, which runInCI filters, producing a job that skips the
+# task and reports success. A no-op gate is worse than an honest false.
 has_test: false
 author: h0lybyte
 license: KBVE
