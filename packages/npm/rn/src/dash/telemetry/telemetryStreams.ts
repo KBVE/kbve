@@ -44,6 +44,12 @@ function gateError(res: Response, label: string): Error {
 	return dashHttpError(res, label);
 }
 
+/** 0 means "no window", and it has to be sent as an absent parameter rather
+ *  than as `since_hours=0`: the service clamps the window to a minimum of one
+ *  hour, so a literal 0 would ask for the last hour and render an empty
+ *  dashboard that looks like an outage. */
+const ALL_TIME = 0;
+
 export const TELEMETRY_CONTROLS: readonly StreamControl[] = [
 	{
 		kind: 'search',
@@ -60,7 +66,27 @@ export const TELEMETRY_CONTROLS: readonly StreamControl[] = [
 			{ label: '250', value: 250 },
 		],
 	},
+	{
+		kind: 'segmented',
+		param: 'since_hours',
+		label: 'Window',
+		options: [
+			{ label: '24h', value: 24 },
+			{ label: '7d', value: 24 * 7 },
+			{ label: '30d', value: 24 * 30 },
+			{ label: 'All', value: ALL_TIME },
+		],
+	},
 ];
+
+/** Append the window when one is selected. Kept in one place so the three
+ *  rollup reads cannot disagree about what "all time" means on the wire. */
+function appendWindow(qs: URLSearchParams, params: StreamParams): void {
+	const since = params['since_hours'];
+	const hours = typeof since === 'string' ? Number(since) : since;
+	if (typeof hours === 'number' && Number.isFinite(hours) && hours > ALL_TIME)
+		qs.set('since_hours', String(hours));
+}
 
 export function createTelemetryGroupsStream(
 	opts: TelemetryStreamOptions,
@@ -83,6 +109,7 @@ export function createTelemetryGroupsStream(
 			const project = params['project'];
 			if (typeof project === 'string' && project.trim())
 				qs.set('project', project.trim());
+			appendWindow(qs, params);
 
 			const res = await dashFetch(`${baseUrl}/api/v1/groups?${qs}`, {
 				headers: await authHeaders(getToken),
@@ -148,6 +175,7 @@ function rollupQuery(params: StreamParams, fallbackLimit: number): string {
 	const project = params['project'];
 	if (typeof project === 'string' && project.trim())
 		qs.set('project', project.trim());
+	appendWindow(qs, params);
 	return qs.toString();
 }
 
