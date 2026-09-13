@@ -122,7 +122,6 @@ pub async fn groups(
     query(&app, sql, "groups").await
 }
 
-
 /// Ordered inside, stringified outside. ClickHouse resolves ORDER BY against the
 /// SELECT alias, so ordering by `last_seen` in the same projection that aliases
 /// `toString(last_seen) AS last_seen` sorts the *text* — which only happens to be
@@ -163,7 +162,11 @@ pub async fn events(
     if let Some(pr) = cap_project(p.project).as_deref() {
         conds.push(format!("project = {}", quote(pr)));
     }
-    let sql = events_sql(&app.cfg.errors_table, &conds.join(" AND "), clamp(p.limit, 50));
+    let sql = events_sql(
+        &app.cfg.errors_table,
+        &conds.join(" AND "),
+        clamp(p.limit, 50),
+    );
     query(&app, sql, "events").await
 }
 
@@ -299,18 +302,28 @@ mod tests {
         // client re-renders is one it can round differently than the dashboard.
         let sql = perf_sql("perf_summary", "", 10);
         for col in ["samples", "sessions", "p50", "p75", "p95"] {
-            assert!(sql.contains(&format!("toString({col})")), "{col} not stringified");
+            assert!(
+                sql.contains(&format!("toString({col})")),
+                "{col} not stringified"
+            );
         }
         let sql = product_sql("event_counts", "", 10);
         for col in ["events", "sessions", "users"] {
-            assert!(sql.contains(&format!("toString({col})")), "{col} not stringified");
+            assert!(
+                sql.contains(&format!("toString({col})")),
+                "{col} not stringified"
+            );
         }
     }
 
     #[test]
     fn lens_project_filter_is_quoted_and_capped() {
         let evil = cap_project(Some("x' OR 1=1 --".into())).unwrap();
-        let sql = perf_sql("perf_summary", &format!("WHERE project = {}", quote(&evil)), 10);
+        let sql = perf_sql(
+            "perf_summary",
+            &format!("WHERE project = {}", quote(&evil)),
+            10,
+        );
         assert!(sql.contains(r"x\' OR 1=1 --"), "{sql}");
     }
 
