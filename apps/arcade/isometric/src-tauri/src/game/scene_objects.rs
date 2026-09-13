@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use avian3d::prelude::*;
 use bevy::picking::events::{Out, Over, Pointer};
 use bevy::prelude::*;
@@ -302,10 +303,10 @@ fn raycast_hover_detection_desktop(
     };
 
     // Skip if cursor hasn't moved
-    if let Some(prev) = last_cursor.0 {
-        if (prev - cursor_pos).length_squared() < 0.5 {
-            return;
-        }
+    if let Some(prev) = last_cursor.0
+        && (prev - cursor_pos).length_squared() < 0.5
+    {
+        return;
     }
     last_cursor.0 = Some(cursor_pos);
 
@@ -327,10 +328,10 @@ fn raycast_hover_detection_desktop(
             commands.entity(entity).remove::<Hovered>();
         }
     }
-    if let Some(entity) = new_hovered {
-        if current_hovered.get(entity).is_err() {
-            commands.entity(entity).insert(Hovered);
-        }
+    if let Some(entity) = new_hovered
+        && current_hovered.get(entity).is_err()
+    {
+        commands.entity(entity).insert(Hovered);
     }
 }
 
@@ -479,21 +480,19 @@ fn update_hover_highlight(
             original.0.blue + 0.5,
             1.0,
         );
-        if let Some(mat) = materials.get(&mat_handle.0) {
-            if mat.emissive != target {
-                if let Some(mut mat) = materials.get_mut(&mat_handle.0) {
-                    mat.emissive = target;
-                }
-            }
+        if let Some(mat) = materials.get(&mat_handle.0)
+            && mat.emissive != target
+            && let Some(mut mat) = materials.get_mut(&mat_handle.0)
+        {
+            mat.emissive = target;
         }
     }
     for (mat_handle, original) in &unhovered {
-        if let Some(mat) = materials.get(&mat_handle.0) {
-            if mat.emissive != original.0 {
-                if let Some(mut mat) = materials.get_mut(&mat_handle.0) {
-                    mat.emissive = original.0;
-                }
-            }
+        if let Some(mat) = materials.get(&mat_handle.0)
+            && mat.emissive != original.0
+            && let Some(mut mat) = materials.get_mut(&mat_handle.0)
+        {
+            mat.emissive = original.0;
         }
     }
 }

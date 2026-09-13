@@ -49,6 +49,9 @@ subjects:
       name: herbmail-external-secrets
       namespace: herbmail
     - kind: ServiceAccount
+      name: mail-external-secrets
+      namespace: mail
+    - kind: ServiceAccount
       name: memes-external-secrets
       namespace: memes
     - kind: ServiceAccount

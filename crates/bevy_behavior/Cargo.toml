@@ -22,3 +22,7 @@ bevy = ["dep:bevy"]
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 bevy = { workspace = true, optional = true, features = ["bevy_state"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

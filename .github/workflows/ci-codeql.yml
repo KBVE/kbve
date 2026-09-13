@@ -67,8 +67,19 @@ jobs:
     # only counts extensions in is not worth fetching the history for. Both
     # endpoints cap -- pulls/files at 3000 files, compare at 300 -- and a diff
     # at the cap is one this job cannot describe, so it runs everything.
+    # Not on the dev->main release pull request. Its head branch is dev, so its
+    # head sha is a commit that was already pushed to dev -- and this workflow
+    # ran on that push, for that same sha. GitHub keys check runs to the sha
+    # rather than to the run that made them, so the release pull request shows
+    # the push's results either way; running again only queues a second copy of
+    # work whose answer is already attached to the commit.
+    #
+    # It is also the widest possible copy: on a pull request the diff is
+    # measured against the base, so the release pull request asks for every
+    # language touched since the last release rather than since the last merge.
     languages:
         name: Pick languages
+        if: github.head_ref != 'dev'
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
@@ -172,14 +183,14 @@ jobs:
     # and even before that they were paying query time for code the queries
     # cannot say anything useful about.
     #
-    # packages/proto/verify/rust is the third, and it is unextractable by
-    # construction rather than by toolchain: its body is one
-    # `include!("../../../gen/rust/mod.rs")` over a directory
-    # packages/proto/.gitignore keeps out of the tree, so on a fresh checkout
-    # the include target does not exist. The extractor logs
-    # "failed to load file `../../../gen/rust/mod.rs`" and then takes the same
-    # vfs panic. Nothing depends on this crate; it exists so generated code
-    # that does not compile fails at the schema rather than downstream.
+    # packages/proto/verify/rust is the third. Its body is one `include!` of
+    # crates/kbve-proto/src/gen/mod.rs, a thousand-file generated tree it pulls
+    # in wholesale from outside its own directory. It stays excluded: the
+    # extractor has nothing to say about generated code, kbve-proto already
+    # carries the same tree for it to walk, and this crate reaches it by a
+    # relative path that leaves the extractor resolving a second copy. Nothing
+    # depends on this crate; it exists so generated code that does not compile
+    # fails at the schema rather than downstream.
     #
     # apps/arcade/colony is the fourth, and it is the whole crate rather than
     # the one file that breaks. .gitattributes runs src/private/** through

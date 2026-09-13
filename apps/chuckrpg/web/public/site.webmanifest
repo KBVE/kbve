@@ -1,0 +1,28 @@
+{
+	"name": "ChuckRPG",
+	"short_name": "ChuckRPG",
+	"description": "Open world multiplayer RPG powered by Unreal Engine and OWS.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#1a1a1f",
+	"theme_color": "#1a1a1f",
+	"icons": [
+		{
+			"src": "/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png"
+		},
+		{
+			"src": "/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		},
+		{
+			"src": "/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}

@@ -18,7 +18,6 @@ const CHANTERELLE_CAP: [(f32, f32, f32); 3] = [
     (0.78, 0.55, 0.18), // mid
     (0.58, 0.38, 0.12), // shadow
 ];
-const CHANTERELLE_STEM: (f32, f32, f32) = (0.82, 0.65, 0.30);
 
 /// Fly Agaric: red dome with white spots, white stem
 const FLY_AGARIC_CAP: [(f32, f32, f32); 3] = [
@@ -82,12 +81,12 @@ fn push_dome_cap(
 
             // Spot coloring for Fly Agaric: scatter spots on mid/top rings
             let mut vc = band_col;
-            if let Some(sc) = spot_color {
-                if ri >= 1 {
-                    let spot_hash = ((angle * 3.7 + seed * 5.3).sin() * 43_758.547).fract();
-                    if spot_hash > 0.65 {
-                        vc = sc;
-                    }
+            if let Some(sc) = spot_color
+                && ri >= 1
+            {
+                let spot_hash = ((angle * 3.7 + seed * 5.3).sin() * 43_758.547).fract();
+                if spot_hash > 0.65 {
+                    vc = sc;
                 }
             }
 

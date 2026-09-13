@@ -75,7 +75,6 @@ pub fn queue_outgoing_chat(text: &str) -> bool {
 }
 
 const DEFAULT_WS_URL: &str = "wss://chat.kbve.com/ws";
-const DEFAULT_NATIVE_HOST: &str = "irc.kbve.com";
 const DEFAULT_CHANNELS: &[&str] = &["#general", "#world-events"];
 
 pub struct GameChatPlugin;

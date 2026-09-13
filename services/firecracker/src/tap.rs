@@ -548,6 +548,158 @@ mod tests {
     use crate::persistent::Ipv4Pool;
 
     #[test]
+    fn tap_error_display_and_source() {
+        let spawn = TapError::Spawn {
+            program: "ip".into(),
+            source: std::io::Error::new(std::io::ErrorKind::NotFound, "no such file"),
+        };
+        assert_eq!(spawn.to_string(), "failed to spawn ip: no such file");
+        assert!(std::error::Error::source(&spawn).is_some());
+
+        let failed = TapError::CommandFailed {
+            program: "iptables".into(),
+            args: vec!["-I".into(), "INPUT".into()],
+            exit_code: Some(2),
+            stderr: "  permission denied\n".into(),
+        };
+        assert_eq!(
+            failed.to_string(),
+            r#"iptables ["-I", "INPUT"] exited with 2: permission denied"#
+        );
+        assert!(std::error::Error::source(&failed).is_none());
+
+        // Killed by a signal: no exit code to report.
+        let signalled = TapError::CommandFailed {
+            program: "ip".into(),
+            args: vec![],
+            exit_code: None,
+            stderr: String::new(),
+        };
+        assert!(signalled.to_string().contains("exited with ?"));
+
+        let too_long = TapError::NameTooLong("fctap-4294967295".into());
+        assert_eq!(
+            too_long.to_string(),
+            r#"TAP name "fctap-4294967295" exceeds IFNAMSIZ (15)"#
+        );
+        assert!(std::error::Error::source(&too_long).is_none());
+    }
+
+    /// The three env vars are read once each; unset falls back to the
+    /// deployment defaults. Serialised because it mutates process env.
+    #[test]
+    #[serial_test::serial]
+    fn tap_config_from_env_reads_overrides_and_defaults() {
+        for k in ["FC_JAILER_UID", "FC_TUNNEL_IFACE", "FC_PERSISTENT_SUBNET"] {
+            unsafe { std::env::remove_var(k) };
+        }
+        let defaults = TapConfig::from_env();
+        assert_eq!(defaults.jailer_uid, 10001);
+        assert_eq!(defaults.tunnel_iface, "wg0");
+        assert_eq!(defaults.vm_subnet, "172.18.0.0/16");
+
+        unsafe {
+            std::env::set_var("FC_JAILER_UID", "12345");
+            std::env::set_var("FC_TUNNEL_IFACE", "eth1");
+            std::env::set_var("FC_PERSISTENT_SUBNET", "10.9.0.0/20");
+        }
+        let overridden = TapConfig::from_env();
+        assert_eq!(overridden.jailer_uid, 12345);
+        assert_eq!(overridden.tunnel_iface, "eth1");
+        assert_eq!(overridden.vm_subnet, "10.9.0.0/20");
+
+        // An unparseable uid falls back rather than panicking.
+        unsafe { std::env::set_var("FC_JAILER_UID", "not-a-number") };
+        assert_eq!(TapConfig::from_env().jailer_uid, 10001);
+
+        for k in ["FC_JAILER_UID", "FC_TUNNEL_IFACE", "FC_PERSISTENT_SUBNET"] {
+            unsafe { std::env::remove_var(k) };
+        }
+    }
+
+    #[test]
+    fn tap_manager_exposes_its_config() {
+        let cfg = TapConfig {
+            jailer_uid: 7,
+            tunnel_iface: "wg0".into(),
+            vm_subnet: "172.18.0.0/16".into(),
+        };
+        let mgr = TapManager::new(cfg.clone());
+        assert_eq!(mgr.config().jailer_uid, cfg.jailer_uid);
+        assert_eq!(mgr.config().tunnel_iface, cfg.tunnel_iface);
+        assert_eq!(mgr.config().vm_subnet, cfg.vm_subnet);
+    }
+
+    /// `run` has two failure shapes and they are reported differently: a
+    /// program that is not on PATH never starts (Spawn, carrying the io
+    /// error as its source), and a program that starts and exits non-zero
+    /// carries its code and stderr (CommandFailed).
+    #[tokio::test]
+    async fn run_distinguishes_spawn_failure_from_command_failure() {
+        let spawn_err = run("fc-no-such-program-ac41", &[]).await.unwrap_err();
+        assert!(
+            matches!(&spawn_err, TapError::Spawn { program, .. } if program == "fc-no-such-program-ac41"),
+            "got {spawn_err:?}"
+        );
+
+        let failed = run("/bin/sh", &["-c".into(), "echo boom >&2; exit 3".into()])
+            .await
+            .unwrap_err();
+        match failed {
+            TapError::CommandFailed {
+                exit_code, stderr, ..
+            } => {
+                assert_eq!(exit_code, Some(3));
+                assert_eq!(stderr.trim(), "boom");
+            }
+            other => panic!("expected CommandFailed, got {other:?}"),
+        }
+
+        let out = run("/bin/sh", &["-c".into(), "echo hello".into()])
+            .await
+            .unwrap();
+        assert_eq!(out.trim(), "hello");
+    }
+
+    /// `run_ip` and `run_iptables` are the only callers that name the
+    /// program, so the binding is what is worth asserting.
+    #[tokio::test]
+    async fn run_ip_and_run_iptables_name_their_program() {
+        let ip_err = run_ip(&["fc-not-a-subcommand".into()]).await.unwrap_err();
+        let iptables_err = run_iptables(&["--fc-not-a-flag".into()]).await.unwrap_err();
+        for (err, want) in [(ip_err, "ip"), (iptables_err, "iptables")] {
+            let named = match &err {
+                TapError::Spawn { program, .. } => program.clone(),
+                TapError::CommandFailed { program, .. } => program.clone(),
+                other => panic!("unexpected {other:?}"),
+            };
+            assert_eq!(named, want);
+        }
+    }
+
+    #[test]
+    fn build_input_and_output_accept_are_insert_and_check_pairs() {
+        assert_eq!(
+            build_input_accept("172.18.0.0/16"),
+            vec!["-I", "INPUT", "-s", "172.18.0.0/16", "-j", "ACCEPT"]
+        );
+        assert_eq!(
+            build_input_accept_check("172.18.0.0/16"),
+            vec!["-C", "INPUT", "-s", "172.18.0.0/16", "-j", "ACCEPT"]
+        );
+        // OUTPUT matches on destination, INPUT on source -- getting these the
+        // same way round is what leaves endpoints stuck in Starting.
+        assert_eq!(
+            build_output_accept("172.18.0.0/16"),
+            vec!["-I", "OUTPUT", "-d", "172.18.0.0/16", "-j", "ACCEPT"]
+        );
+        assert_eq!(
+            build_output_accept_check("172.18.0.0/16"),
+            vec!["-C", "OUTPUT", "-d", "172.18.0.0/16", "-j", "ACCEPT"]
+        );
+    }
+
+    #[test]
     fn tap_name_fits_ifnamsiz() {
         assert_eq!(tap_name(0).unwrap(), "fctap-0");
         assert_eq!(tap_name(42).unwrap(), "fctap-42");
@@ -569,9 +721,7 @@ mod tests {
         let args = build_tap_create("fctap-7", 10001);
         assert_eq!(
             args,
-            vec![
-                "tuntap", "add", "dev", "fctap-7", "mode", "tap", "user", "10001"
-            ]
+            vec!["tuntap", "add", "dev", "fctap-7", "mode", "tap", "user", "10001"]
         );
     }
 

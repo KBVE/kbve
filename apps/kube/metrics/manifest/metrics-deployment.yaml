@@ -151,6 +151,18 @@ spec:
     selector:
         app: metrics
     ports:
-        - port: 5500
+        # Named so a ServiceMonitor can select the port by name rather than by
+        # number. The HTTPRoute refers to 5500 numerically, which is unaffected.
+        - name: http
+          port: 5500
           targetPort: 5500
+          protocol: TCP
+        # The Prometheus side port the service already listens on
+        # (METRICS_PROMETHEUS_PORT). It was never on the Service, so nothing
+        # could reach it: the pod annotations below advertise a scrape target
+        # that kube-prometheus-stack does not read, and no ServiceMonitor
+        # existed, so every counter this service exports was going nowhere.
+        - name: metrics
+          port: 9090
+          targetPort: 9090
           protocol: TCP

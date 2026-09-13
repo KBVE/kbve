@@ -17,22 +17,40 @@ tasks:
             runFromWorkspaceRoot: true
     dev:
         script: 'rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro dev'
+        deps: ['~:sync-graph']
+
+    # The graph data is committed once, under packages/data/graph. The browser
+    # fetches it from /graphify and /data/dashboard/graph.json, so the served
+    # copies are built here rather than committed a second time inside the app.
+    sync-graph:
+        script: 'node scripts/sync-graph-data.mjs'
+        inputs:
+            [
+                'scripts/sync-graph-data.mjs',
+                '/packages/data/graph/monorepo/**/*',
+            ]
+        outputs:
+            [
+                '/apps/kbve/astro-kbve/public/graphify',
+                '/apps/kbve/astro-kbve/public/data/dashboard/graph.json',
+            ]
+
     build:
         script: 'UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
-        inputs: ['**/*', '/docs/**/*']
-        deps: ['~:proto']
+        inputs: ['**/*', '/docs/**/*', '/packages/data/graph/monorepo/**/*']
+        deps: ['~:proto', '~:sync-graph']
         outputs: ['/dist/apps/astro-kbve']
     build-osrs:
         script: 'node scripts/generate-osrs-items.mjs && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
-        inputs: ['**/*', '/docs/**/*']
-        deps: ['~:proto']
+        inputs: ['**/*', '/docs/**/*', '/packages/data/graph/monorepo/**/*']
+        deps: ['~:proto', '~:sync-graph']
     preview:
         script: 'astro preview'
         deps: ['~:build']
     check:
         script: 'astro check'
-        inputs: ['**/*', '/docs/**/*']
-        deps: ['~:proto']
+        inputs: ['**/*', '/docs/**/*', '/packages/data/graph/monorepo/**/*']
+        deps: ['~:proto', '~:sync-graph']
     test:
         script: 'vitest run --config vitest.config.ts'
     test-unit:
@@ -178,8 +196,7 @@ tasks:
                 '/packages/data/codegen/lib/csharp-sync.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
-        outputs:
-            ['/apps/rareicon/unity/Assets/_RareIcon/Generated/Proto']
+        outputs: ['/apps/rareicon/unity/Assets/_RareIcon/Generated/Proto']
         options:
             runFromWorkspaceRoot: true
     sync-mapdb:

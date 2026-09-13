@@ -253,7 +253,7 @@
 			"prettier --write"
 		],
 		"*.rs": [
-			"rustfmt"
+			"./tools/lint/rustfmt-staged.sh"
 		],
 		"*.py": [
 			"uvx ruff@0.16.5 format",

@@ -55,9 +55,7 @@ struct EquipmentSlotIcon {
 }
 
 #[derive(Component)]
-struct EquipmentSlotLabel {
-    equip_slot: i32,
-}
+struct EquipmentSlotLabel;
 
 pub struct EquipmentUiPlugin;
 
@@ -156,7 +154,7 @@ fn spawn_equipment_panel(mut commands: Commands) {
                                 TextColor(ui_color::TEXT_SECONDARY),
                                 bevy::ui::FocusPolicy::Pass,
                                 bevy::picking::Pickable::IGNORE,
-                                EquipmentSlotLabel { equip_slot: *slot },
+                                EquipmentSlotLabel,
                             ));
                         });
                     }

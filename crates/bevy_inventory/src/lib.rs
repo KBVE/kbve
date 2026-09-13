@@ -26,6 +26,7 @@
 //!
 //! Without the `bevy` feature, the crate is pure Rust with zero Bevy dependency —
 //! suitable for FFI cdylibs (uniti) and non-Bevy consumers (discordsh-bot).
+#![deny(missing_docs)]
 
 use std::fmt::Debug;
 use std::hash::Hash;

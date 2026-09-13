@@ -5,6 +5,9 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { fileURLToPath } from 'node:url';
 import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
+import { readBuildInfo } from './src/build-info.mjs';
+
+const buildInfo = readBuildInfo(new URL('.', import.meta.url));
 
 export default defineConfig({
 	site: 'https://chuckrpg.com',
@@ -29,7 +32,38 @@ export default defineConfig({
 				Sidebar: './src/components/starlight/Sidebar.astro',
 				Header: './src/components/starlight/Header.astro',
 			},
+			favicon: '/favicon.svg',
 			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon.ico',
+						sizes: '32x32',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'apple-touch-icon',
+						href: '/apple-touch-icon.png',
+						sizes: '180x180',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'manifest',
+						href: '/site.webmanifest',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'theme-color',
+						content: '#1a1a1f',
+					},
+				},
 				{
 					tag: 'meta',
 					attrs: {
@@ -49,6 +83,42 @@ export default defineConfig({
 					attrs: {
 						name: 'twitter:card',
 						content: 'summary_large_image',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image',
+						content: 'https://chuckrpg.com/og.png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:width',
+						content: '1200',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:height',
+						content: '630',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:alt',
+						content:
+							'ChuckRPG -- crossed swords over a dark stone field, an open world multiplayer RPG',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image',
+						content: 'https://chuckrpg.com/og.png',
 					},
 				},
 				{
@@ -98,5 +168,8 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
+		define: {
+			__CHUCK_BUILD_INFO__: JSON.stringify(buildInfo),
+		},
 	},
 });

@@ -31,6 +31,12 @@ utoipa = { workspace = true, features = ["axum_extras"] }
 [dev-dependencies]
 tempfile = { workspace = true }
 http-body-util = { workspace = true }
+# TapConfig::from_env and the FC_* readers in main() are process-global, so the
+# tests that exercise them cannot run beside each other.
+serial_test = { workspace = true }
+# `start_paused` for the reaper and idle-sweeper tests, which otherwise have to
+# wait out a real 60-second tick. Dev-only, so the release image is unaffected.
+tokio = { workspace = true, features = ["test-util"] }
 
 [features]
 default = []

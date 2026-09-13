@@ -435,6 +435,18 @@ async fn inbox(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
     (StatusCode::OK, Json(json!({ "messages": messages }))).into_response()
 }
 
+/// Inbound bodies are raw MIME, so a thread preview has to be decoded before it
+/// is truncated; taking the first bytes of the stored body shows headers.
+fn snippet(direction: &str, raw: &str) -> String {
+    let rendered = render_body(direction, raw);
+    let text = rendered
+        .get("text")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let flattened = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    flattened.chars().take(200).collect()
+}
+
 async fn threads(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
     let user = match authenticate(&headers).await {
         Ok(u) => u,
@@ -469,7 +481,24 @@ async fn threads(headers: HeaderMap, Query(q): Query<InboxQuery>) -> Response {
         Ok(v) => v,
         Err(r) => return r.into_response(),
     };
-    let threads = if rows.is_array() { rows } else { json!([]) };
+    let threads: Vec<Value> = rows
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|t| t.as_object())
+        .map(|t| {
+            let direction = t
+                .get("last_direction")
+                .and_then(Value::as_str)
+                .unwrap_or("in");
+            let raw = t.get("last_body").and_then(Value::as_str).unwrap_or("");
+            let mut out = t.clone();
+            out.remove("last_body");
+            out.insert("last_snippet".into(), json!(snippet(direction, raw)));
+            Value::Object(out)
+        })
+        .collect();
     (StatusCode::OK, Json(json!({ "threads": threads }))).into_response()
 }
 
@@ -715,6 +744,29 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[test]
+    fn thread_snippets_decode_mime_before_truncating() {
+        let mime = concat!(
+            "Content-Type: text/plain; charset=utf-8\r\n",
+            "Content-Transfer-Encoding: base64\r\n",
+            "\r\n",
+            "aGVsbG8gdGhlcmU=",
+        );
+        let out = snippet("in", mime);
+        assert_eq!(out, "hello there");
+        assert!(!out.contains("Content-Type"));
+        assert!(!out.contains("aGVsbG8"));
+    }
+
+    #[test]
+    fn thread_snippets_are_capped_and_flattened() {
+        let body = format!("line one\n\nline two{}", "x".repeat(500));
+        let out = snippet("out", &body);
+        assert_eq!(out.chars().count(), 200);
+        assert!(out.starts_with("line one line two"));
+        assert!(!out.contains('\n'));
     }
 
     #[tokio::test]

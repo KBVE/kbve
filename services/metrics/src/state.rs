@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use ahash::AHashMap;
@@ -15,20 +15,34 @@ use crate::config::Config;
 const LIMITER_SHARDS: usize = 32;
 const WINDOW: Duration = Duration::from_secs(60);
 
+/// One queue per destination table. A single shared queue would have worked
+/// only until the first table-specific failure: a rejected insert takes its
+/// whole batch with it, so mixing lenses in one buffer lets a broken perf
+/// sample drop the errors queued beside it.
+pub struct Sinks {
+    pub errors: mpsc::Sender<String>,
+    pub perf: mpsc::Sender<String>,
+    pub events: mpsc::Sender<String>,
+}
+
 pub struct AppState {
     pub cfg: Config,
     pub ch: ClickHouseConfig,
-    pub tx: mpsc::Sender<String>,
+    pub sinks: Sinks,
     pub auth: Option<StaffAuth>,
     pub started_at: Instant,
     ip_limiter: Sharded,
     project_limiter: Sharded,
     global_count: AtomicU32,
     global_window_ms: AtomicU64,
-    /// Latched once the errors table has been seen. The schema is applied by a
-    /// one-shot setup job and never goes away afterwards, so re-querying on every
-    /// kubelet probe would buy nothing and cost a ClickHouse round trip each time.
-    schema_ready: AtomicBool,
+    /// When the errors table was last seen, as millis since `started_at`; 0 means
+    /// not since the last failure. Re-verified rather than latched: the schema
+    /// CAN go away -- a dropped database, a restored-from-empty cluster -- and a
+    /// latch turns that into the exact failure the check exists to catch, a
+    /// service reporting ready while every row it accepts is discarded. The TTL
+    /// keeps the steady state at one round trip per `SCHEMA_RECHECK`, not one per
+    /// kubelet probe.
+    schema_checked_ms: AtomicU64,
 }
 
 struct Bucket {
@@ -84,43 +98,55 @@ impl Sharded {
 }
 
 impl AppState {
-    pub fn new(
-        cfg: Config,
-        ch: ClickHouseConfig,
-        tx: mpsc::Sender<String>,
-        auth: Option<StaffAuth>,
-    ) -> Self {
+    pub fn new(cfg: Config, ch: ClickHouseConfig, sinks: Sinks, auth: Option<StaffAuth>) -> Self {
         Self {
             cfg,
             ch,
-            tx,
+            sinks,
             auth,
             started_at: Instant::now(),
             ip_limiter: Sharded::new(),
             project_limiter: Sharded::new(),
             global_count: AtomicU32::new(0),
             global_window_ms: AtomicU64::new(0),
-            schema_ready: AtomicBool::new(false),
+            schema_checked_ms: AtomicU64::new(0),
         }
     }
 
-    /// Whether the errors table actually exists.
+    /// Whether every table ingest writes to actually exists.
     ///
     /// `SELECT 1` passes against a ClickHouse with no telemetry schema at all,
     /// which is how a wedged setup job stayed invisible: ingest answered 202,
     /// the flusher failed asynchronously and dropped every row, and the only
     /// complaint was a 502 on a dashboard nobody had open. This asks the
     /// question the probe was supposed to be asking.
+    ///
+    /// The answer is cached for `METRICS_SCHEMA_RECHECK_MS` and then asked again, so a
+    /// cluster that loses its schema after this service started is noticed
+    /// within that window instead of never.
     pub async fn schema_ready(&self) -> bool {
-        if self.schema_ready.load(Ordering::Relaxed) {
+        let now_ms = self.started_at.elapsed().as_millis() as u64 + 1;
+        let last = self.schema_checked_ms.load(Ordering::Relaxed);
+        if last != 0 && now_ms.saturating_sub(last) < self.cfg.schema_recheck_ms {
             return true;
         }
-        // LIMIT 0 so this stays a metadata check rather than reading rows.
-        let sql = format!("SELECT 1 FROM {} LIMIT 0", self.cfg.errors_table);
-        let ok = self.ch.execute_select(&sql).await.is_ok();
-        if ok {
-            self.schema_ready.store(true, Ordering::Relaxed);
+        // LIMIT 0 so this stays a metadata check rather than reading rows. All
+        // three lenses are checked: a half-applied schema is the case where the
+        // service accepts one kind of event and silently discards another.
+        let mut ok = true;
+        for table in [
+            &self.cfg.errors_table,
+            &self.cfg.perf_table,
+            &self.cfg.events_table,
+        ] {
+            let sql = format!("SELECT 1 FROM {table} LIMIT 0");
+            if self.ch.execute_select(&sql).await.is_err() {
+                ok = false;
+                break;
+            }
         }
+        self.schema_checked_ms
+            .store(if ok { now_ms } else { 0 }, Ordering::Relaxed);
         ok
     }
 
@@ -157,12 +183,15 @@ impl AppState {
     }
 }
 
+/// One flusher per table. `table` is passed rather than read off the config so
+/// the three instances differ only in the queue they drain and the table they
+/// write, with no branch inside the loop.
 pub fn spawn_flusher(
     state: Arc<AppState>,
     mut rx: mpsc::Receiver<String>,
+    table: String,
     mut shutdown: oneshot::Receiver<()>,
 ) -> JoinHandle<()> {
-    let table = state.cfg.errors_table.clone();
     let flush_rows = state.cfg.flush_rows;
     let interval = Duration::from_millis(state.cfg.flush_interval_ms);
     let timeout = Duration::from_millis(state.cfg.insert_timeout_ms);
@@ -266,7 +295,9 @@ mod tests {
     /// unroutable rather than merely closed, which keeps the test off the network
     /// stack's slow path.
     fn unreachable_state() -> AppState {
-        let (tx, _rx) = mpsc::channel(8);
+        let (errors, _e) = mpsc::channel(8);
+        let (perf, _p) = mpsc::channel(8);
+        let (events, _v) = mpsc::channel(8);
         AppState::new(
             Config::from_env(),
             ClickHouseConfig {
@@ -275,7 +306,11 @@ mod tests {
                 password: String::new(),
                 database: "telemetry".to_string(),
             },
-            tx,
+            Sinks {
+                errors,
+                perf,
+                events,
+            },
             None,
         )
     }
@@ -288,21 +323,42 @@ mod tests {
             "a database the service cannot even query must not read as ready"
         );
         assert!(
-            !app.schema_ready.load(Ordering::Relaxed),
-            "a failed check must not latch, or one bad probe would poison every later one"
+            app.schema_checked_ms.load(Ordering::Relaxed) == 0,
+            "a failed check must not record a success, or it would be trusted for the whole TTL"
         );
     }
 
     #[tokio::test]
-    async fn the_check_latches_once_the_table_has_been_seen() {
-        // Standing in for a successful first probe. After that the answer is
-        // returned without touching ClickHouse — which is the point, since this
-        // runs on every kubelet readiness probe for the life of the pod.
+    async fn a_recent_success_is_reused_without_a_round_trip() {
+        // Standing in for a successful probe a moment ago. Within the TTL the
+        // answer is returned without touching ClickHouse — the server here is
+        // unreachable, so a re-query could only answer false.
         let app = unreachable_state();
-        app.schema_ready.store(true, Ordering::Relaxed);
+        app.schema_checked_ms.store(
+            app.started_at.elapsed().as_millis() as u64 + 1,
+            Ordering::Relaxed,
+        );
+        assert!(app.schema_ready().await);
+    }
+
+    #[tokio::test]
+    async fn a_stale_success_is_checked_again() {
+        // The case a latch got wrong: the table was there when the service
+        // started and is not there now (dropped database, cluster restored from
+        // empty). Past the TTL the check has to ask again and get the new answer,
+        // or the service reports ready while discarding every row it accepts.
+        let mut app = unreachable_state();
+        // A zero window makes every stored success immediately stale, which is
+        // the same code path a real 30s-old success takes without the test
+        // having to wait 30 seconds for it.
+        app.cfg.schema_recheck_ms = 0;
+        app.schema_checked_ms.store(
+            app.started_at.elapsed().as_millis() as u64 + 1,
+            Ordering::Relaxed,
+        );
         assert!(
-            app.schema_ready().await,
-            "the latch must short-circuit rather than re-query a now-unreachable server"
+            !app.schema_ready().await,
+            "a success older than the TTL must be re-verified, not trusted forever"
         );
     }
 

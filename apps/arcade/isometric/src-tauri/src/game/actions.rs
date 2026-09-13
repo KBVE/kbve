@@ -234,14 +234,14 @@ fn process_action_buffer(
             }
         }
 
-        if let Some(kind) = collect_kind {
-            if let Ok(coord) = tile_query.get(entity) {
-                commands.trigger(CollectEvent {
-                    tx: coord.tx,
-                    tz: coord.tz,
-                    kind,
-                });
-            }
+        if let Some(kind) = collect_kind
+            && let Ok(coord) = tile_query.get(entity)
+        {
+            commands.trigger(CollectEvent {
+                tx: coord.tx,
+                tz: coord.tz,
+                kind,
+            });
         }
 
         let Ok(mut ec) = commands.get_entity(entity) else {

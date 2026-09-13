@@ -258,17 +258,21 @@ jobs:
               if: matrix.slot == 'windows'
               run: git config --global core.protectNTFS false
               # git validates every index entry name before sparse rules get to
-              # say the file won't be written, so the ':' names under
-              # public/graphify/dir/ abort `git checkout` even when that directory
-              # is excluded. Relaxing the check lets the index load; the sparse
+              # say the file won't be written, so a ':' name under the graph
+              # data chunks (packages/data/graph/monorepo/dir/) would abort
+              # `git checkout` even when that directory is excluded. Relaxing the check lets the index load; the sparse
               # list below still keeps those files off disk, so nothing illegal is
               # ever created. Scoped to this job's runner.
             - uses: actions/checkout@v7
               with:
-                  # `apps/kbve/astro-kbve/public/graphify/dir/` holds generated
-                  # files with ':' in the name (astro:components.json, node:fs.json,
-                  # …). NTFS forbids ':', so a full checkout aborts with "invalid
-                  # path" before cargo ever runs. Excluding just that directory
+                  # `packages/data/graph/monorepo/dir/` holds generated graph
+                  # chunks; they were once named after import specifiers
+                  # (astro:components.json, node:fs.json, …) and NTFS forbids
+                  # ':', so a full checkout aborted with "invalid path" before
+                  # cargo ever ran. The generator sanitises slugs now and
+                  # tools/guards/check-portable-paths.py is the backstop, but the
+                  # cone list below is what keeps the cost off this job.
+                  # Excluding just that directory
                   # doesn't work — git never descends into a directory a pattern
                   # already matched, so a negation under it is dead. Instead: cone
                   # checkout of only the cargo workspace dirs, which skips

@@ -1861,7 +1861,7 @@ fn process_chunk_spawns_and_despawns(
         return;
     };
 
-    let despawns: Vec<(i32, i32, Vec<Entity>)> = terrain.chunks_to_despawn.drain(..).collect();
+    let despawns: Vec<(i32, i32, Vec<Entity>)> = std::mem::take(&mut terrain.chunks_to_despawn);
     for (_cx, _cz, entities) in despawns {
         for entity in entities {
             commands.entity(entity).despawn();

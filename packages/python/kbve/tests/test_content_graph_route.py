@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
-from kbve.content.builder import BuildContext
+from kbve.content.builder import BuildContext, repo_root_for
 from kbve.content.router import get
 
 
@@ -41,6 +42,11 @@ def _ctx(tmp_path, inputs):
     )
 
 
+def _projects_json(ctx) -> Path:
+    """Where the route writes the graph: the committed data package, not public."""
+    return repo_root_for(ctx.content_root) / "packages" / "data" / "graph" / "monorepo" / "projects.json"
+
+
 def test_graph_needs_tags():
     assert get("graph").needs == ("moon",)
 
@@ -58,7 +64,7 @@ def test_graph_build_writes_mdx_and_copies_json(tmp_path):
     assert result.route == "graph"
 
     mdx = ctx.content_root / "dashboard" / "graph.mdx"
-    js = ctx.public_dir / "graph.json"
+    js = _projects_json(ctx)
     assert mdx.exists()
     assert js.exists()
 
@@ -78,7 +84,7 @@ def test_graph_build_accepts_path_input(tmp_path):
     ctx = _ctx(tmp_path, {"graph_json": str(graph_file)})
     get("graph").build(ctx)
     assert (ctx.content_root / "dashboard" / "graph.mdx").exists()
-    assert (ctx.public_dir / "graph.json").exists()
+    assert _projects_json(ctx).exists()
 
 
 def test_graph_build_skips_on_bad_schema(tmp_path):
@@ -92,4 +98,4 @@ def test_graph_build_skips_on_empty_nodes(tmp_path):
     ctx = _ctx(tmp_path, {"graph_json": {"graph": {"nodes": {}, "dependencies": {}}}})
     result = get("graph").build(ctx)
     assert result.skipped is True
-    assert not (ctx.public_dir / "graph.json").exists()
+    assert not _projects_json(ctx).exists()

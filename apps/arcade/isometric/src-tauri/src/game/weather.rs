@@ -488,10 +488,10 @@ fn sync_game_time(
     mut game_time: ResMut<GameTime>,
 ) {
     game_time.hour = day.hour;
-    if let Some(st) = server_time {
-        if st.active {
-            game_time.creature_seed = st.creature_seed;
-        }
+    if let Some(st) = server_time
+        && st.active
+    {
+        game_time.creature_seed = st.creature_seed;
     }
 }
 

@@ -4,6 +4,8 @@ import type { ObservConfig } from './types';
 export { Observer } from './client';
 export type { ErrorEvent, ObservConfig } from './types';
 export type { Breadcrumb } from './breadcrumbs';
+export { rateVital, siblingEndpoint, ClsTracker } from './vitals';
+export type { Vital, VitalName } from './vitals';
 
 let singleton: Observer | null = null;
 
@@ -18,7 +20,10 @@ export function initObserv(config: ObservConfig): Observer {
 /// (flush falls back to fetch keepalive, which RN supports).
 export function initObservNative(config: ObservConfig): Observer {
 	if (singleton) return singleton;
-	singleton = new Observer({ platform: 'android', ...config }).installNative();
+	singleton = new Observer({
+		platform: 'android',
+		...config,
+	}).installNative();
 	return singleton;
 }
 
@@ -27,6 +32,13 @@ export function captureException(
 	extra?: Record<string, unknown>,
 ): void {
 	singleton?.captureException(err, extra);
+}
+
+export function trackEvent(
+	name: string,
+	extra?: Record<string, unknown>,
+): void {
+	singleton?.trackEvent(name, extra);
 }
 
 export function addBreadcrumb(

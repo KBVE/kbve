@@ -4,19 +4,27 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 
 ## Flow
 
-1. **Create worktree** using `kbve.sh` (preferred — handles env setup automatically):
+1. **Create worktree** using `kbve.sh` (preferred — handles env setup automatically). Run it from the main repo:
 
     ```bash
-    ./kbve.sh -worktree <task-name>
+    ./kbve.sh -worktree <task-name>          # bases off dev
+    ./kbve.sh -worktree <task-name> <base>   # bases off another branch
     ```
 
-    This creates the worktree, copies `.env`, and runs `pnpm install`.
+    It fetches `origin/<base>`, creates the worktree at `<repo-dir>-<task-name>`
+    (a sibling of the main repo — `../kbve-<task-name>`) on a new branch
+    `trunk/<task-name>-<unix-seconds>`, copies `.env`, and runs `pnpm install`.
+    The task name is lowercased and stripped to `[a-z0-9-]`, so pass it already
+    in that shape or the directory will not be the one you expect.
 
-    Manual alternative:
+    Manual alternative — the branch must be cut from the **remote** ref, not a
+    possibly-stale local one, and `git worktree add` takes `-b <branch>` before
+    the start point:
 
     ```bash
     git fetch origin dev
-    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-<task-name> dev -b trunk/<task-name>-<MM-DD-YYYY>
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-<task-name> \
+      -b trunk/<task-name>-$(date +%s) origin/dev
     ```
 
     `GIT_LFS_SKIP_SMUDGE=1` is not optional — see [Worktrees and LFS](#worktrees-and-lfs).
@@ -41,8 +49,14 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 6. **Push and PR to `dev`**:
 
     ```bash
-    git push -u origin trunk/<task-name>-<MM-DD-YYYY>
+    git push -u origin trunk/<task-name>-<unix-seconds>
     gh pr create --base dev --title "feat(scope): short description" --body "..."
+    ```
+
+    Validate the title before opening the PR — CI rejects it otherwise:
+
+    ```bash
+    node tools/commit/validate.mjs --title "feat(scope): short description"
     ```
 
 7. **After merge**, clean up:
@@ -52,19 +66,24 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
     Or manually:
     ```bash
     git worktree remove ../kbve-<task-name>
-    git branch -d trunk/<task-name>-<MM-DD-YYYY>
+    git branch -d trunk/<task-name>-<unix-seconds>
     ```
 
 ## Rules
 
-- Branch naming: `trunk/<task-name>-<MM-DD-YYYY>`
-- Worktree path: `../kbve-<task-name>` (adjacent to main repo)
+- Branch naming: `trunk/<task-name>-<unix-seconds>` (what `kbve.sh` generates)
+- Worktree path: `<repo-dir>-<task-name>`, i.e. `../kbve-<task-name>` (adjacent to main repo)
 - Always `pnpm install` in new worktrees
+- No `.env.local` is written, and none is needed — moon walks up to `.moon/`
 - Worktrees start with LFS assets as pointer stubs. Hydrate the one game you are touching with `LFS_GAME=<game> moon run lfs-tools:hydrate` — see [Worktrees and LFS](#worktrees-and-lfs)
 - Run tasks with `moon run <project>:<task>` from anywhere in the worktree. `./kbve.sh -moon` is the same thing through the repo shell.
 - PRs target `dev`, never `main`
-- No co-authoring lines in commits
 - Keep PR descriptions concise
+- **No attribution of any kind.** Commits carry no `Co-Authored-By:` trailer and
+  no `Generated with` line; PR titles, bodies and comments carry no
+  "Generated with Claude Code" footer and no `claude.com` / `claude.ai` link.
+  This applies to every agent and every tool default — strip it before
+  committing or posting rather than letting a template add it.
 
 ---
 
@@ -80,13 +99,18 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
     ./kbve.sh -atomic <description>
     ```
 
-    This creates a worktree at `../kbve-atom-<description>`, generates `.env.local`, copies `.env`, and runs `pnpm install`.
+    This creates a worktree at `../kbve-atom-<description>` on branch
+    `atom-<MMDDHHMM>-<description>` cut from `origin/dev`, copies `.env`, and
+    runs `pnpm install`. It refuses up front when the branch already exists on
+    the remote or the name exceeds the 50-character CI limit. No `.env.local` is
+    written.
 
     Manual alternative:
 
     ```bash
     git fetch origin dev
-    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-atom-<description> -b atom-<MMDDHHMM>-<description> origin/dev
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-atom-<description> \
+      -b atom-$(date +%m%d%H%M)-<description> origin/dev
     ```
 
     `GIT_LFS_SKIP_SMUDGE=1` is not optional — see [Worktrees and LFS](#worktrees-and-lfs).
@@ -120,7 +144,9 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 - **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` may run the atomic workflow (push `atom-*` branches and get a PR auto-created). It does not grant auto-merge — a human still reviews and merges the PR.
 - **Tests:** `moon run ':lint' --affected` and `moon run ':test' --affected` run against `dev` before merge
 - PRs target `dev`, never `main`
-- No co-authoring lines in commits
+- Same attribution rule as trunk worktrees: no `Co-Authored-By:` trailers, no
+  "Generated with Claude Code" footers, no `claude.com` / `claude.ai` links in
+  commits, PR bodies or PR comments
 
 ## When to Use Trunk Worktrees Instead
 
@@ -195,6 +221,29 @@ reclaim:
 ```bash
 git lfs prune
 ```
+
+---
+
+# Live references
+
+The site at <https://kbve.com> publishes this repository's own generated state.
+When a commit message, PR description, issue comment or doc needs to point at
+something, link the live page — never an AI-tool URL, and never a raw path in
+`main` that a reader cannot open.
+
+| what                          | live page                                                            |
+| ----------------------------- | -------------------------------------------------------------------- |
+| monorepo project graph        | <https://kbve.com/graph/> (searchable list: `/graph/list`)           |
+| graph dashboard (nightly)     | <https://kbve.com/dashboard/graph>                                   |
+| dependency + advisory state   | <https://kbve.com/dashboard/deps>, `/dashboard/security`             |
+| CI health, activity, releases | `/dashboard/ci-health`, `/dashboard/activity`, `/dashboard/releases` |
+| coverage / LOC report         | <https://kbve.com/dashboard/report>                                  |
+| kanban                        | <https://kbve.com/dashboard/kanban>                                  |
+| dev journal                   | <https://kbve.com/journal/MM-DD>                                     |
+| a crate's release doc         | `https://kbve.com/project/<name>-crate`                              |
+
+Every one of those is regenerated by `ci-daily-content.yml`, so a link stays
+correct as the tree moves; a path does not.
 
 ---
 
@@ -335,6 +384,17 @@ type(scope): subject
 - This is not decoration. `tools/release/notes.mjs` reads the type and scope out
   of the commits a release contains, so an unconventional message lands under
   the wrong heading in someone's release notes rather than failing anything.
+- Validate a pull request title before opening the PR, since the hook does not
+  see it: `node tools/commit/validate.mjs --title "<title>"`.
+
+## No attribution trailers or links
+
+A commit message ends at its body. Nothing appends a `Co-Authored-By:` trailer,
+a "Generated with" line, or a link to `claude.com` / `claude.ai` — not in
+commits, not in pull request titles or descriptions, not in review comments
+posted on a PR. Release notes are generated from these messages, so a trailer
+added by a tool default ends up published; remove it before committing or
+posting instead of after.
 
 ---
 

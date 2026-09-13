@@ -122,7 +122,6 @@ pub async fn groups(
     query(&app, sql, "groups").await
 }
 
-
 /// Ordered inside, stringified outside. ClickHouse resolves ORDER BY against the
 /// SELECT alias, so ordering by `last_seen` in the same projection that aliases
 /// `toString(last_seen) AS last_seen` sorts the *text* — which only happens to be
@@ -163,8 +162,76 @@ pub async fn events(
     if let Some(pr) = cap_project(p.project).as_deref() {
         conds.push(format!("project = {}", quote(pr)));
     }
-    let sql = events_sql(&app.cfg.errors_table, &conds.join(" AND "), clamp(p.limit, 50));
+    let sql = events_sql(
+        &app.cfg.errors_table,
+        &conds.join(" AND "),
+        clamp(p.limit, 50),
+    );
     query(&app, sql, "events").await
+}
+
+#[derive(Deserialize)]
+pub struct LensParams {
+    project: Option<String>,
+    limit: Option<u32>,
+}
+
+/// Every count and quantile is stringified in the projection for the same
+/// reason the error rollup does it: a UInt64 past 2^53 loses precision on the
+/// way through JSON, and a quantile rendered by the client is a quantile the
+/// client can round differently than the dashboard beside it.
+fn perf_sql(view: &str, where_clause: &str, limit: u32) -> String {
+    format!(
+        "SELECT project, metric, \
+         toString(samples) AS samples, toString(sessions) AS sessions, \
+         toString(p50) AS p50, toString(p75) AS p75, toString(p95) AS p95, \
+         toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
+         FROM (SELECT * FROM {view} {where_clause} ORDER BY samples DESC LIMIT {limit})"
+    )
+}
+
+fn product_sql(view: &str, where_clause: &str, limit: u32) -> String {
+    format!(
+        "SELECT project, name, \
+         toString(events) AS events, toString(sessions) AS sessions, \
+         toString(users) AS users, \
+         toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
+         FROM (SELECT * FROM {view} {where_clause} ORDER BY events DESC LIMIT {limit})"
+    )
+}
+
+/// Web Vitals quantiles per (project, metric).
+pub async fn perf(
+    State(app): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Query(p): Query<LensParams>,
+) -> Response {
+    if let Err(resp) = authorize(&app, &headers).await {
+        return resp;
+    }
+    let where_clause = cap_project(p.project)
+        .as_deref()
+        .map(|pr| format!("WHERE project = {}", quote(pr)))
+        .unwrap_or_default();
+    let sql = perf_sql(&app.cfg.perf_view, &where_clause, clamp(p.limit, 100));
+    query(&app, sql, "perf").await
+}
+
+/// Named product events per (project, name).
+pub async fn product(
+    State(app): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Query(p): Query<LensParams>,
+) -> Response {
+    if let Err(resp) = authorize(&app, &headers).await {
+        return resp;
+    }
+    let where_clause = cap_project(p.project)
+        .as_deref()
+        .map(|pr| format!("WHERE project = {}", quote(pr)))
+        .unwrap_or_default();
+    let sql = product_sql(&app.cfg.events_view, &where_clause, clamp(p.limit, 100));
+    query(&app, sql, "product").await
 }
 
 #[cfg(test)]
@@ -206,6 +273,58 @@ mod tests {
             sql.contains("toString(timestamp) AS timestamp"),
             "a list of errors with no time on any of them is not much of a list"
         );
+    }
+
+    #[test]
+    fn lens_reads_order_inside_the_projection() {
+        // Same trap as the error rollup: the outer projection aliases the
+        // ordering column to a String, so an ORDER BY out there sorts text.
+        for sql in [
+            perf_sql("perf_summary", "", 100),
+            product_sql("event_counts", "", 100),
+        ] {
+            let outer = sql.split("FROM (").next().unwrap();
+            assert!(!outer.contains("ORDER BY"), "{sql}");
+            let inner = sql.split("FROM (").nth(1).expect("inner projection");
+            assert!(inner.contains("ORDER BY"), "{sql}");
+        }
+    }
+
+    #[test]
+    fn lens_reads_honour_the_configured_view() {
+        assert!(perf_sql("other_perf", "", 10).contains("FROM other_perf"));
+        assert!(product_sql("other_events", "", 10).contains("FROM other_events"));
+    }
+
+    #[test]
+    fn lens_reads_stringify_every_number() {
+        // A UInt64 past 2^53 loses precision through JSON, and a quantile the
+        // client re-renders is one it can round differently than the dashboard.
+        let sql = perf_sql("perf_summary", "", 10);
+        for col in ["samples", "sessions", "p50", "p75", "p95"] {
+            assert!(
+                sql.contains(&format!("toString({col})")),
+                "{col} not stringified"
+            );
+        }
+        let sql = product_sql("event_counts", "", 10);
+        for col in ["events", "sessions", "users"] {
+            assert!(
+                sql.contains(&format!("toString({col})")),
+                "{col} not stringified"
+            );
+        }
+    }
+
+    #[test]
+    fn lens_project_filter_is_quoted_and_capped() {
+        let evil = cap_project(Some("x' OR 1=1 --".into())).unwrap();
+        let sql = perf_sql(
+            "perf_summary",
+            &format!("WHERE project = {}", quote(&evil)),
+            10,
+        );
+        assert!(sql.contains(r"x\' OR 1=1 --"), "{sql}");
     }
 
     #[test]

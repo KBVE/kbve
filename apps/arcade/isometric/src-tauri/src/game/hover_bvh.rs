@@ -50,51 +50,8 @@ impl Default for HoverMap {
 }
 
 impl HoverMap {
-    /// Look up which entity (if any) occupies a world XZ position at a given
-    /// Y height. Checks the target tile and its 8 neighbors, returning the
-    /// **closest** entity whose vertical range contains `y`.
-    fn lookup_at_y(&self, world_x: f32, world_z: f32, y: f32) -> Option<Entity> {
-        let tx = world_x.floor() as i32;
-        let tz = world_z.floor() as i32;
-
-        let mut best: Option<(Entity, f32)> = None;
-
-        let mut check = |cx: i32, cz: i32| {
-            if let Some(entry) = self.map.get(&(cx, cz)) {
-                if y >= entry.y_min && y <= entry.y_max {
-                    // Distance from cursor world pos to tile center
-                    let tile_center_x = cx as f32 + 0.5;
-                    let tile_center_z = cz as f32 + 0.5;
-                    let dx = world_x - tile_center_x;
-                    let dz = world_z - tile_center_z;
-                    let dist_sq = dx * dx + dz * dz;
-                    if best.is_none_or(|(_, d)| dist_sq < d) {
-                        best = Some((entry.entity, dist_sq));
-                    }
-                }
-            }
-        };
-
-        // Check center tile + 8 neighbors
-        check(tx, tz);
-        for &(dx, dz) in &[
-            (-1, -1),
-            (-1, 0),
-            (-1, 1),
-            (0, -1),
-            (0, 1),
-            (1, -1),
-            (1, 0),
-            (1, 1),
-        ] {
-            check(tx + dx, tz + dz);
-        }
-
-        best.map(|(entity, _)| entity)
-    }
-
-    /// Legacy lookup without height check — kept for callers that don't need
-    /// multi-plane picking (e.g. click handlers that already have a Hovered entity).
+    /// Look up which entity (if any) occupies a world XZ position, ignoring
+    /// height: one tile holds one hoverable, so the first hit is the answer.
     pub fn lookup(&self, world_x: f32, world_z: f32) -> Option<Entity> {
         let tx = world_x.floor() as i32;
         let tz = world_z.floor() as i32;
@@ -240,16 +197,16 @@ pub fn cursor_pick(
             ] {
                 let cx = tx + dx;
                 let cz = tz + dz;
-                if let Some(entry) = hover_map.map.get(&(cx, cz)) {
-                    if y >= entry.y_min && y <= entry.y_max {
-                        // Score by distance from tile center to ground hit point
-                        let tile_cx = cx as f32 + 0.5;
-                        let tile_cz = cz as f32 + 0.5;
-                        let dist_sq =
-                            (ground_xz.x - tile_cx).powi(2) + (ground_xz.y - tile_cz).powi(2);
-                        if best.is_none_or(|(_, d)| dist_sq < d) {
-                            best = Some((entry.entity, dist_sq));
-                        }
+                if let Some(entry) = hover_map.map.get(&(cx, cz))
+                    && y >= entry.y_min
+                    && y <= entry.y_max
+                {
+                    // Score by distance from tile center to ground hit point
+                    let tile_cx = cx as f32 + 0.5;
+                    let tile_cz = cz as f32 + 0.5;
+                    let dist_sq = (ground_xz.x - tile_cx).powi(2) + (ground_xz.y - tile_cz).powi(2);
+                    if best.is_none_or(|(_, d)| dist_sq < d) {
+                        best = Some((entry.entity, dist_sq));
                     }
                 }
             }

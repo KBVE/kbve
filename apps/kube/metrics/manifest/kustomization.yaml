@@ -7,3 +7,5 @@ resources:
     - metrics-deployment.yaml
     - httproute.yaml
     - telemetry-ch-setup-job.yaml
+    - servicemonitor.yaml
+    - metrics-alerts.yaml

@@ -85,12 +85,42 @@ export interface Cursor {
 	before_id: string;
 }
 
+export interface ThreadRow {
+	thread_id: string;
+	subject: string | null;
+	participants: string[];
+	message_count: number;
+	last_activity: string;
+	last_direction: Direction;
+	last_status: string;
+	last_snippet: string | null;
+	has_failure: boolean;
+}
+
+export interface ThreadMessage extends Omit<MessageDetail, 'status'> {
+	status: string;
+}
+
+export interface ThreadDetail {
+	thread_id: string;
+	subject: string | null;
+	messages: ThreadMessage[];
+}
+
 export function cursorOf(row: InboxRow): Cursor {
 	return { before: row.received_at, before_id: row.id };
 }
 
+export function threadCursorOf(row: ThreadRow): Cursor {
+	return { before: row.last_activity, before_id: row.thread_id };
+}
+
 export function listInbox(
-	opts: { limit?: number; cursor?: Cursor | null; direction?: Direction | null } = {},
+	opts: {
+		limit?: number;
+		cursor?: Cursor | null;
+		direction?: Direction | null;
+	} = {},
 ) {
 	const q = new URLSearchParams();
 	if (opts.limit) q.set('limit', String(opts.limit));
@@ -100,7 +130,33 @@ export function listInbox(
 	}
 	if (opts.direction) q.set('direction', opts.direction);
 	const qs = q.toString();
-	return request<{ messages: InboxRow[] }>(`/mail/inbox${qs ? `?${qs}` : ''}`);
+	return request<{ messages: InboxRow[] }>(
+		`/mail/inbox${qs ? `?${qs}` : ''}`,
+	);
+}
+
+export function listThreads(
+	opts: {
+		limit?: number;
+		cursor?: Cursor | null;
+		direction?: Direction | null;
+	} = {},
+) {
+	const q = new URLSearchParams();
+	if (opts.limit) q.set('limit', String(opts.limit));
+	if (opts.cursor) {
+		q.set('before', opts.cursor.before);
+		q.set('before_id', opts.cursor.before_id);
+	}
+	if (opts.direction) q.set('direction', opts.direction);
+	const qs = q.toString();
+	return request<{ threads: ThreadRow[] }>(
+		`/mail/threads${qs ? `?${qs}` : ''}`,
+	);
+}
+
+export function getThread(id: string) {
+	return request<ThreadDetail>(`/mail/threads/${encodeURIComponent(id)}`);
 }
 
 export function getMessage(id: string) {

@@ -26,6 +26,7 @@
 //! let bytes = include_bytes!("path/to/npcs.binpb");
 //! let db = NpcDb::from_bytes(bytes).expect("Failed to decode NPC registry");
 //! ```
+#![deny(missing_docs)]
 
 mod proto;
 mod registry;

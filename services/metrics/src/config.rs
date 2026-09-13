@@ -5,7 +5,11 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub errors_table: String,
+    pub perf_table: String,
+    pub events_table: String,
     pub groups_view: String,
+    pub perf_view: String,
+    pub events_view: String,
     pub allowed_origins: Vec<String>,
     pub max_body_bytes: usize,
     pub max_batch: usize,
@@ -18,6 +22,7 @@ pub struct Config {
     pub project_rate_limit_per_min: u32,
     pub global_rate_limit_per_min: u32,
     pub trusted_proxy_hops: usize,
+    pub schema_recheck_ms: u64,
     pub ingest_token: Option<String>,
     pub metrics_port: u16,
 }
@@ -38,11 +43,15 @@ impl Config {
             host: get("HTTP_HOST", "0.0.0.0"),
             port: get("HTTP_PORT", "5500").parse().unwrap_or(5500),
             errors_table: get("METRICS_ERRORS_TABLE", "errors_distributed"),
+            perf_table: get("METRICS_PERF_TABLE", "perf_distributed"),
+            events_table: get("METRICS_EVENTS_TABLE", "events_distributed"),
             // Configurable alongside the table it aggregates: the read path used
             // to hardcode both names while ingest and the readiness probe honoured
             // METRICS_ERRORS_TABLE, so pointing ingest elsewhere left reads
             // querying a table nothing was being written to, with readiness green.
             groups_view: get("METRICS_GROUPS_VIEW", "error_groups"),
+            perf_view: get("METRICS_PERF_VIEW", "perf_summary"),
+            events_view: get("METRICS_EVENTS_VIEW", "event_counts"),
             allowed_origins,
             max_body_bytes: get("METRICS_MAX_BODY_BYTES", "262144")
                 .parse()
@@ -69,6 +78,12 @@ impl Config {
                 .parse()
                 .unwrap_or(60000),
             trusted_proxy_hops: get("METRICS_TRUSTED_PROXY_HOPS", "1").parse().unwrap_or(1),
+            // How long a successful schema check is trusted. 0 re-verifies on
+            // every probe, which is what the e2e wipe drill wants and what an
+            // operator can reach for if a cluster is being rebuilt underneath.
+            schema_recheck_ms: get("METRICS_SCHEMA_RECHECK_MS", "30000")
+                .parse()
+                .unwrap_or(30000),
             ingest_token: env::var("METRICS_INGEST_TOKEN")
                 .ok()
                 .map(|s| s.trim().to_string())

@@ -9,6 +9,7 @@
 //!
 //! Linked by both the dedicated server and the wasm client, so it stays free of
 //! anything that only one of them can build: no renderer, no tokio, no axum.
+#![deny(missing_docs)]
 
 use avian3d::prelude::{LinearVelocity, Position, Rotation};
 use bevy::prelude::*;
@@ -53,11 +54,18 @@ pub struct Guest(pub bool);
 /// facing to resolve movement into world space.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Reflect)]
 pub struct MoveIntent {
+    /// Away from the camera along `yaw`.
     pub forward: bool,
+    /// Toward the camera along `yaw`.
     pub back: bool,
+    /// Strafe left, perpendicular to `yaw`.
     pub left: bool,
+    /// Strafe right, perpendicular to `yaw`.
     pub right: bool,
+    /// Held this tick. The server decides whether it is grounded enough to
+    /// matter; a client holding jump in midair is not airborne twice.
     pub jump: bool,
+    /// Held this tick, scaling ground speed server-side.
     pub sprint: bool,
     /// Camera yaw in radians, the direction `forward` means this tick.
     pub yaw: f32,
@@ -86,7 +94,10 @@ impl MoveIntent {
 /// The input lightyear ships each tick.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Reflect)]
 pub enum PlayerInput {
+    /// Keys and facing for this tick.
     Move(MoveIntent),
+    /// No input. The default, and what a dropped tick is treated as rather
+    /// than repeating the last one -- a stalled client should stop, not run on.
     #[default]
     Idle,
 }
@@ -113,8 +124,14 @@ pub struct JoinRequest;
 /// The server's answer: who you are and which entity is yours.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct JoinAccepted {
+    /// Server-assigned id for this session, matching the [`PlayerId`] on the
+    /// replicated character.
     pub player_id: u64,
+    /// Display name the server settled on, which is the one to render: a
+    /// guest's is minted server-side and a signed-in player's comes from the
+    /// token, so neither is the client's to choose.
     pub name: String,
+    /// Whether the session is anonymous, so the client can badge it.
     pub guest: bool,
 }
 
