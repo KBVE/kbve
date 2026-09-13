@@ -29,6 +29,13 @@ foliage = [
     "pillow>=10.0,<12.0",
     "numpy>=1.26,<3.0",
 ]
+# Bevy texture conversion (kbve.bevy.*). Pillow and numpy for the terrain
+# strips; the KTX2 encoding shells out to basisu and magick, which are native
+# binaries and cannot be declared here. Enable with: uv sync --extra bevy
+bevy = [
+    "pillow>=10.0,<12.0",
+    "numpy>=1.26,<3.0",
+]
 # OSRS item-corpus analysis (kbve.osrs.*). Only needs PyYAML (already core),
 # but kept behind an extra so corpus tooling stays opt-in. Enable with:
 # uv sync --extra osrs
@@ -56,6 +63,8 @@ kbve-content-router = "kbve.content.cli:router_main"
 kbve-content-build = "kbve.content.cli:build_main"
 kbve-seo-audit = "kbve.seo.audit:main"
 kbve-seo-report = "kbve.seo.report:main"
+kbve-bevy-textures = "kbve.bevy.textures:main"
+kbve-bevy-terrain = "kbve.bevy.terrain:main"
 kbve-unreal-clangd = "kbve.unreal.clangd:main"
 kbve-unreal-check = "kbve.unreal.check:main"
 kbve-unreal-input-assets = "kbve.unreal.cli:input_assets_main"

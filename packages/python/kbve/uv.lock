@@ -370,6 +370,10 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+bevy = [
+    { name = "numpy" },
+    { name = "pillow" },
+]
 foliage = [
     { name = "numpy" },
     { name = "pillow" },
@@ -402,8 +406,10 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.9,<4.0" },
     { name = "fastapi", specifier = ">=0.115,<1.0" },
     { name = "grpcio", specifier = ">=1.62,<2.0" },
+    { name = "numpy", marker = "extra == 'bevy'", specifier = ">=1.26,<3.0" },
     { name = "numpy", marker = "extra == 'foliage'", specifier = ">=1.26,<3.0" },
     { name = "numpy", marker = "extra == 'sprite'", specifier = ">=1.26,<3.0" },
+    { name = "pillow", marker = "extra == 'bevy'", specifier = ">=10.0,<12.0" },
     { name = "pillow", marker = "extra == 'foliage'", specifier = ">=10.0,<12.0" },
     { name = "pillow", marker = "extra == 'sprite'", specifier = ">=10.0,<12.0" },
     { name = "protobuf", specifier = ">=4.25,<6.0" },
@@ -413,7 +419,7 @@ requires-dist = [
     { name = "pyyaml", marker = "extra == 'seo'", specifier = ">=6.0,<7.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32,<1.0" },
 ]
-provides-extras = ["sprite", "foliage", "osrs", "seo"]
+provides-extras = ["sprite", "foliage", "bevy", "osrs", "seo"]
 
 [package.metadata.requires-dev]
 dev = [
