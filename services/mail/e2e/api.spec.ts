@@ -30,16 +30,23 @@ describe('mail routes', () => {
 		'/mail/messages/0f0b2d1e-3b5f-4b39-9c9d-2b8c8a6f1d2e',
 	];
 
-	it.each(routes)('%s is mounted and rejects an anonymous read', async (path) => {
-		const res = await fetch(url(path));
-		expect(res.status).toBe(401);
-	});
+	it.each(routes)(
+		'%s is mounted and rejects an anonymous read',
+		async (path) => {
+			const res = await fetch(url(path));
+			expect(res.status).toBe(401);
+		},
+	);
 
 	it('rejects a send without a bearer', async () => {
 		const res = await fetch(url('/mail/send'), {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ to: 'nobody@example.com', subject: 'x', body: 'x' }),
+			body: JSON.stringify({
+				to: 'nobody@example.com',
+				subject: 'x',
+				body: 'x',
+			}),
 		});
 		expect(res.status).toBe(401);
 	});

@@ -39,14 +39,19 @@ function fmtDate(iso: string): string {
 	const now = new Date();
 	const sameDay = d.toDateString() === now.toDateString();
 	return sameDay
-		? d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+		? d.toLocaleTimeString(undefined, {
+				hour: '2-digit',
+				minute: '2-digit',
+			})
 		: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /// The mailbox owner is in almost every thread; showing their own address back
 /// to them in the list carries no information.
 function others(participants: string[], self: string | null): string {
-	const rest = participants.filter((p) => !self || p.toLowerCase() !== self.toLowerCase());
+	const rest = participants.filter(
+		(p) => !self || p.toLowerCase() !== self.toLowerCase(),
+	);
 	const list = rest.length > 0 ? rest : participants;
 	return list.join(', ') || '(unknown)';
 }
@@ -183,7 +188,8 @@ export default function ReactInbox() {
 		const onKey = (e: KeyboardEvent) => {
 			const el = e.target as HTMLElement | null;
 			const tag = el?.tagName;
-			if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+			if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable)
+				return;
 			if (e.metaKey || e.ctrlKey || e.altKey) return;
 
 			if (e.key === 'Escape' && selectedId) {
@@ -251,14 +257,13 @@ export default function ReactInbox() {
 					<Inbox size={36} />
 					<h2>Your inbox lives here</h2>
 					<p>
-						Sign in with your KBVE account. Your username becomes your
-						address.
+						Sign in with your KBVE account. Your username becomes
+						your address.
 					</p>
 					<button
 						type="button"
 						className="hm-btn hm-btn-accent"
-						onClick={() => openModal('signin')}
-					>
+						onClick={() => openModal('signin')}>
 						<LogIn size={16} /> Sign in
 					</button>
 				</div>
@@ -278,9 +283,12 @@ export default function ReactInbox() {
 								role="tab"
 								aria-selected={filter === f}
 								className={`hm-tab ${filter === f ? 'is-active' : ''}`}
-								onClick={() => setFilter(f)}
-							>
-								{f === 'all' ? 'All' : f === 'in' ? 'Inbox' : 'Sent'}
+								onClick={() => setFilter(f)}>
+								{f === 'all'
+									? 'All'
+									: f === 'in'
+										? 'Inbox'
+										: 'Sent'}
 							</button>
 						))}
 					</div>
@@ -289,9 +297,11 @@ export default function ReactInbox() {
 						className="hm-icon-btn"
 						title="Refresh"
 						onClick={() => void load(null, filter)}
-						disabled={loading}
-					>
-						<RefreshCw size={16} className={loading ? 'hm-spin' : ''} />
+						disabled={loading}>
+						<RefreshCw
+							size={16}
+							className={loading ? 'hm-spin' : ''}
+						/>
 					</button>
 				</div>
 
@@ -320,11 +330,12 @@ export default function ReactInbox() {
 								ref={
 									row.thread_id === selectedId
 										? (el) =>
-												el?.scrollIntoView({ block: 'nearest' })
+												el?.scrollIntoView({
+													block: 'nearest',
+												})
 										: undefined
 								}
-								onClick={() => setSelectedId(row.thread_id)}
-							>
+								onClick={() => setSelectedId(row.thread_id)}>
 								<span className="hm-row-dir" aria-hidden="true">
 									{row.last_direction === 'in' ? (
 										<Inbox size={14} />
@@ -344,18 +355,27 @@ export default function ReactInbox() {
 									<span className="hm-row-subject">
 										{row.subject?.trim() || '(no subject)'}
 										{row.message_count > 1 && (
-											<span className="hm-thread-count" title={`${row.message_count} messages`}>
-												<MessagesSquare size={11} aria-hidden="true" />
+											<span
+												className="hm-thread-count"
+												title={`${row.message_count} messages`}>
+												<MessagesSquare
+													size={11}
+													aria-hidden="true"
+												/>
 												{row.message_count}
 											</span>
 										)}
 									</span>
 									{row.last_snippet && (
-										<span className="hm-row-snippet">{row.last_snippet}</span>
+										<span className="hm-row-snippet">
+											{row.last_snippet}
+										</span>
 									)}
 								</span>
 								{row.has_failure && (
-									<span className="hm-badge hm-badge-error">failed</span>
+									<span className="hm-badge hm-badge-error">
+										failed
+									</span>
 								)}
 							</button>
 						</li>
@@ -368,9 +388,11 @@ export default function ReactInbox() {
 						className="hm-btn hm-btn-ghost hm-more"
 						disabled={loading}
 						onClick={() =>
-							void load(threadCursorOf(rows[rows.length - 1]), filter)
-						}
-					>
+							void load(
+								threadCursorOf(rows[rows.length - 1]),
+								filter,
+							)
+						}>
 						Load older
 					</button>
 				)}
@@ -390,7 +412,9 @@ export default function ReactInbox() {
 				)}
 
 				{selectedId && !detailLoading && !detail && (
-					<div className="hm-center hm-muted">Conversation unavailable.</div>
+					<div className="hm-center hm-muted">
+						Conversation unavailable.
+					</div>
 				)}
 
 				{detail && !detailLoading && (
@@ -399,22 +423,24 @@ export default function ReactInbox() {
 							type="button"
 							className="hm-icon-btn hm-back"
 							onClick={() => setSelectedId(null)}
-							title="Back"
-						>
+							title="Back">
 							<ArrowLeft size={16} />
 						</button>
 						<header className="hm-message-head">
 							<h2>{detail.subject?.trim() || '(no subject)'}</h2>
 							<p className="hm-muted hm-thread-meta">
 								{detail.messages.length}{' '}
-								{detail.messages.length === 1 ? 'message' : 'messages'}
+								{detail.messages.length === 1
+									? 'message'
+									: 'messages'}
 								{' · '}
 								{others(
 									Array.from(
 										new Set(
 											detail.messages.flatMap((m) =>
 												[m.from_addr, m.to_addr].filter(
-													(a): a is string => Boolean(a),
+													(a): a is string =>
+														Boolean(a),
 												),
 											),
 										),
@@ -428,21 +454,27 @@ export default function ReactInbox() {
 							{detail.messages.map((m) => (
 								<li
 									key={m.id}
-									className={`hm-turn ${m.direction === 'out' ? 'is-out' : 'is-in'}`}
-								>
+									className={`hm-turn ${m.direction === 'out' ? 'is-out' : 'is-in'}`}>
 									<div className="hm-turn-head">
 										<span className="hm-turn-who">
 											{m.direction === 'in' ? (
-												<Inbox size={13} aria-hidden="true" />
+												<Inbox
+													size={13}
+													aria-hidden="true"
+												/>
 											) : (
-												<Send size={13} aria-hidden="true" />
+												<Send
+													size={13}
+													aria-hidden="true"
+												/>
 											)}
 											{m.from_addr}
 										</span>
 										<time
 											className="hm-turn-when"
-											dateTime={m.sent_at ?? m.received_at}
-										>
+											dateTime={
+												m.sent_at ?? m.received_at
+											}>
 											{new Date(
 												m.sent_at ?? m.received_at,
 											).toLocaleString()}
@@ -460,12 +492,15 @@ export default function ReactInbox() {
 											{m.body.attachments.map((a, i) => (
 												<li key={i}>
 													<Paperclip size={14} />
-													{a.name ?? 'attachment'}{' '}
+													{a.name ??
+														'attachment'}{' '}
 													<span className="hm-muted">
 														{a.content_type ?? ''}{' '}
 														{Math.max(
 															1,
-															Math.round(a.size / 1024),
+															Math.round(
+																a.size / 1024,
+															),
 														)}{' '}
 														KB
 													</span>
@@ -485,8 +520,7 @@ export default function ReactInbox() {
 
 						{sendResult && (
 							<div
-								className={`hm-alert ${sendResult.ok ? 'hm-alert-ok' : 'hm-alert-error'}`}
-							>
+								className={`hm-alert ${sendResult.ok ? 'hm-alert-ok' : 'hm-alert-error'}`}>
 								{sendResult.ok ? (
 									<CheckCircle2 size={16} />
 								) : (
@@ -503,9 +537,9 @@ export default function ReactInbox() {
 								onClick={() => {
 									setComposing(true);
 									setSendResult(null);
-									if (!draft.trim()) setDraft(quoted(replyTo));
-								}}
-							>
+									if (!draft.trim())
+										setDraft(quoted(replyTo));
+								}}>
 								<Reply size={16} /> Reply
 							</button>
 						)}
@@ -516,8 +550,7 @@ export default function ReactInbox() {
 								onSubmit={(e) => {
 									e.preventDefault();
 									void submitReply();
-								}}
-							>
+								}}>
 								<div className="hm-compose-meta">
 									<span>
 										To <strong>{replyTo?.from_addr}</strong>
@@ -539,15 +572,13 @@ export default function ReactInbox() {
 										type="button"
 										className="hm-btn hm-btn-ghost"
 										onClick={() => setComposing(false)}
-										disabled={sending}
-									>
+										disabled={sending}>
 										Cancel
 									</button>
 									<button
 										type="submit"
 										className="hm-btn hm-btn-accent"
-										disabled={sending || !draft.trim()}
-									>
+										disabled={sending || !draft.trim()}>
 										<Send size={16} />
 										{sending ? 'Sending…' : 'Send'}
 									</button>

@@ -532,7 +532,10 @@ mod tests {
         ev.url = Some("https://kbve.com/x?token=secret".into());
         let v: Value = serde_json::from_str(&ev.into_row("ua").unwrap().line).unwrap();
         assert_eq!(v["rating"], "good");
-        assert_eq!(v["navigation_type"], "", "an unknown verdict is left unrated");
+        assert_eq!(
+            v["navigation_type"], "",
+            "an unknown verdict is left unrated"
+        );
         assert_eq!(v["url"], "https://kbve.com/x", "query string is dropped");
     }
 

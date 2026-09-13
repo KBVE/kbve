@@ -46,6 +46,11 @@ services:
             METRICS_FLUSH_INTERVAL_MS: '500'
             METRICS_FLUSH_ROWS: '10'
             METRICS_INGEST_TOKEN: 'e2e-secret-token'
+            # Read endpoints are staff-gated. With a JWT secret and no
+            # SUPABASE_URL the service validates HS256 locally and short-circuits
+            # the staff lookup for service_role, so the harness can mint its own
+            # token instead of standing up Supabase.
+            SUPABASE_JWT_SECRET: 'e2e-jwt-secret-that-is-long-enough'
             METRICS_RATE_LIMIT_PER_MIN: '1000'
             # Re-verify the schema on every probe. Production trusts a success
             # for 30s; the recovery drill needs readiness to react to a dropped

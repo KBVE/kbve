@@ -14,7 +14,17 @@ const MAX_HEIGHT = 2400;
 /// boundary that matters, but a bypass should have to beat both.
 function clean(html: string): string {
 	return DOMPurify.sanitize(html, {
-		FORBID_TAGS: ['script', 'style', 'svg', 'form', 'input', 'button', 'iframe', 'object', 'embed'],
+		FORBID_TAGS: [
+			'script',
+			'style',
+			'svg',
+			'form',
+			'input',
+			'button',
+			'iframe',
+			'object',
+			'embed',
+		],
 		FORBID_ATTR: ['srcset', 'ping', 'formaction'],
 		ALLOW_DATA_ATTR: false,
 	});
@@ -111,8 +121,7 @@ export function MessageBody({ text, html, truncated }: Props) {
 						<button
 							type="button"
 							className="hm-btn hm-btn-ghost hm-btn-tiny"
-							onClick={() => setShowImages(true)}
-						>
+							onClick={() => setShowImages(true)}>
 							Show images
 						</button>
 					</div>

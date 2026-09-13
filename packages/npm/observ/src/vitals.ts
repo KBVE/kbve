@@ -90,8 +90,7 @@ function observe(
 
 function navigationType(): string | undefined {
 	const nav = performance.getEntriesByType?.('navigation')?.[0] as
-		| (PerformanceEntry & { type?: string })
-		| undefined;
+		(PerformanceEntry & { type?: string }) | undefined;
 	return nav?.type;
 }
 
@@ -114,16 +113,19 @@ export function collectVitals(report: (v: Vital) => void): () => void {
 	const push = (po: PerformanceObserver | null) => po && observers.push(po);
 
 	const navEntry = performance.getEntriesByType?.('navigation')?.[0] as
-		| (PerformanceEntry & { responseStart?: number })
-		| undefined;
-	if (typeof navEntry?.responseStart === 'number' && navEntry.responseStart > 0) {
+		(PerformanceEntry & { responseStart?: number }) | undefined;
+	if (
+		typeof navEntry?.responseStart === 'number' &&
+		navEntry.responseStart > 0
+	) {
 		emit('ttfb', navEntry.responseStart);
 	}
 
 	push(
 		observe('paint', true, (entries) => {
 			for (const e of entries) {
-				if (e.name === 'first-contentful-paint') emit('fcp', e.startTime);
+				if (e.name === 'first-contentful-paint')
+					emit('fcp', e.startTime);
 			}
 		}),
 	);

@@ -105,7 +105,8 @@ export class Observer {
 	/// way is measured on the same population the errors are.
 	trackEvent(name: string, extra?: Record<string, unknown>): void {
 		if (!name) return;
-		if (this.cfg.sampleRate < 1 && Math.random() > this.cfg.sampleRate) return;
+		if (this.cfg.sampleRate < 1 && Math.random() > this.cfg.sampleRate)
+			return;
 		this.productQueue.push({ ...this.common(), name, extra });
 		if (this.productQueue.length >= this.cfg.maxBatch) this.flush(false);
 	}
@@ -141,8 +142,11 @@ export class Observer {
 
 		const g = globalThis as {
 			ErrorUtils?: {
-				getGlobalHandler?: () => ((e: unknown, fatal?: boolean) => void) | undefined;
-				setGlobalHandler?: (h: (e: unknown, fatal?: boolean) => void) => void;
+				getGlobalHandler?: () =>
+					((e: unknown, fatal?: boolean) => void) | undefined;
+				setGlobalHandler?: (
+					h: (e: unknown, fatal?: boolean) => void,
+				) => void;
 			};
 		};
 		const eu = g.ErrorUtils;
@@ -287,13 +291,18 @@ export class Observer {
 			useBeacon,
 		);
 		this.send(
-			this.cfg.eventsEndpoint ?? siblingEndpoint(this.cfg.endpoint, 'events'),
+			this.cfg.eventsEndpoint ??
+				siblingEndpoint(this.cfg.endpoint, 'events'),
 			this.productQueue.splice(0),
 			useBeacon,
 		);
 	}
 
-	private send(endpoint: string, events: unknown[], useBeacon: boolean): void {
+	private send(
+		endpoint: string,
+		events: unknown[],
+		useBeacon: boolean,
+	): void {
 		if (events.length === 0) return;
 		const body = JSON.stringify({ events });
 

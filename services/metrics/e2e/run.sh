@@ -12,6 +12,7 @@ INGEST="http://localhost:5500/api/v1/ingest/errors"
 INGEST_PERF="http://localhost:5500/api/v1/ingest/perf"
 INGEST_EVENTS="http://localhost:5500/api/v1/ingest/events"
 TOKEN="e2e-secret-token"
+JWT_SECRET="e2e-jwt-secret-that-is-long-enough"
 PASS=0
 
 fail() {
@@ -28,6 +29,23 @@ trap cleanup EXIT
 
 ch() {
     docker compose exec -T clickhouse clickhouse-client -q "$1"
+}
+
+b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+
+# An HS256 service_role token. The read paths are staff-gated, and asserting
+# only that they reject anonymous callers would leave every line past the guard
+# untested -- the SQL included.
+mint_jwt() {
+    hdr=$(printf '%s' '{"alg":"HS256","typ":"JWT"}' | b64url)
+    pay=$(printf '{"sub":"e2e","role":"service_role","exp":%s}' "$(($(date +%s) + 3600))" | b64url)
+    unsigned="${hdr}.${pay}"
+    sig=$(printf '%s' "$unsigned" | openssl dgst -sha256 -hmac "$JWT_SECRET" -binary | b64url)
+    printf '%s.%s' "$unsigned" "$sig"
+}
+
+read_api() {
+    curl -s -H "authorization: Bearer $(mint_jwt)" "http://localhost:5500$1"
 }
 
 echo "==> Building + starting stack"
@@ -192,6 +210,38 @@ sleep 3
 count=$(ch "SELECT count() FROM telemetry.errors_distributed WHERE project='e2e'")
 [ "$count" -ge 1 ] || fail "no rows landed after recovery, got $count"
 
+echo "==> Case 9: read endpoints refuse an anonymous caller"
+for path in /api/v1/groups /api/v1/perf /api/v1/product; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:5500$path")
+    [ "$code" = "401" ] || fail "expected 401 on $path without a token, got $code"
+done
+
+echo "==> Case 10: read endpoints return the rollups to a staff caller"
+# Seeded directly rather than through ingest: the recovery drill above wiped the
+# rows Cases 4 and 5 ingested, and what is under test here is the projection and
+# the view behind it, not the write path.
+ch "INSERT INTO telemetry.perf_distributed (project, metric, value, rating, session_id)
+    VALUES ('e2e','lcp',1234.5,'good','s1'), ('e2e','lcp',900,'good','s2')" >/dev/null
+ch "INSERT INTO telemetry.events_distributed (project, name, session_id, user_id)
+    VALUES ('e2e','signup_completed','s1','u1')" >/dev/null
+
+body=$(read_api "/api/v1/perf?project=e2e")
+echo "    perf: $body"
+echo "$body" | grep -q '"metric":"lcp"' || fail "perf read missing the lcp rollup: $body"
+echo "$body" | grep -q '"samples":"2"' || fail "perf read sample count wrong: $body"
+
+body=$(read_api "/api/v1/product?project=e2e")
+echo "    product: $body"
+echo "$body" | grep -q '"name":"signup_completed"' || fail "product read missing the event: $body"
+echo "$body" | grep -q '"events":"1"' || fail "product read count wrong: $body"
+
+body=$(read_api "/api/v1/groups?project=e2e")
+echo "$body" | grep -q '"sample_message"' || fail "groups read returned nothing: $body"
+
+echo "==> Case 11: an unknown project reads as empty, not as an error"
+body=$(read_api "/api/v1/perf?project=nope")
+echo "$body" | grep -q '"perf":\[\]' || fail "expected an empty list for an unknown project: $body"
+
 PASS=1
-echo "==> PASS: three lenses ingested and rolled up, and full schema loss -> recovery"
+echo "==> PASS: three lenses ingested and rolled up, schema loss -> recovery, and the staff-gated read API"
 [ "$PASS" = "1" ]

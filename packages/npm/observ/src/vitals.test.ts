@@ -36,10 +36,16 @@ describe('rateVital', () => {
 describe('siblingEndpoint', () => {
 	it('swaps the last path segment', () => {
 		expect(
-			siblingEndpoint('https://metrics.kbve.com/api/v1/ingest/errors', 'perf'),
+			siblingEndpoint(
+				'https://metrics.kbve.com/api/v1/ingest/errors',
+				'perf',
+			),
 		).toBe('https://metrics.kbve.com/api/v1/ingest/perf');
 		expect(
-			siblingEndpoint('https://metrics.kbve.com/api/v1/ingest/errors', 'events'),
+			siblingEndpoint(
+				'https://metrics.kbve.com/api/v1/ingest/errors',
+				'events',
+			),
 		).toBe('https://metrics.kbve.com/api/v1/ingest/events');
 	});
 

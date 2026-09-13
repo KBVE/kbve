@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use ahash::AHashMap;
@@ -98,12 +98,7 @@ impl Sharded {
 }
 
 impl AppState {
-    pub fn new(
-        cfg: Config,
-        ch: ClickHouseConfig,
-        sinks: Sinks,
-        auth: Option<StaffAuth>,
-    ) -> Self {
+    pub fn new(cfg: Config, ch: ClickHouseConfig, sinks: Sinks, auth: Option<StaffAuth>) -> Self {
         Self {
             cfg,
             ch,

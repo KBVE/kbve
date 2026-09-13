@@ -6,14 +6,14 @@ The successor to [`herbmail`](../herbmail/README.md). Same axum API surface (`/m
 
 ## Manifests
 
-| File                                | Purpose                                                                          |
-| ----------------------------------- | -------------------------------------------------------------------------------- |
-| `application.yaml`                  | ArgoCD `Application` pointing at `apps/kube/mail/manifest`                        |
-| `manifest/kustomization.yaml`       | Kustomize index                                                                  |
-| `manifest/mail-serviceaccount.yaml` | `mail-external-secrets` (used by ExternalSecrets) + `mail-sa` (used by the pod)   |
-| `manifest/mail-externalsecret.yaml` | SecretStore + ExternalSecret rendering `supabase-shared` from kilobase            |
-| `manifest/mail-deployment.yaml`     | `mail-deployment` (axum, port 5600) + `mail-service` (ClusterIP)                  |
-| `seal-stalwart-hook-secret.sh`      | Seals `stalwart-hook-secret` into **this** namespace                              |
+| File                                | Purpose                                                                         |
+| ----------------------------------- | ------------------------------------------------------------------------------- |
+| `application.yaml`                  | ArgoCD `Application` pointing at `apps/kube/mail/manifest`                      |
+| `manifest/kustomization.yaml`       | Kustomize index                                                                 |
+| `manifest/mail-serviceaccount.yaml` | `mail-external-secrets` (used by ExternalSecrets) + `mail-sa` (used by the pod) |
+| `manifest/mail-externalsecret.yaml` | SecretStore + ExternalSecret rendering `supabase-shared` from kilobase          |
+| `manifest/mail-deployment.yaml`     | `mail-deployment` (axum, port 5600) + `mail-service` (ClusterIP)                |
+| `seal-stalwart-hook-secret.sh`      | Seals `stalwart-hook-secret` into **this** namespace                            |
 
 ## Enabling it
 

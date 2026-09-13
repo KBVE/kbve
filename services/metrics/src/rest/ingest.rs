@@ -245,12 +245,7 @@ mod tests {
             },
             None,
         ));
-        (
-            crate::rest::router(state),
-            errors_rx,
-            perf_rx,
-            events_rx,
-        )
+        (crate::rest::router(state), errors_rx, perf_rx, events_rx)
     }
 
     async fn post(app: &axum::Router, path: &str, token: Option<&str>, body: &str) -> StatusCode {
@@ -274,13 +269,34 @@ mod tests {
         // present on two of them and missing on the third.
         let (app, _e, _p, _v) = harness(Some("secret"));
         for (path, body) in [
-            ("/api/v1/ingest/errors", r#"{"events":[{"project":"p","message":"m"}]}"#),
-            ("/api/v1/ingest/perf", r#"{"events":[{"project":"p","metric":"lcp","value":1}]}"#),
-            ("/api/v1/ingest/events", r#"{"events":[{"project":"p","name":"click"}]}"#),
+            (
+                "/api/v1/ingest/errors",
+                r#"{"events":[{"project":"p","message":"m"}]}"#,
+            ),
+            (
+                "/api/v1/ingest/perf",
+                r#"{"events":[{"project":"p","metric":"lcp","value":1}]}"#,
+            ),
+            (
+                "/api/v1/ingest/events",
+                r#"{"events":[{"project":"p","name":"click"}]}"#,
+            ),
         ] {
-            assert_eq!(post(&app, path, None, body).await, StatusCode::UNAUTHORIZED, "{path}");
-            assert_eq!(post(&app, path, Some("wrong"), body).await, StatusCode::UNAUTHORIZED, "{path}");
-            assert_eq!(post(&app, path, Some("secret"), body).await, StatusCode::ACCEPTED, "{path}");
+            assert_eq!(
+                post(&app, path, None, body).await,
+                StatusCode::UNAUTHORIZED,
+                "{path}"
+            );
+            assert_eq!(
+                post(&app, path, Some("wrong"), body).await,
+                StatusCode::UNAUTHORIZED,
+                "{path}"
+            );
+            assert_eq!(
+                post(&app, path, Some("secret"), body).await,
+                StatusCode::ACCEPTED,
+                "{path}"
+            );
         }
     }
 
@@ -290,13 +306,22 @@ mod tests {
         // fails the batch rather than the row.
         let (app, mut errors_rx, mut perf_rx, mut events_rx) = harness(None);
         assert_eq!(
-            post(&app, "/api/v1/ingest/perf", None, r#"{"events":[{"project":"p","metric":"ttfb","value":12.5}]}"#).await,
+            post(
+                &app,
+                "/api/v1/ingest/perf",
+                None,
+                r#"{"events":[{"project":"p","metric":"ttfb","value":12.5}]}"#
+            )
+            .await,
             StatusCode::ACCEPTED
         );
         let line = perf_rx.try_recv().expect("perf row queued");
         assert!(line.contains("\"metric\":\"ttfb\""));
         assert!(errors_rx.try_recv().is_err(), "nothing on the errors queue");
-        assert!(events_rx.try_recv().is_err(), "nothing on the product queue");
+        assert!(
+            events_rx.try_recv().is_err(),
+            "nothing on the product queue"
+        );
     }
 
     #[tokio::test]
@@ -322,10 +347,19 @@ mod tests {
         // it and retrying would not help.
         let (app, _e, mut perf_rx, _v) = harness(None);
         assert_eq!(
-            post(&app, "/api/v1/ingest/perf", None, r#"{"events":[{"project":"p","metric":"nonsense","value":1}]}"#).await,
+            post(
+                &app,
+                "/api/v1/ingest/perf",
+                None,
+                r#"{"events":[{"project":"p","metric":"nonsense","value":1}]}"#
+            )
+            .await,
             StatusCode::ACCEPTED
         );
-        assert!(perf_rx.try_recv().is_err(), "an unknown metric must not be queued");
+        assert!(
+            perf_rx.try_recv().is_err(),
+            "an unknown metric must not be queued"
+        );
     }
 
     fn hdrs(xff: &str) -> HeaderMap {

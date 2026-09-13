@@ -65,7 +65,5 @@ class GraphifyRoute:
                 _warn("tiered rebuild failed (%s) — skipping" % exc)
                 return BuildResult("graphify", [], True, "build failed: %s" % exc)
 
-        changed = [
-            os.path.relpath(out_dir / name, repo_root) for name in ("overview.json", "dir")
-        ]
+        changed = [os.path.relpath(out_dir / name, repo_root) for name in ("overview.json", "dir")]
         return BuildResult("graphify", changed, False, "rebuilt tiered graph")

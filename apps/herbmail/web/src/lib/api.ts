@@ -116,7 +116,11 @@ export function threadCursorOf(row: ThreadRow): Cursor {
 }
 
 export function listInbox(
-	opts: { limit?: number; cursor?: Cursor | null; direction?: Direction | null } = {},
+	opts: {
+		limit?: number;
+		cursor?: Cursor | null;
+		direction?: Direction | null;
+	} = {},
 ) {
 	const q = new URLSearchParams();
 	if (opts.limit) q.set('limit', String(opts.limit));
@@ -126,11 +130,17 @@ export function listInbox(
 	}
 	if (opts.direction) q.set('direction', opts.direction);
 	const qs = q.toString();
-	return request<{ messages: InboxRow[] }>(`/mail/inbox${qs ? `?${qs}` : ''}`);
+	return request<{ messages: InboxRow[] }>(
+		`/mail/inbox${qs ? `?${qs}` : ''}`,
+	);
 }
 
 export function listThreads(
-	opts: { limit?: number; cursor?: Cursor | null; direction?: Direction | null } = {},
+	opts: {
+		limit?: number;
+		cursor?: Cursor | null;
+		direction?: Direction | null;
+	} = {},
 ) {
 	const q = new URLSearchParams();
 	if (opts.limit) q.set('limit', String(opts.limit));
@@ -140,7 +150,9 @@ export function listThreads(
 	}
 	if (opts.direction) q.set('direction', opts.direction);
 	const qs = q.toString();
-	return request<{ threads: ThreadRow[] }>(`/mail/threads${qs ? `?${qs}` : ''}`);
+	return request<{ threads: ThreadRow[] }>(
+		`/mail/threads${qs ? `?${qs}` : ''}`,
+	);
 }
 
 export function getThread(id: string) {

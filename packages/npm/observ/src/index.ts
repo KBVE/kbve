@@ -20,7 +20,10 @@ export function initObserv(config: ObservConfig): Observer {
 /// (flush falls back to fetch keepalive, which RN supports).
 export function initObservNative(config: ObservConfig): Observer {
 	if (singleton) return singleton;
-	singleton = new Observer({ platform: 'android', ...config }).installNative();
+	singleton = new Observer({
+		platform: 'android',
+		...config,
+	}).installNative();
 	return singleton;
 }
 

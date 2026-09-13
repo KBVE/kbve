@@ -23,5 +23,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/api/v1/ingest/events", post(ingest::ingest_events))
         .route("/api/v1/groups", get(groups::groups))
         .route("/api/v1/events", get(groups::events))
+        .route("/api/v1/perf", get(groups::perf))
+        .route("/api/v1/product", get(groups::product))
         .with_state(state)
 }
