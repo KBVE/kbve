@@ -131,3 +131,83 @@ export function normalizeTelemetryEvent(
 		extra: parseExtra(r.extra),
 	};
 }
+
+/** A `perf_summary` row. Quantiles arrive stringified alongside the counts --
+ *  the service wraps every number so a UInt64 past 2^53 survives JSON, and a
+ *  quantile the client re-renders is one it can round differently than the
+ *  service did. */
+export interface RawPerfSummary {
+	project?: string;
+	metric?: string;
+	samples?: string;
+	sessions?: string;
+	p50?: string;
+	p75?: string;
+	p95?: string;
+	first_seen?: string;
+	last_seen?: string;
+}
+
+export interface PerfSummaryItem {
+	id: string;
+	project: string;
+	metric: string;
+	samples: number;
+	sessions: number;
+	p50: number;
+	p75: number;
+	p95: number;
+	firstSeen: string;
+	lastSeen: string;
+}
+
+export interface RawEventCount {
+	project?: string;
+	name?: string;
+	events?: string;
+	sessions?: string;
+	users?: string;
+	first_seen?: string;
+	last_seen?: string;
+}
+
+export interface ProductEventItem {
+	id: string;
+	project: string;
+	name: string;
+	events: number;
+	sessions: number;
+	users: number;
+	firstSeen: string;
+	lastSeen: string;
+}
+
+export function normalizePerfSummary(r: RawPerfSummary): PerfSummaryItem {
+	return {
+		// Project-qualified for the same reason the group id is: one metric name
+		// appears under every project, and a bare `lcp` would collapse them.
+		id: `${r.project ?? ''}:${r.metric ?? ''}`,
+		project: r.project ?? '',
+		metric: r.metric ?? '',
+		samples: toNumber(r.samples),
+		sessions: toNumber(r.sessions),
+		p50: toNumber(r.p50),
+		p75: toNumber(r.p75),
+		p95: toNumber(r.p95),
+		firstSeen: r.first_seen ?? '',
+		lastSeen: r.last_seen ?? '',
+	};
+}
+
+export function normalizeProductEvent(r: RawEventCount): ProductEventItem {
+	return {
+		id: `${r.project ?? ''}:${r.name ?? ''}`,
+		project: r.project ?? '',
+		name: r.name ?? '',
+		events: toNumber(r.events),
+		sessions: toNumber(r.sessions),
+		users: toNumber(r.users),
+		firstSeen: r.first_seen ?? '',
+		lastSeen: r.last_seen ?? '',
+	};
+}

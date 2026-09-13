@@ -2,8 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 import {
 	createTelemetryEventsStream,
 	createTelemetryGroupsStream,
+	createTelemetryPerfStream,
+	createTelemetryProductStream,
 } from '../telemetryStreams';
 import {
+	normalizePerfSummary,
+	normalizeProductEvent,
 	normalizeTelemetryEvent,
 	normalizeTelemetryGroup,
 } from '../telemetryTypes';
@@ -115,5 +119,108 @@ describe('normalizers', () => {
 		});
 		expect(e.handled).toBe(true);
 		expect(e.extra['os']).toBe('Windows');
+	});
+});
+
+describe('perf stream', () => {
+	it('reads the perf rollup and carries the filter', async () => {
+		const spy = stubFetch({ perf: [] });
+		const store = createTelemetryPerfStream({
+			getToken: async () => 'tok',
+			baseUrl: 'https://m.test',
+		});
+		store.setParams({ limit: 25, project: 'kbve' });
+		await store.refresh();
+
+		const [url, init] = spy.mock.calls.at(-1)!;
+		expect(url).toContain('https://m.test/api/v1/perf?');
+		expect(url).toContain('project=kbve');
+		expect(init.headers).toMatchObject({ Authorization: 'Bearer tok' });
+	});
+
+	it('reads the envelope key the service actually sends', async () => {
+		// The response is {"perf": [...]}, not {"groups": ...}: reading the wrong
+		// key yields an empty list rather than an error, so the panel would render
+		// "no data" against a healthy service.
+		stubFetch({
+			perf: [
+				{
+					project: 'kbve',
+					metric: 'lcp',
+					samples: '2',
+					sessions: '2',
+					p50: '1000',
+					p75: '1234.5',
+					p95: '1400',
+					first_seen: '2026-09-12 21:00:00',
+					last_seen: '2026-09-12 21:05:00',
+				},
+			],
+		});
+		const store = createTelemetryPerfStream({ getToken: async () => 't' });
+		await store.refresh();
+		expect(store.get().items).toHaveLength(1);
+		expect(store.get().items[0].p75).toBe(1234.5);
+	});
+
+	it('surfaces the gate errors like the other streams', async () => {
+		stubFetch({}, 403);
+		const store = createTelemetryPerfStream({ getToken: async () => 't' });
+		await store.refresh();
+		expect(store.get().error ?? '').toContain('Staff access required');
+	});
+});
+
+describe('product stream', () => {
+	it('reads the product rollup', async () => {
+		const spy = stubFetch({ product: [] });
+		const store = createTelemetryProductStream({
+			getToken: async () => 'tok',
+			baseUrl: 'https://m.test',
+		});
+		store.setParams({ limit: 50, project: '  ' });
+		await store.refresh();
+
+		const [url] = spy.mock.calls.at(-1)!;
+		expect(url).toContain('https://m.test/api/v1/product?');
+		expect(url).toContain('limit=50');
+		expect(url).not.toContain('project=');
+	});
+});
+
+describe('rollup normalizers', () => {
+	it('parses the stringified quantiles back to numbers', () => {
+		// Every number arrives as a string so a UInt64 survives JSON; a row left
+		// as strings sorts and sums as text.
+		const it = normalizePerfSummary({
+			project: 'kbve',
+			metric: 'cls',
+			samples: '10',
+			p50: '0.05',
+			p75: '0.12',
+			p95: '0.3',
+		});
+		expect(it.samples).toBe(10);
+		expect(it.p75).toBeCloseTo(0.12);
+		expect(it.id).toBe('kbve:cls');
+	});
+
+	it('qualifies ids by project', () => {
+		// Every project reports an `lcp`, and a bare metric id would collapse
+		// them into a single row.
+		const a = normalizePerfSummary({ project: 'a', metric: 'lcp' });
+		const b = normalizePerfSummary({ project: 'b', metric: 'lcp' });
+		expect(a.id).not.toBe(b.id);
+
+		const x = normalizeProductEvent({ project: 'a', name: 'click' });
+		const y = normalizeProductEvent({ project: 'b', name: 'click' });
+		expect(x.id).not.toBe(y.id);
+	});
+
+	it('survives a row with every field missing', () => {
+		// The service omits nothing today, but a normalizer that throws takes the
+		// whole panel down rather than one row.
+		expect(() => normalizePerfSummary({})).not.toThrow();
+		expect(normalizeProductEvent({}).events).toBe(0);
 	});
 });
