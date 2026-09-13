@@ -18,34 +18,38 @@ on:
 # second before it has started a single job -- which is how the rust analysis
 # for a commit disappears without leaving a log to read. The sha in the group
 # gives each push its own lane; a pull request keeps the shared one.
-# Dev shares one lane; main keeps a lane per commit.
+# One lane per branch. The sha is not in this group.
 #
-# The sha was in this group for every push, so nothing ever superseded
-# anything: each merge into dev opened its own lane and waited. At the merge
-# rate dev actually runs at -- 6.7 commits an hour -- that is a queue that
-# cannot drain. Measured on 2026-09-13: 34 CI and 25 CodeQL push runs queued
-# on dev at once, the oldest of them six hours old, while a feature pull
-# request waited 27 minutes for a 105 second job.
+# It used to be, for every push, so no run ever superseded another: each merge
+# opened its own lane and waited its turn. Both trunk branches merge at about
+# the same rate -- 6.4 an hour on main and 6.2 on dev over the last nine hours,
+# because the release pull request auto-merges continuously and main tracks dev
+# one for one -- and that is faster than the queue drains. Measured on
+# 2026-09-13: 34 CI and 25 CodeQL push runs queued on dev at once, the oldest
+# six hours old, against an account cap of about twenty concurrent jobs, four of
+# which were held by 70 minute `Analyze (rust)` jobs. A feature pull request
+# waited 27 minutes to start a 105 second job.
 #
-# The sha was added for a real reason: a shared group means GitHub holds one
-# pending run and cancels the rest, so commits between the tip and the last
-# green run go unvalidated. That reasoning holds at a low merge rate. At this
-# one it inverts -- those commits were not being validated either, they were
-# being validated six hours late, behind the pull request feedback they were
-# starving. A bounded queue on the tip is worth more than an unbounded one on
-# history.
+# A shared group means GitHub holds one pending run and cancels the rest, so
+# the queue is bounded at one running and one pending, and the pending one is
+# always the tip.
 #
-# `cancel-in-progress` stays false, which is the half that matters here: only
-# *pending* runs are dropped, so a run that has started still finishes. And a
-# dropped run is cancelled rather than failed -- the tracker below skips a
-# cancelled result, and utils-ci-failure-tracker.yml only acts on failure or
-# success, so nothing opens an issue for one. The dev->main release pull
-# request always points at the tip, and the tip's run is the newest pending
-# one, which is the one that is never dropped.
+# The sha was added for a real reason: under a shared group the commits between
+# the tip and the last green run go unvalidated. That holds at a low merge
+# rate. At this one it inverts -- those commits were not going unvalidated,
+# they were being validated six hours late, behind the pull request feedback
+# they were starving. A bounded queue on the tip is worth more than an
+# unbounded one on history.
 #
-# main keeps the sha. Releases are rare, and each one is worth its own answer.
+# `cancel-in-progress` stays false on a push, which is the half that matters:
+# only runs that have not started are dropped, so anything executing finishes.
+# A dropped run is cancelled rather than failed -- the tracker below skips when
+# any result is cancelled, and utils-ci-failure-tracker.yml acts only on
+# failure or success -- so nothing opens an issue for one. The dev->main
+# release pull request points at the tip, whose run is the newest pending one,
+# which is the one never dropped.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}${{ (github.event_name == 'push' && github.ref != 'refs/heads/dev') && format('-{0}', github.sha) || '' }}
+    group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: false
 
 permissions: {}
@@ -81,7 +85,7 @@ jobs:
     # dev. Nineteen of the last forty commits on dev touched no rust at all,
     # and each of them paid that hour to re-analyse a tree the change could not
     # have altered the rust findings of. The concurrency group above bounds how
-    # many of these can be outstanding on dev; this bounds how many exist.
+    # many of these can be outstanding on a branch; this bounds how many exist.
     #
     # Safe to narrow because the Monday schedule is not narrowed: it analyses
     # all three languages over the whole tree whatever changed. Narrowing a
