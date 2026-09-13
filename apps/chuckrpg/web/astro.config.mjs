@@ -32,7 +32,38 @@ export default defineConfig({
 				Sidebar: './src/components/starlight/Sidebar.astro',
 				Header: './src/components/starlight/Header.astro',
 			},
+			favicon: '/favicon.svg',
 			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						href: '/favicon.ico',
+						sizes: '32x32',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'apple-touch-icon',
+						href: '/apple-touch-icon.png',
+						sizes: '180x180',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'manifest',
+						href: '/site.webmanifest',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'theme-color',
+						content: '#1a1a1f',
+					},
+				},
 				{
 					tag: 'meta',
 					attrs: {

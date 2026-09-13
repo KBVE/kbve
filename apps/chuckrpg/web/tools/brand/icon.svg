@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+	<defs>
+		<linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0%" stop-color="#e8c06a" />
+			<stop offset="100%" stop-color="#b8893d" />
+		</linearGradient>
+		<radialGradient id="glow" cx="50%" cy="42%" r="68%">
+			<stop offset="0%" stop-color="#2c2419" />
+			<stop offset="100%" stop-color="#1a1a1f" />
+		</radialGradient>
+	</defs>
+
+	<rect width="512" height="512" rx="96" fill="#1a1a1f" />
+	<rect width="512" height="512" rx="96" fill="url(#glow)" />
+	<rect x="18" y="18" width="476" height="476" rx="82" fill="none" stroke="#d4a44c" stroke-opacity="0.28" stroke-width="8" />
+
+	<g transform="translate(256 250) scale(1.85)">
+		<g transform="rotate(-32)">
+			<path d="M0 -126 L11 -92 L11 8 L-11 8 L-11 -92 Z" fill="url(#blade)" />
+			<rect x="-40" y="8" width="80" height="13" rx="6" fill="#b8893d" />
+			<rect x="-7" y="21" width="14" height="42" rx="5" fill="#3d2e1e" />
+			<circle cx="0" cy="70" r="12" fill="#b8893d" />
+		</g>
+		<g transform="rotate(32)">
+			<path d="M0 -126 L11 -92 L11 8 L-11 8 L-11 -92 Z" fill="url(#blade)" />
+			<rect x="-40" y="8" width="80" height="13" rx="6" fill="#b8893d" />
+			<rect x="-7" y="21" width="14" height="42" rx="5" fill="#3d2e1e" />
+			<circle cx="0" cy="70" r="12" fill="#b8893d" />
+		</g>
+	</g>
+</svg>
