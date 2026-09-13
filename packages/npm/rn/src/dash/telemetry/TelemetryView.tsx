@@ -2,11 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Stack } from '../_ui';
 import { StreamView } from '../StreamView';
 import { EventDrawer } from './EventDrawer';
-import { telemetryGroupsLens } from './telemetryLens';
+import {
+	telemetryGroupsLens,
+	telemetryPerfLens,
+	telemetryProductLens,
+} from './telemetryLens';
 import {
 	METRICS_BASE,
 	createTelemetryEventsStream,
 	createTelemetryGroupsStream,
+	createTelemetryPerfStream,
+	createTelemetryProductStream,
 } from './telemetryStreams';
 
 export interface TelemetryViewProps {
@@ -26,6 +32,15 @@ export function TelemetryView({
 	);
 	const events = useMemo(
 		() => createTelemetryEventsStream({ getToken, baseUrl }),
+		[getToken, baseUrl],
+	);
+
+	const perf = useMemo(
+		() => createTelemetryPerfStream({ getToken, baseUrl }),
+		[getToken, baseUrl],
+	);
+	const product = useMemo(
+		() => createTelemetryProductStream({ getToken, baseUrl }),
 		[getToken, baseUrl],
 	);
 
@@ -66,6 +81,18 @@ export function TelemetryView({
 				searchPlaceholder="filter by project / type / message"
 			/>
 			<EventDrawer store={events} fingerprint={fingerprint} />
+			<StreamView
+				store={perf}
+				lens={telemetryPerfLens}
+				layout="rows"
+				searchPlaceholder="filter vitals by project / metric"
+			/>
+			<StreamView
+				store={product}
+				lens={telemetryProductLens}
+				layout="rows"
+				searchPlaceholder="filter events by project / name"
+			/>
 		</Stack>
 	);
 }

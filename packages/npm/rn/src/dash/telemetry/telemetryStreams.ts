@@ -6,6 +6,12 @@ import {
 	normalizeTelemetryGroup,
 	type RawTelemetryEvent,
 	type RawTelemetryGroup,
+	normalizePerfSummary,
+	normalizeProductEvent,
+	type PerfSummaryItem,
+	type ProductEventItem,
+	type RawEventCount,
+	type RawPerfSummary,
 	type TelemetryEventItem,
 	type TelemetryGroupItem,
 } from './telemetryTypes';
@@ -129,6 +135,84 @@ export function createTelemetryEventsStream(
 				'telemetry:events',
 			);
 			return json?.events ?? [];
+		},
+	});
+}
+
+/** Shared by the two rollup streams: both take the same optional project filter
+ *  and row cap, and both read a view that is already aggregated, so there is
+ *  nothing lens-specific in building the query. */
+function rollupQuery(params: StreamParams, fallbackLimit: number): string {
+	const qs = new URLSearchParams();
+	qs.set('limit', String(params['limit'] ?? fallbackLimit));
+	const project = params['project'];
+	if (typeof project === 'string' && project.trim())
+		qs.set('project', project.trim());
+	return qs.toString();
+}
+
+export function createTelemetryPerfStream(
+	opts: TelemetryStreamOptions,
+): StreamStore<PerfSummaryItem> {
+	const { getToken, baseUrl = METRICS_BASE, pollMs = 60_000 } = opts;
+	return createStreamSource<RawPerfSummary, PerfSummaryItem>({
+		key: 'telemetry:perf',
+		// Slower than the errors poll: these are quantiles over a 30-day window,
+		// so a fresher number is not a more useful one.
+		pollMs,
+		cacheTtlMs: 60_000,
+		initialParams: { limit: 100 },
+		id: (it) => it.id,
+		// p75 is the headline the row leads with, so a change in it has to
+		// invalidate the row even when the sample count has not moved.
+		signature: (it) => `${it.samples}|${it.p75}|${it.lastSeen}`,
+		normalize: normalizePerfSummary,
+		fetch: async ({ signal }, params: StreamParams) => {
+			const res = await dashFetch(
+				`${baseUrl}/api/v1/perf?${rollupQuery(params, 100)}`,
+				{
+					headers: await authHeaders(getToken),
+					signal,
+					label: 'telemetry:perf',
+				},
+			);
+			if (!res.ok) throw gateError(res, 'telemetry:perf');
+			const json = await dashJson<{ perf?: RawPerfSummary[] }>(
+				res,
+				'telemetry:perf',
+			);
+			return json?.perf ?? [];
+		},
+	});
+}
+
+export function createTelemetryProductStream(
+	opts: TelemetryStreamOptions,
+): StreamStore<ProductEventItem> {
+	const { getToken, baseUrl = METRICS_BASE, pollMs = 60_000 } = opts;
+	return createStreamSource<RawEventCount, ProductEventItem>({
+		key: 'telemetry:product',
+		pollMs,
+		cacheTtlMs: 60_000,
+		initialParams: { limit: 100 },
+		id: (it) => it.id,
+		signature: (it) => `${it.events}|${it.sessions}|${it.lastSeen}`,
+		normalize: normalizeProductEvent,
+		fetch: async ({ signal }, params: StreamParams) => {
+			const res = await dashFetch(
+				`${baseUrl}/api/v1/product?${rollupQuery(params, 100)}`,
+				{
+					headers: await authHeaders(getToken),
+					signal,
+					label: 'telemetry:product',
+				},
+			);
+			if (!res.ok) throw gateError(res, 'telemetry:product');
+			const json = await dashJson<{ product?: RawEventCount[] }>(
+				res,
+				'telemetry:product',
+			);
+			return json?.product ?? [];
 		},
 	});
 }
