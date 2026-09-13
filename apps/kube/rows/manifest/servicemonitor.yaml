@@ -5,7 +5,7 @@ metadata:
     namespace: rows
     labels:
         app: rows
-        release: prometheus
+        release: monitoring
 spec:
     selector:
         matchLabels:
