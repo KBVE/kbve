@@ -4,7 +4,8 @@
 order the terrain shader indexes them: grass, rock, sand, snow. The material slices each strip into
 an array texture and builds its mip chain at load, because bevy generates no mipmaps itself.
 
-Rebuild them with `tools/build_terrain_layers.py`; the strips are the committed artifact, the
+Rebuild them with `kbve-bevy-terrain` (`kbve.bevy.terrain`, in packages/python/kbve); the
+strips are the committed artifact, the
 sources below are not in this repo.
 
 | layer | source                                                                                 | license |

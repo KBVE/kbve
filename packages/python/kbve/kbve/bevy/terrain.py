@@ -3,6 +3,13 @@
 Each strip is one column of square layers, in the order the shader indexes them:
 grass, rock, sand, snow. The albedo strip is sRGB, the normal strip is raw.
 Run it again whenever a source changes; the strips are the committed artifact.
+
+Lives here rather than beside the game it feeds because it was the second copy
+of this idea in the repo -- :mod:`kbve.unreal.textures` is the first, and its
+own note records what happened when the converting half and the importing half
+drifted apart. One of them is easier to keep honest than two.
+
+    kbve-bevy-terrain --grass ALBEDO,NORMAL ... --out <dir>
 """
 
 import argparse
@@ -60,9 +67,7 @@ def main() -> int:
 
     albedos, normals = [], []
     for layer in LAYERS:
-        albedo_src, normal_src = (
-            pathlib.Path(part.strip()) for part in getattr(args, layer).split(",")
-        )
+        albedo_src, normal_src = (pathlib.Path(part.strip()) for part in getattr(args, layer).split(","))
         for source in (albedo_src, normal_src):
             if not source.is_file():
                 print(f"missing {layer} source: {source}", file=sys.stderr)
@@ -74,10 +79,7 @@ def main() -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     strip(albedos).save(args.out / "ground_albedo.png")
     strip(normals).save(args.out / "ground_normal.png")
-    print(
-        f"wrote {args.out}/ground_albedo.png and ground_normal.png "
-        f"({args.size}x{args.size * len(LAYERS)})"
-    )
+    print(f"wrote {args.out}/ground_albedo.png and ground_normal.png ({args.size}x{args.size * len(LAYERS)})")
     return 0
 
 
