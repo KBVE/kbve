@@ -14,6 +14,7 @@ use crate::state::AppState;
 pub struct GroupsParams {
     project: Option<String>,
     limit: Option<u32>,
+    since_hours: Option<u32>,
 }
 
 #[derive(Deserialize)]
@@ -29,6 +30,21 @@ fn quote(value: &str) -> String {
 
 fn clamp(limit: Option<u32>, fallback: u32) -> u32 {
     limit.unwrap_or(fallback).clamp(1, 1000)
+}
+
+/// The rollup views aggregate over everything the tables hold, which is the
+/// right default and useless for "is this worse than yesterday". A window means
+/// aggregating from the base table instead, so these builders exist alongside
+/// the view readers rather than replacing them -- with an e2e case asserting the
+/// two agree when the window covers every row.
+///
+/// Clamped to the tables' 30-day TTL: a longer window silently reads the same
+/// rows while implying it read more.
+const MAX_SINCE_HOURS: u32 = 24 * 30;
+
+fn window_predicate(since_hours: Option<u32>) -> Option<String> {
+    let hours = since_hours?.clamp(1, MAX_SINCE_HOURS);
+    Some(format!("timestamp >= now() - INTERVAL {hours} HOUR"))
 }
 
 /// Bound a project filter before it reaches the query (length cap; quote()
@@ -114,11 +130,24 @@ pub async fn groups(
     if let Err(resp) = authorize(&app, &headers).await {
         return resp;
     }
-    let where_clause = cap_project(p.project)
-        .as_deref()
-        .map(|pr| format!("WHERE project = {}", quote(pr)))
-        .unwrap_or_default();
-    let sql = groups_sql(&app.cfg.groups_view, &where_clause, clamp(p.limit, 100));
+    let project = cap_project(p.project);
+    let limit = clamp(p.limit, 100);
+    let sql = match window_predicate(p.since_hours) {
+        Some(window) => {
+            let mut conds = vec![window];
+            if let Some(pr) = project.as_deref() {
+                conds.push(format!("project = {}", quote(pr)));
+            }
+            groups_window_sql(&app.cfg.errors_table, &conds.join(" AND "), limit)
+        }
+        None => {
+            let where_clause = project
+                .as_deref()
+                .map(|pr| format!("WHERE project = {}", quote(pr)))
+                .unwrap_or_default();
+            groups_sql(&app.cfg.groups_view, &where_clause, limit)
+        }
+    };
     query(&app, sql, "groups").await
 }
 
@@ -133,6 +162,53 @@ fn groups_sql(view: &str, where_clause: &str, limit: u32) -> String {
          toString(events) AS events, toString(sessions) AS sessions, \
          toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
          FROM (SELECT * FROM {view} {where_clause} ORDER BY last_seen DESC LIMIT {limit})"
+    )
+}
+
+/// The windowed equivalents of the three rollup views. Each mirrors the view in
+/// packages/data/ch/schemas/telemetry.sql; they are kept honest by an e2e case
+/// that runs both paths over the same rows and compares the answers, so a change
+/// to one that is not made to the other fails rather than silently serving two
+/// different numbers depending on whether a window was asked for.
+fn groups_window_sql(table: &str, conds: &str, limit: u32) -> String {
+    format!(
+        "SELECT project, fingerprint, error_type, sample_message, \
+         toString(events) AS events, toString(sessions) AS sessions, \
+         toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
+         FROM (SELECT project, fingerprint, any(error_type) AS error_type, \
+         any(message) AS sample_message, count() AS events, \
+         uniq(session_id) AS sessions, min(timestamp) AS first_seen, \
+         max(timestamp) AS last_seen FROM {table} WHERE {conds} \
+         GROUP BY project, fingerprint ORDER BY last_seen DESC LIMIT {limit})"
+    )
+}
+
+fn perf_window_sql(table: &str, conds: &str, limit: u32) -> String {
+    format!(
+        "SELECT project, metric, \
+         toString(samples) AS samples, toString(sessions) AS sessions, \
+         toString(p50) AS p50, toString(p75) AS p75, toString(p95) AS p95, \
+         toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
+         FROM (SELECT project, metric, count() AS samples, \
+         uniq(session_id) AS sessions, quantile(0.50)(value) AS p50, \
+         quantile(0.75)(value) AS p75, quantile(0.95)(value) AS p95, \
+         min(timestamp) AS first_seen, max(timestamp) AS last_seen \
+         FROM {table} WHERE {conds} GROUP BY project, metric \
+         ORDER BY samples DESC LIMIT {limit})"
+    )
+}
+
+fn product_window_sql(table: &str, conds: &str, limit: u32) -> String {
+    format!(
+        "SELECT project, name, \
+         toString(events) AS events, toString(sessions) AS sessions, \
+         toString(users) AS users, \
+         toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
+         FROM (SELECT project, name, count() AS events, \
+         uniq(session_id) AS sessions, uniq(user_id) AS users, \
+         min(timestamp) AS first_seen, max(timestamp) AS last_seen \
+         FROM {table} WHERE {conds} GROUP BY project, name \
+         ORDER BY events DESC LIMIT {limit})"
     )
 }
 
@@ -174,6 +250,7 @@ pub async fn events(
 pub struct LensParams {
     project: Option<String>,
     limit: Option<u32>,
+    since_hours: Option<u32>,
 }
 
 /// Every count and quantile is stringified in the projection for the same
@@ -209,11 +286,24 @@ pub async fn perf(
     if let Err(resp) = authorize(&app, &headers).await {
         return resp;
     }
-    let where_clause = cap_project(p.project)
-        .as_deref()
-        .map(|pr| format!("WHERE project = {}", quote(pr)))
-        .unwrap_or_default();
-    let sql = perf_sql(&app.cfg.perf_view, &where_clause, clamp(p.limit, 100));
+    let project = cap_project(p.project);
+    let limit = clamp(p.limit, 100);
+    let sql = match window_predicate(p.since_hours) {
+        Some(window) => {
+            let mut conds = vec![window];
+            if let Some(pr) = project.as_deref() {
+                conds.push(format!("project = {}", quote(pr)));
+            }
+            perf_window_sql(&app.cfg.perf_table, &conds.join(" AND "), limit)
+        }
+        None => {
+            let where_clause = project
+                .as_deref()
+                .map(|pr| format!("WHERE project = {}", quote(pr)))
+                .unwrap_or_default();
+            perf_sql(&app.cfg.perf_view, &where_clause, limit)
+        }
+    };
     query(&app, sql, "perf").await
 }
 
@@ -226,11 +316,24 @@ pub async fn product(
     if let Err(resp) = authorize(&app, &headers).await {
         return resp;
     }
-    let where_clause = cap_project(p.project)
-        .as_deref()
-        .map(|pr| format!("WHERE project = {}", quote(pr)))
-        .unwrap_or_default();
-    let sql = product_sql(&app.cfg.events_view, &where_clause, clamp(p.limit, 100));
+    let project = cap_project(p.project);
+    let limit = clamp(p.limit, 100);
+    let sql = match window_predicate(p.since_hours) {
+        Some(window) => {
+            let mut conds = vec![window];
+            if let Some(pr) = project.as_deref() {
+                conds.push(format!("project = {}", quote(pr)));
+            }
+            product_window_sql(&app.cfg.events_table, &conds.join(" AND "), limit)
+        }
+        None => {
+            let where_clause = project
+                .as_deref()
+                .map(|pr| format!("WHERE project = {}", quote(pr)))
+                .unwrap_or_default();
+            product_sql(&app.cfg.events_view, &where_clause, limit)
+        }
+    };
     query(&app, sql, "product").await
 }
 
@@ -325,6 +428,79 @@ mod tests {
             10,
         );
         assert!(sql.contains(r"x\' OR 1=1 --"), "{sql}");
+    }
+
+    #[test]
+    fn a_window_is_clamped_to_the_retention_period() {
+        // Above the 30-day TTL the extra hours read nothing while implying they
+        // read more, so the number is pinned to what the data can support.
+        assert!(window_predicate(Some(9999)).unwrap().contains("INTERVAL 720 HOUR"));
+        // Zero would be a window containing nothing; one hour is the floor.
+        assert!(window_predicate(Some(0)).unwrap().contains("INTERVAL 1 HOUR"));
+        assert!(window_predicate(Some(24)).unwrap().contains("INTERVAL 24 HOUR"));
+    }
+
+    #[test]
+    fn no_window_means_no_predicate() {
+        // The absence of the parameter has to stay the all-time view read, not
+        // become a default window that quietly hides older rows.
+        assert!(window_predicate(None).is_none());
+    }
+
+    #[test]
+    fn windowed_reads_aggregate_from_the_base_table() {
+        // The views aggregate over everything, so a window cannot be expressed
+        // against them -- it has to go to the table the view reads.
+        let sql = perf_window_sql("perf_distributed", "timestamp >= now() - INTERVAL 24 HOUR", 10);
+        assert!(sql.contains("FROM perf_distributed"));
+        assert!(sql.contains("GROUP BY project, metric"));
+        assert!(sql.contains("INTERVAL 24 HOUR"));
+    }
+
+    #[test]
+    fn windowed_reads_return_the_same_columns_as_the_views() {
+        // A client cannot be handed a different row shape depending on whether it
+        // asked for a window. Compares the outer projection of each pair.
+        fn columns(sql: &str) -> Vec<String> {
+            sql.split("FROM (")
+                .next()
+                .unwrap()
+                .trim_start_matches("SELECT ")
+                .split(',')
+                .map(|c| {
+                    c.split(" AS ")
+                        .last()
+                        .unwrap_or(c)
+                        .split_whitespace()
+                        .collect::<Vec<_>>()
+                        .join("")
+                })
+                .collect()
+        }
+        assert_eq!(
+            columns(&groups_sql("error_groups", "", 10)),
+            columns(&groups_window_sql("errors_distributed", "1", 10))
+        );
+        assert_eq!(
+            columns(&perf_sql("perf_summary", "", 10)),
+            columns(&perf_window_sql("perf_distributed", "1", 10))
+        );
+        assert_eq!(
+            columns(&product_sql("event_counts", "", 10)),
+            columns(&product_window_sql("events_distributed", "1", 10))
+        );
+    }
+
+    #[test]
+    fn windowed_reads_still_order_inside_the_projection() {
+        for sql in [
+            groups_window_sql("errors_distributed", "1", 10),
+            perf_window_sql("perf_distributed", "1", 10),
+            product_window_sql("events_distributed", "1", 10),
+        ] {
+            let outer = sql.split("FROM (").next().unwrap();
+            assert!(!outer.contains("ORDER BY"), "{sql}");
+        }
     }
 
     #[test]
