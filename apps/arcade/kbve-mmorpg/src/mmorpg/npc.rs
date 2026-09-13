@@ -45,6 +45,43 @@ const LEASH_RANGE: f32 = 22.0;
 /// Close enough to the post to count as home.
 const HOME_TOLERANCE: f32 = 1.2;
 
+/// How far from an intruder a dummy stops closing.
+///
+/// The auto-attack reaches 150cm and two capsules touching are 64cm apart, so
+/// anywhere in between is a dummy that can hit the player without standing
+/// inside them. Sitting nearer the far end leaves room for the player to move
+/// without immediately being shoved.
+const STANDOFF: f32 = 1.15;
+
+/// How far past [`STANDOFF`] a dummy tolerates before closing again.
+///
+/// Without a band the dummy re-decides every frame at exactly the standoff
+/// distance and shuffles on the spot: physics nudges it a millimetre out, it
+/// steps in, the step carries it a millimetre past, it steps out. The band is
+/// wide enough that ordinary jostling stays inside it.
+const STANDOFF_BAND: f32 = 0.35;
+
+/// How close two dummies get before they push apart.
+///
+/// A flow field answers one question -- which way to the player -- and answers
+/// it identically for everyone standing in the same cell, so a crowd converges
+/// on one point and grinds there. Separation is what turns that into a ring.
+/// Slightly wider than two touching capsules so they spread before they collide
+/// rather than after.
+const SEPARATION_RANGE: f32 = 0.9;
+
+/// How hard separation pulls compared with heading for the target.
+///
+/// Below one, so a dummy being crowded still makes progress toward the player
+/// instead of being pushed in circles by its neighbours.
+const SEPARATION_WEIGHT: f32 = 0.6;
+
+/// Distance within which a dummy steers at the player directly.
+///
+/// The flow field's last step is the player's own cell, so following it to the
+/// end walks into them. Close in there is nothing to route around anyway.
+const DIRECT_STEER_RANGE: f32 = 3.0;
+
 /// Where a dummy stands when nothing is happening.
 #[derive(Component)]
 pub struct Post(pub Vec3);
@@ -63,8 +100,14 @@ pub struct Pursuit {
 /// What a dummy decided to do this frame.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NpcAction {
-    /// Walk toward a world position.
+    /// Walk to a world position, and stand on it.
     Approach(Vec3),
+    /// Close with a hostile at that position, stopping at [`STANDOFF`].
+    ///
+    /// Separate from [`NpcAction::Approach`] because the destination is not the
+    /// position given: a dummy told to engage wants to end up at arm's length
+    /// from it, and one told to approach its post wants to end up on the post.
+    Engage(Vec3),
     /// Stand still.
     Hold,
 }
@@ -150,7 +193,7 @@ impl BehaviorNode<DummyView, NpcAction> for GuardPost {
         }
 
         match view.intruder(AGGRO_RANGE) {
-            Some(target) => (NodeStatus::Running, vec![NpcAction::Approach(target)]),
+            Some(target) => (NodeStatus::Running, vec![NpcAction::Engage(target)]),
             None => (NodeStatus::Failure, vec![]),
         }
     }
@@ -284,6 +327,7 @@ fn route_to_player(
 
 /// Everything steering one dummy needs to read and write.
 type Dummy = (
+    Entity,
     &'static Transform,
     &'static Post,
     &'static Combatant,
@@ -319,7 +363,15 @@ fn steer_dummies(
         })
         .collect();
 
-    for (transform, post, combatant, mut intent) in &mut dummies {
+    // Positions first, so separation can see the whole crowd before any of it
+    // has been steered. Reading them inside the steering loop would mix this
+    // frame's answers with last frame's.
+    let crowd: Vec<(Entity, Vec3)> = dummies
+        .iter()
+        .map(|(entity, transform, ..)| (entity, transform.translation))
+        .collect();
+
+    for (me, transform, post, combatant, mut intent) in &mut dummies {
         let view = DummyView {
             position: transform.translation,
             home: post.0,
@@ -330,23 +382,90 @@ fn steer_dummies(
         };
 
         let actions = brain.decide(&view);
-        let target = actions.iter().find_map(|action| match action {
-            NpcAction::Approach(target) => Some(*target),
+        let goal = actions.iter().find_map(|action| match action {
+            NpcAction::Approach(target) => Some((*target, 0.0)),
+            NpcAction::Engage(target) => Some((*target, STANDOFF)),
             NpcAction::Hold => None,
         });
 
-        let Some(target) = target else {
-            *intent = MoveIntent::default();
+        let separation = separation(me, transform.translation, &crowd);
+
+        let Some((target, standoff)) = goal else {
+            // Still pushed apart while holding: a crowd that arrives at its
+            // posts overlapping has no reason to sort itself out otherwise.
+            intent.wish = separation;
+            intent.run = false;
+            intent.jump = false;
             continue;
         };
 
-        let step = routed_step(&pursuit, transform.translation, target).unwrap_or(target);
+        let here = transform.translation;
+        let gap = planar(target - here).length();
 
-        let wish = (step - transform.translation) * Vec3::new(1.0, 0.0, 1.0);
-        intent.wish = wish.normalize_or_zero();
+        // Inside the standoff, close enough is close enough. The band is what
+        // stops a dummy stepping in and out across the boundary every frame.
+        if standoff > 0.0 && gap <= standoff + STANDOFF_BAND {
+            intent.wish = separation;
+            intent.run = false;
+            intent.jump = false;
+            continue;
+        }
+
+        // The field routes around terrain, which only matters at a distance;
+        // its last step is the player's own cell, so following it to the end is
+        // what walks a dummy into them.
+        let step = if gap <= DIRECT_STEER_RANGE {
+            target
+        } else {
+            routed_step(&pursuit, here, target).unwrap_or(target)
+        };
+
+        let toward = planar(step - here).normalize_or_zero();
+        intent.wish = (toward + separation * SEPARATION_WEIGHT).normalize_or_zero();
         intent.run = view.intruder(AGGRO_RANGE).is_some();
         intent.jump = false;
     }
+}
+
+/// Flattens a vector onto the ground plane.
+///
+/// Everything steering here is planar: a dummy walks around a slope, never up
+/// the face of it, and leaving Y in would have it lean into hills.
+fn planar(v: Vec3) -> Vec3 {
+    Vec3::new(v.x, 0.0, v.z)
+}
+
+/// A unit push away from every dummy standing too close, or zero.
+///
+/// Weighted by how deep the overlap is, so a dummy barely inside the range
+/// drifts and one standing on top of another leaves sharply. Two dummies at
+/// exactly the same point cannot agree on a direction from their positions
+/// alone, so their entity ids break the tie -- otherwise a perfectly stacked
+/// pair stays stacked.
+fn separation(me: Entity, here: Vec3, crowd: &[(Entity, Vec3)]) -> Vec3 {
+    let mut push = Vec3::ZERO;
+
+    for (other, position) in crowd {
+        if *other == me {
+            continue;
+        }
+
+        let offset = planar(here - *position);
+        let distance = offset.length();
+        if distance >= SEPARATION_RANGE {
+            continue;
+        }
+
+        push += if distance > 1e-4 {
+            offset / distance * (1.0 - distance / SEPARATION_RANGE)
+        } else if me.to_bits() > other.to_bits() {
+            Vec3::X
+        } else {
+            -Vec3::X
+        };
+    }
+
+    push.normalize_or_zero()
 }
 
 /// The next position along the route, or `None` when the field cannot help and
@@ -406,7 +525,7 @@ mod tests {
         let intruder = Vec3::new(5.0, 0.0, 0.0);
         assert_eq!(
             decide(&view(home, home, Some(intruder))),
-            vec![NpcAction::Approach(intruder)]
+            vec![NpcAction::Engage(intruder)]
         );
     }
 
@@ -489,6 +608,111 @@ mod tests {
         );
     }
 
+    /// A world with one player at the origin and dummies at the given spots.
+    ///
+    /// Posts sit on each dummy's own position so `ReturnToPost` never fires;
+    /// these tests are about closing with the player, not about going home.
+    fn steered(spots: &[Vec3]) -> Vec<Vec3> {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins)
+            .init_resource::<Pursuit>()
+            .init_resource::<DummyBrain>()
+            .add_systems(Update, steer_dummies);
+
+        app.world_mut()
+            .spawn((Player, Transform::from_translation(Vec3::ZERO)));
+
+        let ids: Vec<Entity> = spots
+            .iter()
+            .map(|spot| {
+                app.world_mut()
+                    .spawn((
+                        Transform::from_translation(*spot),
+                        Post(*spot),
+                        Faction::Hostile,
+                        Combatant::new(220, 100, combat::Stats::default()),
+                        MoveIntent::default(),
+                    ))
+                    .id()
+            })
+            .collect();
+
+        app.update();
+
+        ids.into_iter()
+            .map(|id| {
+                app.world()
+                    .entity(id)
+                    .get::<MoveIntent>()
+                    .expect("a dummy lost its move intent")
+                    .wish
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_dummy_out_of_reach_closes_on_the_player() {
+        let wish = steered(&[Vec3::new(5.0, 0.0, 0.0)])[0];
+        assert!(
+            wish.x < -0.9,
+            "a dummy five metres out did not walk at the player: {wish:?}"
+        );
+    }
+
+    #[test]
+    fn a_dummy_at_arms_length_stops_closing() {
+        let wish = steered(&[Vec3::new(STANDOFF, 0.0, 0.0)])[0];
+        assert_eq!(
+            wish,
+            Vec3::ZERO,
+            "a dummy already in reach kept walking into the player"
+        );
+    }
+
+    #[test]
+    fn a_dummy_inside_the_band_does_not_shuffle() {
+        // The whole band holds, not just the exact standoff distance --
+        // otherwise physics nudging a dummy a millimetre re-starts the walk.
+        let wish = steered(&[Vec3::new(STANDOFF + STANDOFF_BAND * 0.5, 0.0, 0.0)])[0];
+        assert_eq!(wish, Vec3::ZERO, "a dummy inside the band stepped again");
+    }
+
+    #[test]
+    fn a_dummy_that_drifts_past_the_band_closes_again() {
+        let wish = steered(&[Vec3::new(STANDOFF + STANDOFF_BAND + 0.4, 0.0, 0.0)])[0];
+        assert!(
+            wish.x < -0.5,
+            "a dummy pushed out of the band never came back: {wish:?}"
+        );
+    }
+
+    #[test]
+    fn crowding_dummies_push_apart() {
+        // Both in reach of the player, so neither has anywhere to be except
+        // out of the other's way.
+        let spot = Vec3::new(STANDOFF, 0.0, 0.0);
+        let wishes = steered(&[spot, spot + Vec3::new(0.0, 0.0, 0.2)]);
+
+        assert!(
+            wishes[0].z < -0.5 && wishes[1].z > 0.5,
+            "two dummies standing on each other did not separate: {wishes:?}"
+        );
+    }
+
+    #[test]
+    fn perfectly_stacked_dummies_still_separate() {
+        // Identical positions give no direction to push along, so the tie is
+        // broken by entity id; without that they stay welded together.
+        let spot = Vec3::new(STANDOFF, 0.0, 0.0);
+        let wishes = steered(&[spot, spot]);
+
+        assert_ne!(wishes[0], Vec3::ZERO, "the first stacked dummy sat still");
+        assert_eq!(
+            wishes[0], -wishes[1],
+            "stacked dummies pushed the same way: {wishes:?}"
+        );
+    }
+
     #[test]
     fn the_nearest_intruder_is_the_one_chased() {
         let home = Vec3::ZERO;
@@ -503,7 +727,7 @@ mod tests {
 
         assert_eq!(
             decide(&v),
-            vec![NpcAction::Approach(Vec3::new(3.0, 0.0, 0.0))],
+            vec![NpcAction::Engage(Vec3::new(3.0, 0.0, 0.0))],
             "the dummy walked past the nearer intruder"
         );
     }
