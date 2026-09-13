@@ -73,14 +73,14 @@ bento:
           href: "#deployment"
     aside:
         icon: chart
-        title: Three lenses, one table
+        title: Three lenses, one session
         body: >-
             One pipeline exposes <strong>errors</strong>,
-            <strong>performance</strong>, and <strong>product</strong> lenses
-            over a single wide table correlated by <code>session_id</code> — no
-            SaaS error/metrics tooling.
+            <strong>performance</strong>, and <strong>product</strong> lenses,
+            a table each, correlated by <code>session_id</code> — no SaaS
+            error/metrics tooling.
         points:
-            - <strong>Sink</strong> — telemetry.errors_distributed on ClickHouse.
+            - <strong>Sinks</strong> — telemetry.{errors,perf,events}_distributed.
             - <strong>Grouping</strong> — sha256(project + type + top-5 frames).
     stats:
         - { label: App, value: metrics, icon: server }
@@ -88,9 +88,9 @@ bento:
         - { label: Sink, value: ClickHouse, icon: database }
         - { label: Listen, value: 'port 5500', icon: activity }
     features:
-        - title: Three lenses over one table
+        - title: Three lenses, one session
           icon: chart
-          body: Errors, performance, and product views over a single wide table correlated by session_id, replacing Sentry / Datadog / PostHog.
+          body: Errors, performance, and product views, a table each, correlated by session_id, replacing Sentry / Datadog / PostHog.
         - title: Off-thread batched inserts
           icon: zap
           body: A background tokio mpsc flusher batches rows by size and interval through the shared jedi ClickHouse client — no new database plumbing.
