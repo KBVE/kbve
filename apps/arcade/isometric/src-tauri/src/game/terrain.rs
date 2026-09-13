@@ -317,10 +317,10 @@ impl TerrainMap {
             .collect();
 
         for (cx, cz) in to_remove {
-            if let Some(chunk) = self.chunks.remove(&(cx, cz)) {
-                if !chunk.tile_entities.is_empty() {
-                    self.chunks_to_despawn.push((cx, cz, chunk.tile_entities));
-                }
+            if let Some(chunk) = self.chunks.remove(&(cx, cz))
+                && !chunk.tile_entities.is_empty()
+            {
+                self.chunks_to_despawn.push((cx, cz, chunk.tile_entities));
             }
         }
     }

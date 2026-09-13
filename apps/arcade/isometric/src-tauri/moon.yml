@@ -20,14 +20,3 @@ toolchains:
 
 owners:
     defaultOwner: '@h0lybyte'
-
-# The crate does not pass either gate yet -- 14 clippy warnings, nearly all
-# dead code, and 35 rustfmt hunks. Enabling them here would make this change
-# about cleaning up someone else's work in progress rather than about closing
-# the hole that let a broken crate through. `build` and `test` are what catch
-# that, and they run.
-workspace:
-    inheritedTasks:
-        exclude:
-            - 'lint'
-            - 'format'

@@ -1,16 +1,17 @@
-# NOTE: every shared `bevy_*` path-dep below is mirrored in
-# `.github/workflows/utils-file-alterations.yml` under the `isometric:` glob.
-# When you add a new path-dep here, add the matching path filter there or the
-# WASM client will skip rebuilds on shared-crate changes — the lightyear
-# ProtocolPlugin registry will drift between client and server and the
-# protocol-check observer will panic on connect ("the message protocol doesn't match").
+# NOTE: the shared `bevy_*` path-deps below are what moon reads to decide this
+# crate is affected by a shared-crate change. utils-file-alterations.yml used to
+# carry a hand-maintained mirror of this list; it is gone, and the cargo graph is
+# the one source now. Keep the deps here accurate: a shared-crate change that does
+# not reach this crate means the WASM client ships a stale lightyear ProtocolPlugin
+# registry and the protocol-check observer panics on connect ("the message protocol
+# doesn't match").
 
 [package]
 name = "isometric-game"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
 rust-version.workspace = true
-description = "KBVE isometric multiplayer game — Bevy 0.18 + lightyear + avian3d, builds to WASM and Tauri desktop"
+description = "KBVE isometric multiplayer game — Bevy 0.19 + lightyear + avian3d, builds to WASM and Tauri desktop"
 repository = "https://github.com/KBVE/kbve"
 license = "SEE https://kbve.com/legal/"
 

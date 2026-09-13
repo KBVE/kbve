@@ -287,11 +287,11 @@ pub(super) fn render_fireflies(
         for (_, cr, _, rd, mut vis) in &mut fly_q {
             if cr.state == CreatureState::Active {
                 *vis = Visibility::Hidden;
-                if let Some(le) = rd.light_entity {
-                    if let Ok((mut pl, _, mut lvis)) = light_q.get_mut(le) {
-                        pl.intensity = 0.0;
-                        *lvis = Visibility::Hidden;
-                    }
+                if let Some(le) = rd.light_entity
+                    && let Ok((mut pl, _, mut lvis)) = light_q.get_mut(le)
+                {
+                    pl.intensity = 0.0;
+                    *lvis = Visibility::Hidden;
                 }
             }
         }
@@ -341,16 +341,16 @@ pub(super) fn render_fireflies(
             mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.95 + 0.3 * nf);
         }
 
-        if let Some(le) = rd.light_entity {
-            if let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(le) {
-                pl.intensity = intensity * 14000.0;
-                ltf.translation = pos;
-                *lvis = if intensity > 0.01 {
-                    Visibility::Visible
-                } else {
-                    Visibility::Hidden
-                };
-            }
+        if let Some(le) = rd.light_entity
+            && let Ok((mut pl, mut ltf, mut lvis)) = light_q.get_mut(le)
+        {
+            pl.intensity = intensity * 14000.0;
+            ltf.translation = pos;
+            *lvis = if intensity > 0.01 {
+                Visibility::Visible
+            } else {
+                Visibility::Hidden
+            };
         }
     }
 }

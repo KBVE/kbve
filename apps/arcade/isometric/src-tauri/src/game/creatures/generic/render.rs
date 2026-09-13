@@ -112,22 +112,21 @@ pub fn render_sprite_creatures(
             hover_frequency,
             ..
         } = &ctype.movement
-        {
-            if matches!(
+            && matches!(
                 sd.hop_state,
                 SpriteHopState::Idle { .. } | SpriteHopState::Landing { .. }
-            ) {
-                let hover = (t * hover_frequency + cr.phase * std::f32::consts::TAU).sin()
-                    * hover_amplitude;
-                tf.translation.y = cr.anchor.y + hover_base + hover;
-            }
+            )
+        {
+            let hover =
+                (t * hover_frequency + cr.phase * std::f32::consts::TAU).sin() * hover_amplitude;
+            tf.translation.y = cr.anchor.y + hover_base + hover;
         }
 
-        if let Some(CreatureShadowLink(se)) = shadow {
-            if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
-                bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
-                *sv = Visibility::Visible;
-            }
+        if let Some(CreatureShadowLink(se)) = shadow
+            && let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se)
+        {
+            bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
+            *sv = Visibility::Visible;
         }
 
         *vis = Visibility::Visible;
@@ -145,10 +144,10 @@ fn hide_shadow(
     shadow: Option<&CreatureShadowLink>,
     shadow_q: &mut Query<(&mut BlobShadow, &mut Visibility), Without<Creature>>,
 ) {
-    if let Some(CreatureShadowLink(se)) = shadow {
-        if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
-            bs.anchor.y = -100.0;
-            *sv = Visibility::Hidden;
-        }
+    if let Some(CreatureShadowLink(se)) = shadow
+        && let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se)
+    {
+        bs.anchor.y = -100.0;
+        *sv = Visibility::Hidden;
     }
 }

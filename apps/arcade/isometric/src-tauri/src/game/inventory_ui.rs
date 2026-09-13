@@ -21,7 +21,6 @@ const SLOT_GAP: f32 = 2.0;
 
 const INVENTORY_BG: Color = Color::srgba(0.10, 0.08, 0.05, 0.95);
 const SLOT_BG: Color = Color::srgba(0.15, 0.10, 0.04, 1.0);
-const SLOT_BORDER: Color = Color::srgba(0.24, 0.17, 0.08, 1.0);
 const GOLD_TEXT: Color = Color::srgba(0.78, 0.66, 0.20, 1.0);
 
 #[derive(Component)]

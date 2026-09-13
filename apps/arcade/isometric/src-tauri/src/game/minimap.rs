@@ -191,7 +191,7 @@ fn redraw_minimap(
 
 fn paint_background(img: &mut Image) {
     let data = img.data.as_mut().expect("minimap image has data");
-    for chunk in data.chunks_exact_mut(4) {
+    for chunk in data.as_chunks_mut::<4>().0 {
         chunk.copy_from_slice(&BG);
     }
     // Sparse grid dots every 16 px so the player has spatial reference even

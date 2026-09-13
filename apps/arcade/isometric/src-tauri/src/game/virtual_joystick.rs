@@ -202,15 +202,15 @@ fn handle_action_buttons(
     // Edge-trigger: only fire on the press transition, not every frame the
     // button stays held. Prevents a single tap from registering as a
     // jump/action storm in the player + combat systems.
-    if let Ok(interaction) = jump_query.single() {
-        if *interaction == Interaction::Pressed {
-            joystick_state.jump_requested = true;
-        }
+    if let Ok(interaction) = jump_query.single()
+        && *interaction == Interaction::Pressed
+    {
+        joystick_state.jump_requested = true;
     }
-    if let Ok(interaction) = action_query.single() {
-        if *interaction == Interaction::Pressed {
-            joystick_state.action_requested = true;
-        }
+    if let Ok(interaction) = action_query.single()
+        && *interaction == Interaction::Pressed
+    {
+        joystick_state.action_requested = true;
     }
 }
 
