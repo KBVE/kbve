@@ -67,10 +67,25 @@ jobs:
     # diagnostics that had run.
     #
     # A job that cannot pass is not a gate, it is a red cross every PR learns
-    # to ignore, so rust analysis moves to push and to the weekly schedule
-    # where the wall clock is nobody's critical path. Rust in a PR is still
-    # analysed -- on the push to dev that merging it produces, one merge later
-    # than before.
+    # to ignore, so rust analysis moved to push and to the weekly schedule
+    # where the wall clock is nobody's critical path.
+    #
+    # It is now the schedule alone. Push could not carry it either: the job
+    # settled at 58 to 73 minutes -- runs 34707883257, 34708298860 and
+    # 34709067024 were 4385s, 3887s and 3511s -- against an account cap of
+    # about twenty concurrent jobs, and both trunk branches merge about six
+    # times an hour. Four of those twenty slots were held by `Analyze (rust)`
+    # at once on 2026-09-13, behind which sat 34 CI and 25 CodeQL runs and a
+    # feature pull request waiting 27 minutes to start a 105 second job.
+    # Narrowing it to pushes that touched rust (#17229) halved the count and
+    # was not enough, because the surviving half is the expensive half.
+    #
+    # What this costs is latency, not coverage. The Monday schedule analyses
+    # all three languages over the whole tree whatever changed, so a rust
+    # finding surfaces within a week rather than within a merge. Rust has never
+    # been analysed on a pull request, so no gate loses anything -- what goes is
+    # the per-merge rust baseline on dev and main, which was arriving hours
+    # late anyway while it starved the lane it was queued in.
 
     # An extractor only has something to say about a language that is in the
     # diff. Before this job existed the pull_request matrix was the literal
@@ -79,13 +94,9 @@ jobs:
     # altered the results of -- and under a busy runner pool the cost is the
     # queued job rather than its wall clock.
     #
-    # Push is narrowed for the same reason, and it is where the cost actually
-    # is: `Analyze (rust)` takes 58 to 73 minutes (runs 34707883257, 34708298860
-    # and 34709067024 were 4385s, 3887s and 3511s) and it runs on every push to
-    # dev. Nineteen of the last forty commits on dev touched no rust at all,
-    # and each of them paid that hour to re-analyse a tree the change could not
-    # have altered the rust findings of. The concurrency group above bounds how
-    # many of these can be outstanding on a branch; this bounds how many exist.
+    # Push is narrowed for the same reason. What is left to narrow there is
+    # javascript-typescript and python; rust is on the schedule alone, for the
+    # reasons above.
     #
     # Safe to narrow because the Monday schedule is not narrowed: it analyses
     # all three languages over the whole tree whatever changed. Narrowing a
@@ -118,7 +129,8 @@ jobs:
             matrix: ${{ steps.pick.outputs.matrix }}
             any: ${{ steps.pick.outputs.any }}
             # Whether rust is in the matrix, which is what decides if this run
-            # has anything to say about the rust tracker's issue.
+            # has anything to say about the rust tracker's issue. Only all()
+            # ever sets it, so in practice only the schedule and a manual run.
             rust: ${{ steps.pick.outputs.rust }}
         steps:
             - name: Pick the languages this change touches
@@ -137,9 +149,22 @@ jobs:
                   py='{"language":"python","build-mode":"none","timeout":60}'
                   rs='{"language":"rust","build-mode":"none","timeout":360}'
 
+                  # Everything this job cannot describe, plus the schedule.
+                  #
+                  # Rust joins only when the event is not a push or a pull
+                  # request. It used to join unconditionally, which meant the
+                  # escape hatches pulled a 70 minute job into places that are
+                  # documented as never running one: a pull request touching
+                  # .github/codeql/ queued `Analyze (rust)` with its 360 minute
+                  # timeout, on a lane that cannot finish it. Pull request 17229
+                  # did exactly that.
                   all() {
-                    printf 'matrix=[%s,%s,%s]\n' "$js" "$py" "$rs" >> "$GITHUB_OUTPUT"
-                    printf 'any=true\nrust=true\n' >> "$GITHUB_OUTPUT"
+                    case "$EVENT" in
+                      push|pull_request)
+                        printf 'matrix=[%s,%s]\nany=true\nrust=false\n' "$js" "$py" >> "$GITHUB_OUTPUT" ;;
+                      *)
+                        printf 'matrix=[%s,%s,%s]\nany=true\nrust=true\n' "$js" "$py" "$rs" >> "$GITHUB_OUTPUT" ;;
+                    esac
                     exit 0
                   }
 
@@ -173,8 +198,9 @@ jobs:
                   # sees, so a change to either is a change to every language.
                   if grep -qE '^\.github/(workflows/ci-codeql\.yml|codeql/)' files.txt; then all; fi
 
+                  # Rust is never added here. It only ever reaches the matrix
+                  # through all(), which is the schedule and a manual run.
                   entries=""
-                  want_rust=false
                   add() { entries="${entries:+$entries,}$1"; }
 
                   # A file rather than a pipe into grep: `grep -q` closes the
@@ -183,18 +209,7 @@ jobs:
                   # read as no match.
                   grep -qE '\.[cm]?[jt]sx?$' files.txt && add "$js" || true
                   grep -qE '\.pyi?$' files.txt && add "$py" || true
-                  # Rust is not in the pull request matrix at all: it cannot
-                  # finish inside one, which is what moved it to push and to the
-                  # schedule in the first place. Cargo manifests count because a
-                  # dependency edit changes what the extractor resolves without
-                  # touching a .rs file.
-                  if [ "$EVENT" != "pull_request" ] &&
-                     grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$' files.txt; then
-                    add "$rs"
-                    want_rust=true
-                  fi
-
-                  printf 'matrix=[%s]\nrust=%s\n' "$entries" "$want_rust" >> "$GITHUB_OUTPUT"
+                  printf 'matrix=[%s]\nrust=false\n' "$entries" >> "$GITHUB_OUTPUT"
                   if [ -z "$entries" ]; then
                     echo "any=false" >> "$GITHUB_OUTPUT"
                     echo "::notice::No CodeQL language touched by this change"
