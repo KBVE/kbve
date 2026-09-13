@@ -139,6 +139,13 @@ def enrich(overview: dict, project_graph: dict, doc_slugs: Iterable[str]) -> dic
 
 
 def _walk_slugs(docs_root: str) -> list[str]:
+    """Slugs for every doc under ``docs_root``, relative to that root.
+
+    Sections live under two roots since the root-docs migration — the
+    repository's own ``docs/`` and what is left in the app's
+    ``src/content/docs`` — and both produce the same site URL, so both are
+    walked and the slugs are pooled.
+    """
     slugs: list[str] = []
     for base, _dirs, files in os.walk(docs_root):
         for f in files:
@@ -155,7 +162,13 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("overview", help="tiered overview.json to enrich in place")
     ap.add_argument("--project-graph", required=True, help="dashboard graph.json path")
-    ap.add_argument("--docs-root", required=True, help="content/docs root")
+    ap.add_argument(
+        "--docs-root",
+        required=True,
+        action="append",
+        dest="docs_roots",
+        help="docs root to index for slugs; repeat for each root",
+    )
     ap.add_argument("--out", help="output path (default: overwrite overview)")
     args = ap.parse_args()
 
@@ -163,7 +176,7 @@ def main() -> None:
         overview = json.load(fh)
     with open(args.project_graph) as fh:
         project_graph = json.load(fh)
-    doc_slugs = _walk_slugs(args.docs_root)
+    doc_slugs = [slug for root in args.docs_roots for slug in _walk_slugs(root)]
 
     enrich(overview, project_graph, doc_slugs)
 
@@ -172,8 +185,7 @@ def main() -> None:
         json.dump(overview, fh, separators=(",", ":"))
     meta = overview["meta"]
     print(
-        f"enriched {out}: {meta['nxProjects']} nx projects, "
-        f"{meta['nxEdges']} depends-edges, {meta['docRefs']} doc refs"
+        f"enriched {out}: {meta['nxProjects']} nx projects, {meta['nxEdges']} depends-edges, {meta['docRefs']} doc refs"
     )
 
 

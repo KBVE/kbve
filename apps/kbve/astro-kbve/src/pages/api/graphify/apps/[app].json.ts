@@ -21,10 +21,12 @@ export const GET: APIRoute = async ({ params }) => {
 	}
 
 	try {
-		// Path to app-specific graph file
+		// Per-app graphs are a local-only artifact: `output/` is git-ignored and
+		// only the monorepo-wide graph is built in CI, so this 404s on a
+		// deployment until someone runs `graphify-wrapper:build-app`.
 		const graphPath = join(
 			process.cwd(),
-			`../../../packages/data/graphify/output/apps/${app}/graph.json`,
+			`../../../packages/data/graph/output/apps/${app}/graph.json`,
 		);
 
 		const graphData = await readFile(graphPath, 'utf-8');

@@ -87,16 +87,18 @@ def _layout(graph: nx.Graph, seed: int, prefer_spring: bool = False) -> dict:
         return pos
     try:
         if prefer_spring:
-            pos = nx.spring_layout(graph, seed=seed, iterations=200,
-                                   k=2.5 / math.sqrt(n), weight="weight")
+            pos = nx.spring_layout(graph, seed=seed, iterations=200, k=2.5 / math.sqrt(n), weight="weight")
         else:
             pos = nx.forceatlas2_layout(
-                graph, seed=seed, max_iter=120, weight="weight",
-                strong_gravity=True, scaling_ratio=8.0,
+                graph,
+                seed=seed,
+                max_iter=120,
+                weight="weight",
+                strong_gravity=True,
+                scaling_ratio=8.0,
             )
     except Exception:
-        pos = nx.spring_layout(graph, seed=seed, iterations=80,
-                               weight="weight")
+        pos = nx.spring_layout(graph, seed=seed, iterations=80, weight="weight")
     return {k: (float(v[0]), float(v[1])) for k, v in pos.items()}
 
 
@@ -115,8 +117,7 @@ def _normalize(pos: dict, scale: float) -> dict:
     return {k: ((p[0] - cx) * f, (p[1] - cy) * f) for k, p in pos.items()}
 
 
-def _relax_overlaps(pos: dict, radii: dict, pad: float,
-                    iterations: int = 400) -> dict:
+def _relax_overlaps(pos: dict, radii: dict, pad: float, iterations: int = 400) -> dict:
     """Circle-packing relaxation: nudge overlapping bubbles apart, keeping the
     force layout's coupling hint. O(n^2) — fine for the ~70 directory tier."""
     keys = list(pos.keys())
@@ -166,11 +167,19 @@ def _dominant_community(nodes: list[dict]) -> int:
 # Raw Graphify relations collapsed into a small palette for edge coloring.
 REL_ORDER = ["imports", "calls", "references", "contains", "extends", "other"]
 _REL_BUCKET = {
-    "imports": "imports", "imports_from": "imports", "re_exports": "imports",
-    "calls": "calls", "method": "calls", "invokes": "calls",
-    "references": "references", "uses": "references",
-    "contains": "contains", "defines": "contains",
-    "extends": "extends", "implements": "extends", "inherits": "extends",
+    "imports": "imports",
+    "imports_from": "imports",
+    "re_exports": "imports",
+    "calls": "calls",
+    "method": "calls",
+    "invokes": "calls",
+    "references": "references",
+    "uses": "references",
+    "contains": "contains",
+    "defines": "contains",
+    "extends": "extends",
+    "implements": "extends",
+    "inherits": "extends",
 }
 _REL_IDX = {r: i for i, r in enumerate(REL_ORDER)}
 
@@ -202,10 +211,8 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
     # (tier 1) and intra-dir symbol edges (tier 2).
     dir_edge_w: dict[tuple[str, str], float] = defaultdict(float)
     dir_edge_rel: dict[tuple[str, str], Counter] = defaultdict(Counter)
-    file_edge_w: dict[str, dict[tuple[str, str], float]] = defaultdict(
-        lambda: defaultdict(float))
-    file_edge_rel: dict[str, dict[tuple[str, str], Counter]] = defaultdict(
-        lambda: defaultdict(Counter))
+    file_edge_w: dict[str, dict[tuple[str, str], float]] = defaultdict(lambda: defaultdict(float))
+    file_edge_rel: dict[str, dict[tuple[str, str], Counter]] = defaultdict(lambda: defaultdict(Counter))
     sym_edges: dict[str, list[tuple[str, str, float, int]]] = defaultdict(list)
     for e in data["links"]:
         s, t = e.get("source"), e.get("target")
@@ -239,10 +246,7 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
     # zoom regardless of the force layout's arbitrary coordinate magnitude.
     max_count = max((len(n) for n in dir_nodes.values()), default=1)
     r_min, r_max = scale * 0.012, scale * 0.055
-    dir_radii = {
-        d: r_min + (r_max - r_min) * math.sqrt(len(nodes) / max_count)
-        for d, nodes in dir_nodes.items()
-    }
+    dir_radii = {d: r_min + (r_max - r_min) * math.sqrt(len(nodes) / max_count) for d, nodes in dir_nodes.items()}
     # Force layout only hints coupling; the dir graph is sparse (many isolates),
     # so relax overlaps to guarantee a readable, non-colliding overview.
     dir_pos = _relax_overlaps(dir_pos, dir_radii, pad=scale * 0.02)
@@ -255,20 +259,21 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
         radius = dir_radii[d]
         dir_index[d] = i
         dir_meta[d] = {"x": dx, "y": dy, "r": radius}
-        dirs_out.append({
-            "id": _slug(d),
-            "label": d,
-            "x": round(dx, 2),
-            "y": round(dy, 2),
-            "r": round(radius, 2),
-            "n": len(nodes),
-            "files": len(dir_files[d]),
-            "c": _dominant_community(nodes),
-        })
+        dirs_out.append(
+            {
+                "id": _slug(d),
+                "label": d,
+                "x": round(dx, 2),
+                "y": round(dy, 2),
+                "r": round(radius, 2),
+                "n": len(nodes),
+                "files": len(dir_files[d]),
+                "c": _dominant_community(nodes),
+            }
+        )
 
     dir_edges_out = [
-        [dir_index[a], dir_index[b], round(w, 2),
-         _dominant_rel(dir_edge_rel[(a, b)])]
+        [dir_index[a], dir_index[b], round(w, 2), _dominant_rel(dir_edge_rel[(a, b)])]
         for (a, b), w in dir_edge_w.items()
         if a in dir_index and b in dir_index
     ]
@@ -302,14 +307,16 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
             fx, fy = fpos.get(f, (0.0, 0.0))
             fx, fy = cx + fx * fspread, cy + fy * fspread
             file_center[f] = (fx, fy)
-            files_out.append({
-                "i": file_index[f],
-                "label": _basename(f),
-                "path": f,
-                "x": round(fx, 2),
-                "y": round(fy, 2),
-                "n": len(syms_by_file[f]),
-            })
+            files_out.append(
+                {
+                    "i": file_index[f],
+                    "label": _basename(f),
+                    "path": f,
+                    "x": round(fx, 2),
+                    "y": round(fy, 2),
+                    "n": len(syms_by_file[f]),
+                }
+            )
 
         # Tier 2: symbols packed around their file point.
         sym_index: dict[str, int] = {}
@@ -318,22 +325,22 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
             members = syms_by_file[f]
             fx, fy = file_center[f]
             spread = 8.0 + math.sqrt(len(members)) * 4.0
-            for (lx, ly), n in zip(_phyllotaxis(len(members), spread),
-                                   members):
+            for (lx, ly), n in zip(_phyllotaxis(len(members), spread), members):
                 sym_index[n["id"]] = len(syms_out)
-                syms_out.append({
-                    "i": len(syms_out),
-                    "f": file_index[f],
-                    "label": n.get("label", n["id"]),
-                    "x": round(fx + lx, 2),
-                    "y": round(fy + ly, 2),
-                    "c": int(n.get("community", 0)),
-                    "loc": n.get("source_location", ""),
-                })
+                syms_out.append(
+                    {
+                        "i": len(syms_out),
+                        "f": file_index[f],
+                        "label": n.get("label", n["id"]),
+                        "x": round(fx + lx, 2),
+                        "y": round(fy + ly, 2),
+                        "c": int(n.get("community", 0)),
+                        "loc": n.get("source_location", ""),
+                    }
+                )
 
         file_edges_out = [
-            [file_index[a], file_index[b], round(w, 2),
-             _dominant_rel(file_edge_rel[d][(a, b)])]
+            [file_index[a], file_index[b], round(w, 2), _dominant_rel(file_edge_rel[d][(a, b)])]
             for (a, b), w in file_edge_w[d].items()
         ]
         sym_edges_out = [
@@ -357,8 +364,7 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
     overview = {
         "meta": {
             "dirs": len(dirs_out),
-            "files": len(kept_ids and set(
-                n["source_file"] for n in raw_nodes)),
+            "files": len(kept_ids and set(n["source_file"] for n in raw_nodes)),
             "symbols": len(raw_nodes),
             "dirEdges": len(dir_edges_out),
             "built_at_commit": data.get("built_at_commit", ""),
@@ -383,8 +389,10 @@ def main() -> None:
 
     data = _load(args.graph)
     meta = build(data, args.out_dir, args.scale, args.seed)
-    print(f"wrote {args.out_dir}: {meta['dirs']} dirs, {meta['files']} files, "
-          f"{meta['symbols']} symbols, {meta['dirEdges']} dir-edges")
+    print(
+        f"wrote {args.out_dir}: {meta['dirs']} dirs, {meta['files']} files, "
+        f"{meta['symbols']} symbols, {meta['dirEdges']} dir-edges"
+    )
 
 
 if __name__ == "__main__":

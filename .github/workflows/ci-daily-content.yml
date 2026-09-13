@@ -200,7 +200,7 @@ jobs:
                   # failed and reported nothing still had its output committed
                   # in whatever state the failure left it: that is how a
                   # graphify rebuild that died mid-run committed the deletion of
-                  # every file under public/graphify.
+                  # every file under the graph data package.
                   CHANGED="${RUNNER_TEMP}/changed-${{ matrix.route }}.txt"
                   if [ ! -s "${CHANGED}" ]; then
                     echo "::notice::Route ${{ matrix.route }} reported no changed paths — nothing to commit."
@@ -262,7 +262,7 @@ jobs:
                   apps/kbve/astro-kbve/src/content/docs/
                   docs/journal/
                   apps/kbve/astro-kbve/public/data/dashboard/
-                  apps/kbve/astro-kbve/public/graphify/
+                  packages/data/graph/monorepo/
                   apps/kbve/astro-kbve/src/data/
                   packages/data/codegen/generated/
                   apps/rareicon/unity/Assets/StreamingAssets/

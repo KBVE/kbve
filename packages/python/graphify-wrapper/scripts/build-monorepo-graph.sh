@@ -5,9 +5,12 @@ set -euo pipefail
 # Usage: ./build-monorepo-graph.sh [--semantic]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-OUTPUT_DIR="$WORKSPACE_ROOT/packages/data/graphify/output/monorepo"
-CONFIG_FILE="$WORKSPACE_ROOT/packages/data/graphify/configs/.graphify.yml"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Three up from the project (packages/python/graphify-wrapper), not from
+# scripts/ — that resolved to `packages/` and every path built on it was wrong.
+WORKSPACE_ROOT="$(cd "$PROJECT_DIR/../../.." && pwd)"
+OUTPUT_DIR="$WORKSPACE_ROOT/packages/data/graph/output/monorepo"
+CONFIG_FILE="$PROJECT_DIR/configs/.graphify.yml"
 
 echo "🔍 Building monorepo knowledge graph..."
 echo "📁 Workspace: $WORKSPACE_ROOT"

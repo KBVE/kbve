@@ -12,7 +12,7 @@ import {
 	type GraphifyOverviewInput,
 	type SiteGraphInput,
 } from '../../../lib/graph/buildGraphIndex';
-import nxGraph from '../../../../public/data/dashboard/graph.json';
+import nxGraph from '../../../../../../../packages/data/graph/monorepo/projects.json';
 import { loadGraphifyOverview } from '../../../lib/graph/graphifyOverview';
 
 /**

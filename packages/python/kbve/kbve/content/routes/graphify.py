@@ -2,7 +2,9 @@
 
 Re-extracts code symbols and precomputes the directory→file→symbol LOD chunks
 consumed by the dashboard Graph Explorer (and derived by the
-``/api/graphify/monorepo.json`` endpoint). Delegates to the
+``/api/graphify/monorepo.json`` endpoint). Output lands in
+``packages/data/graph/monorepo``; the site copies it into ``public`` at build
+time (``astro-kbve:sync-graph``). Delegates to the
 ``graphify-wrapper:build-tiered`` moon task, which pins networkx/numpy/scipy so
 the force layout is deterministic — the graph moves only when code changes, not
 when a dependency floats.
@@ -44,7 +46,7 @@ class GraphifyRoute:
 
     def build(self, ctx: BuildContext) -> BuildResult:
         repo_root = repo_root_for(ctx.content_root)
-        out_dir = repo_root / "apps" / "kbve" / "astro-kbve" / "public" / "graphify"
+        out_dir = repo_root / "packages" / "data" / "graph" / "monorepo"
         cmd = ctx.inputs.get("build_cmd") or _DEFAULT_CMD
 
         if not ctx.dry_run:
@@ -63,5 +65,7 @@ class GraphifyRoute:
                 _warn("tiered rebuild failed (%s) — skipping" % exc)
                 return BuildResult("graphify", [], True, "build failed: %s" % exc)
 
-        changed = [os.path.relpath(out_dir, repo_root)]
+        changed = [
+            os.path.relpath(out_dir / name, repo_root) for name in ("overview.json", "dir")
+        ]
         return BuildResult("graphify", changed, False, "rebuilt tiered graph")

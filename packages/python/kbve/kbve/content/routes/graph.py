@@ -1,8 +1,11 @@
 """The ``graph`` route — dependency-graph dashboard (MDX + raw JSON).
 
 Acquires the project graph from moon, parses it via :func:`parse_graph`, and
-renders the Starlight MDX. The raw graph JSON is written to the Astro public
-data dir, where the ``/graph/`` hub and the home dashboard read it.
+renders the Starlight MDX. The raw graph JSON is written to
+``packages/data/graph/monorepo/projects.json``, the committed home of every
+graph artifact, which ``astro-kbve:sync-graph`` copies to
+``public/data/dashboard/graph.json`` for the ``/graph/`` hub and the home
+dashboard to fetch.
 
 The envelope stays ``{graph: {nodes, dependencies}}`` because the site, the MDX
 renderer and the published ``/data/dashboard/graph.json`` URL all read it. What a
@@ -124,10 +127,13 @@ class GraphRoute:
 
         graph = parse_graph(raw)
 
+        repo_root = repo_root_for(ctx.content_root)
+
         return emit_page(
             ctx,
             "graph",
             page="graph.mdx",
             mdx_text=render_graph_mdx(graph, ctx.timestamp),
             json_text=json.dumps(raw, indent=2),
+            json_path=repo_root / "packages" / "data" / "graph" / "monorepo" / "projects.json",
         )
