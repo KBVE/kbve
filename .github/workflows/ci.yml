@@ -26,25 +26,41 @@ on:
 permissions:
     contents: read
 
-# A cancelled check is indistinguishable from a failing one on a pull request,
-# so all of this exists to keep the dev->main release PR from wearing grey X's.
-#
 # `github.workflow` is the *calling* workflow's name when this runs through
 # workflow_call, so a nested run and a direct one on the same ref sit in
 # different groups rather than cancelling each other.
 #
-# Every push carries its own sha in the group, which is the only way to stop a
-# merge into dev from discarding the one before it. A shared group is not
-# enough even with cancel-in-progress off: GitHub holds exactly one *pending*
-# run per group, so in a burst of three merges the middle one is cancelled
-# before it starts a job. Half of this workflow's runs on dev were being thrown
-# away that way, and the commits they covered went unvalidated -- the tip was
-# always tested, but nothing in between it and the last green run was.
-#
 # A pull request keeps the shared group. There a new commit really does
 # supersede the run before it, and the old result is worth nothing.
+#
+# Dev shares one lane; main keeps a lane per commit.
+#
+# The sha was in this group for every push, so nothing ever superseded
+# anything: each merge into dev opened its own lane and waited. At the merge
+# rate dev actually runs at -- 6.7 commits an hour -- that is a queue that
+# cannot drain. Measured on 2026-09-13: 34 CI and 25 CodeQL push runs queued
+# on dev at once, the oldest of them six hours old, while a feature pull
+# request waited 27 minutes for a 105 second job.
+#
+# The sha was added for a real reason: a shared group means GitHub holds one
+# pending run and cancels the rest, so commits between the tip and the last
+# green run go unvalidated. That reasoning holds at a low merge rate. At this
+# one it inverts -- those commits were not being validated either, they were
+# being validated six hours late, behind the pull request feedback they were
+# starving. A bounded queue on the tip is worth more than an unbounded one on
+# history.
+#
+# `cancel-in-progress` stays false, which is the half that matters here: only
+# *pending* runs are dropped, so a run that has started still finishes. And a
+# dropped run is cancelled rather than failed -- the tracker below skips a
+# cancelled result, and utils-ci-failure-tracker.yml only acts on failure or
+# success, so nothing opens an issue for one. The dev->main release pull
+# request always points at the tip, and the tip's run is the newest pending
+# one, which is the one that is never dropped.
+#
+# main keeps the sha. Releases are rare, and each one is worth its own answer.
 concurrency:
-    group: ci-${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'push' && format('-{0}', github.sha) || '' }}
+    group: ci-${{ github.workflow }}-${{ github.ref }}${{ (github.event_name == 'push' && github.ref != 'refs/heads/dev') && format('-{0}', github.sha) || '' }}
     cancel-in-progress: ${{ github.event_name == 'pull_request' && github.head_ref != 'dev' }}
 
 jobs:
