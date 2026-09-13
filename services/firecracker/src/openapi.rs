@@ -9,8 +9,8 @@
 
 use axum::Json;
 use utoipa::{
-    Modify, OpenApi,
     openapi::security::{Http, HttpAuthScheme, SecurityScheme},
+    Modify, OpenApi,
 };
 
 use crate::{
@@ -60,6 +60,7 @@ impl Modify for SecurityAddon {
     ),
     paths(
         crate::health,
+        crate::quote_vm,
         crate::create_vm,
         crate::get_vm_status,
         crate::get_vm_result,
@@ -68,6 +69,7 @@ impl Modify for SecurityAddon {
         crate::fc_deploy,
         crate::fc_list,
         crate::fc_get,
+        crate::fc_logs,
         crate::fc_destroy,
     ),
     components(
@@ -88,4 +90,33 @@ pub struct ApiDoc;
 /// `GET /openapi.json` — full spec served to staff dashboard Scalar viewer.
 pub async fn openapi_json() -> Json<utoipa::openapi::OpenApi> {
     Json(ApiDoc::openapi())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The spec is built by a derive over every handler's `#[utoipa::path]`,
+    /// so it is generated code that can still fail at runtime: `SecurityAddon`
+    /// expects `components` to exist and panics if the derive produced none.
+    #[test]
+    fn spec_builds_with_the_security_scheme_attached() {
+        let spec = ApiDoc::openapi();
+        let components = spec.components.expect("derive produced components");
+        assert!(
+            components.security_schemes.contains_key("bearerAuth"),
+            "SecurityAddon did not run"
+        );
+        assert!(
+            spec.paths.paths.contains_key("/vm/create"),
+            "handler paths missing from the spec"
+        );
+    }
+
+    #[tokio::test]
+    async fn openapi_json_serialises() {
+        let Json(spec) = openapi_json().await;
+        let body = serde_json::to_string(&spec).expect("spec serialises");
+        assert!(body.contains("bearerAuth"));
+    }
 }

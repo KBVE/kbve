@@ -210,6 +210,60 @@ mod tests {
     use super::*;
     use axum::http::HeaderValue;
 
+    /// Billing is off in every deployment that has no wallet configured, which
+    /// is the default. Each entry point has to be a no-op there rather than an
+    /// error, or an unbilled firecracker-ctl cannot create a VM at all.
+    #[tokio::test]
+    async fn every_entry_point_is_a_no_op_without_a_wallet() {
+        let account = Some(Uuid::new_v4());
+
+        assert!(matches!(
+            place_hold(None, account, "fc-1", 2, 512, 600, 0).await,
+            Ok(HoldOutcome::Skipped)
+        ));
+        // Skipped before the account is even looked at: no wallet, no charge.
+        assert!(matches!(
+            place_hold(None, None, "fc-1", 2, 512, 600, 0).await,
+            Ok(HoldOutcome::Skipped)
+        ));
+
+        assert!(settle(None, "fc-1", 1_000).await.is_none());
+
+        // These two return (), so reaching the next line is the assertion.
+        record_deployment(
+            None,
+            account,
+            "fc-1",
+            "alpine-python",
+            "/bin/sh",
+            8080,
+            FirecrackerDeploymentVisibility::Staff,
+            2,
+            512,
+            600,
+            serde_json::json!({}),
+        )
+        .await;
+        mark_destroyed(None, true, "fc-1", FirecrackerDestroyReason::Admin, None).await;
+        mark_destroyed(None, false, "fc-1", FirecrackerDestroyReason::Admin, None).await;
+    }
+
+    #[test]
+    fn hold_outcome_and_error_are_inspectable() {
+        // The variants cross a module boundary into main.rs's match arms, so
+        // their Debug output is what a failing log line will carry.
+        assert!(format!("{:?}", HoldOutcome::Placed { amount: 42 }).contains("42"));
+        assert!(format!("{:?}", HoldError::MissingAccount).contains("MissingAccount"));
+        assert!(format!(
+            "{:?}",
+            HoldError::Insufficient {
+                balance_short_of: 7
+            }
+        )
+        .contains('7'));
+        assert!(format!("{:?}", HoldError::Other("boom".into())).contains("boom"));
+    }
+
     #[test]
     fn extract_account_id_returns_uuid_when_header_valid() {
         let mut h = HeaderMap::new();

@@ -138,6 +138,12 @@ struct JailerConfig {
 struct AppState {
     vms: Arc<DashMap<String, VmRecord>>,
     rootfs_dir: String,
+    /// Where per-VM sockets, config files and code drives are written, from
+    /// FC_SCRATCH_DIR. Every spawn path used to hardcode the default instead
+    /// of reading it, so setting the variable moved the jailer's chroot base
+    /// and nothing else -- the jail was remounted at one path while the VM's
+    /// own files landed at another.
+    scratch_dir: String,
     max_concurrent_vms: usize,
     /// One permit per in-flight ephemeral VM. Counting `vms` for entries in
     /// Creating or Running cannot enforce the cap: the scan and the insert are
@@ -816,6 +822,7 @@ async fn create_vm(
 
     let vms = state.vms.clone();
     let rootfs_dir = state.rootfs_dir.clone();
+    let scratch_dir = state.scratch_dir.clone();
     let jailer = state.jailer.clone();
     let persistent = state.persistent.clone();
     let billing = state.billing.clone();
@@ -825,6 +832,7 @@ async fn create_vm(
             vm_id,
             req,
             rootfs_dir,
+            scratch_dir,
             kill_signal,
             jailer,
             persistent,
@@ -1190,23 +1198,31 @@ async fn fc_deploy(
     // --- Spawn the Firecracker VM ---
     let vm_id = req.name.clone();
     let ip_arg = allocation.kernel_ip_arg();
-    let spawn_result =
-        match spawn_persistent(&vm_id, &state.rootfs_dir, &req, &tap.name, &ip_arg).await {
-            Ok(r) => r,
-            Err(e) => {
-                tracing::error!("fc_deploy: VM spawn failed for {}: {e}", req.name);
-                let _ = persistent.tap_manager.destroy_tap(&tap).await;
-                persistent.pool.release(&allocation);
-                void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({
-                        "error": "VM spawn failed",
-                        "detail": e,
-                    })),
-                );
-            }
-        };
+    let spawn_result = match spawn_persistent(
+        &vm_id,
+        &state.rootfs_dir,
+        &state.scratch_dir,
+        &req,
+        &tap.name,
+        &ip_arg,
+    )
+    .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            tracing::error!("fc_deploy: VM spawn failed for {}: {e}", req.name);
+            let _ = persistent.tap_manager.destroy_tap(&tap).await;
+            persistent.pool.release(&allocation);
+            void_hold(state.billing.as_deref(), &req.name, billing_account_id).await;
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "error": "VM spawn failed",
+                    "detail": e,
+                })),
+            );
+        }
+    };
 
     let pid = spawn_result.child.id();
     let logs = Arc::new(LogRing::new());
@@ -2322,6 +2338,7 @@ async fn run_vm_lifecycle(
     vm_id: String,
     req: CreateVmRequest,
     rootfs_dir: String,
+    scratch_dir: String,
     kill_signal: Arc<Notify>,
     jailer: Option<Arc<JailerConfig>>,
     persistent: Option<Arc<PersistentState>>,
@@ -2476,6 +2493,7 @@ async fn run_vm_lifecycle(
                 &vm_id,
                 &rootfs_path,
                 &rootfs_dir,
+                &scratch_dir,
                 &code_buf,
                 &boot_args,
                 &req,
@@ -2528,9 +2546,13 @@ async fn run_vm_lifecycle(
         }
     };
 
-    // Read captured output (available after process exits or is killed)
-    let stdout = read_child_pipe(child_stdout).await;
-    let stderr = read_child_stderr(child_stderr).await;
+    // Read captured output (available after process exits or is killed).
+    // Jointly: each drain has its own timeout, and a wedged stdout should not
+    // add its five seconds to a stderr that was ready immediately.
+    let (stdout, stderr) = tokio::join!(
+        read_child_pipe(child_stdout),
+        read_child_stderr(child_stderr)
+    );
     let duration_ms = start.elapsed().as_millis() as u64;
 
     match outcome {
@@ -2651,6 +2673,7 @@ async fn spawn_direct(
     vm_id: &str,
     rootfs_path: &str,
     rootfs_dir: &str,
+    scratch_dir: &str,
     code_buf: &[u8],
     boot_args: &str,
     req: &CreateVmRequest,
@@ -2662,6 +2685,7 @@ async fn spawn_direct(
         vm_id,
         rootfs_path,
         rootfs_dir,
+        scratch_dir,
         code_buf,
         boot_args,
         req,
@@ -2686,7 +2710,6 @@ async fn spawn_direct(
             if let Some(lease) = network_lease {
                 lease.release(vm_id).await;
             }
-            let scratch_dir = "/var/lib/firecracker/scratch";
             for ext in ["code", "sock", "json", "pkgs"] {
                 let _ = tokio::fs::remove_file(format!("{}/{}.{}", scratch_dir, vm_id, ext)).await;
             }
@@ -2699,6 +2722,7 @@ async fn spawn_direct_inner(
     vm_id: &str,
     rootfs_path: &str,
     rootfs_dir: &str,
+    scratch_dir: &str,
     code_buf: &[u8],
     boot_args: &str,
     req: &CreateVmRequest,
@@ -2706,7 +2730,6 @@ async fn spawn_direct_inner(
     pkg_cache_path: Option<&str>,
     network_lease: Option<&NetworkLease>,
 ) -> Result<(tokio::process::Child, DirectPaths), String> {
-    let scratch_dir = "/var/lib/firecracker/scratch";
     let code_path = format!("{}/{}.code", scratch_dir, vm_id);
     let socket_path = format!("{}/{}.sock", scratch_dir, vm_id);
     let config_path = format!("{}/{}.json", scratch_dir, vm_id);
@@ -2974,6 +2997,7 @@ struct PersistentSpawnResult {
 async fn spawn_persistent(
     vm_id: &str,
     rootfs_dir: &str,
+    scratch_dir: &str,
     req: &DeployFcRequest,
     tap_name: &str,
     ip_arg: &str,
@@ -2983,7 +3007,6 @@ async fn spawn_persistent(
         return Err(format!("rootfs image not found: {}", rootfs_image));
     }
 
-    let scratch_dir = "/var/lib/firecracker/scratch";
     let socket_path = format!("{}/fc-{}.sock", scratch_dir, vm_id);
     let config_path = format!("{}/fc-{}.json", scratch_dir, vm_id);
 
@@ -3201,25 +3224,57 @@ fn set_vm_failed(
     }
 }
 
-async fn read_child_pipe(pipe: Option<tokio::process::ChildStdout>) -> String {
-    if let Some(mut out) = pipe {
-        let mut buf = Vec::new();
-        let _ = tokio::io::AsyncReadExt::read_to_end(&mut out, &mut buf).await;
-        String::from_utf8_lossy(&buf).to_string()
-    } else {
-        String::new()
+/// How long to keep draining a dead VM's pipe before giving up on the rest.
+const CHILD_PIPE_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Drain what a finished VM wrote, without waiting on it forever.
+///
+/// This ran as an unbounded `read_to_end`, which ends only when every writer
+/// closes the pipe -- and killing the VMM does not kill whatever it forked.
+/// A descendant holding the inherited stdout kept the read pending, and with
+/// it the whole lifecycle task: its concurrency permit unreturned, its credit
+/// hold unsettled, its record stuck in Running where the reaper never evicts
+/// it. Reproduced by the mock VMM's `MOCK_SLEEP`, whose `sleep` outlives the
+/// `bash` that firecracker-ctl kills, and the real jailer forks the same way.
+///
+/// The process is already dead by the time this runs, so anything still owed
+/// is sitting in the pipe buffer; whatever has not arrived in five seconds is
+/// being held by something that is not going to release it. Partial output is
+/// kept -- it is usually the part that says why the VM died.
+async fn read_pipe_bounded<R>(pipe: Option<R>) -> String
+where
+    R: tokio::io::AsyncRead + Unpin,
+{
+    let Some(mut pipe) = pipe else {
+        return String::new();
+    };
+    let mut buf = Vec::new();
+    let drained = tokio::time::timeout(CHILD_PIPE_DRAIN_TIMEOUT, async {
+        let mut chunk = [0u8; 8192];
+        loop {
+            match tokio::io::AsyncReadExt::read(&mut pipe, &mut chunk).await {
+                Ok(0) | Err(_) => break,
+                Ok(n) => buf.extend_from_slice(&chunk[..n]),
+            }
+        }
+    })
+    .await;
+    if drained.is_err() {
+        tracing::warn!(
+            "child pipe still open after {}s; keeping {} byte(s) read so far",
+            CHILD_PIPE_DRAIN_TIMEOUT.as_secs(),
+            buf.len()
+        );
     }
+    String::from_utf8_lossy(&buf).to_string()
 }
 
-// Overload for stderr (different type, same logic)
+async fn read_child_pipe(pipe: Option<tokio::process::ChildStdout>) -> String {
+    read_pipe_bounded(pipe).await
+}
+
 async fn read_child_stderr(pipe: Option<tokio::process::ChildStderr>) -> String {
-    if let Some(mut out) = pipe {
-        let mut buf = Vec::new();
-        let _ = tokio::io::AsyncReadExt::read_to_end(&mut out, &mut buf).await;
-        String::from_utf8_lossy(&buf).to_string()
-    } else {
-        String::new()
-    }
+    read_pipe_bounded(pipe).await
 }
 
 // ---------------------------------------------------------------------------
@@ -3469,6 +3524,7 @@ async fn main() {
     let state = AppState {
         vms,
         rootfs_dir,
+        scratch_dir: scratch_dir.clone(),
         max_concurrent_vms,
         vm_slots: Arc::new(Semaphore::new(max_concurrent_vms)),
         jailer,
@@ -4130,6 +4186,7 @@ mod tests {
         let state = AppState {
             vms: Arc::new(DashMap::new()),
             rootfs_dir,
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 4,
             vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
@@ -4706,6 +4763,7 @@ mod tests {
         let state = AppState {
             vms: Arc::new(DashMap::new()),
             rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 4,
             vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
@@ -5141,6 +5199,7 @@ mod tests {
         let state = AppState {
             vms,
             rootfs_dir: tmp.path().to_string_lossy().into_owned(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 1,
             vm_slots,
             jailer: None,
@@ -5195,6 +5254,7 @@ mod tests {
         let state = AppState {
             vms,
             rootfs_dir: tmp.path().to_string_lossy().into_owned(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 2,
             vm_slots: Arc::new(Semaphore::new(2)),
             jailer: None,
@@ -5239,6 +5299,7 @@ mod tests {
         let state = AppState {
             vms,
             rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 4,
             vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
@@ -5290,6 +5351,7 @@ mod tests {
         let state = AppState {
             vms: vms.clone(),
             rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
             max_concurrent_vms: 4,
             vm_slots: Arc::new(Semaphore::new(4)),
             jailer: None,
@@ -5339,6 +5401,804 @@ mod tests {
         let year: i32 = year_str.parse().unwrap();
         assert!((2024..3000).contains(&year), "unreasonable year: {year}");
         assert!(s.ends_with('Z'));
+    }
+
+    /// A VM that exists but has not finished answers 202, not 404 and not a
+    /// half-built 200: the caller is meant to poll this endpoint.
+    #[tokio::test]
+    async fn get_vm_result_returns_202_while_still_running() {
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        vms.insert("fc-running".into(), make_record(VmStatus::Running));
+        let app = Router::new()
+            .route("/vm/{vm_id}/result", get(get_vm_result))
+            .with_state(AppState {
+                vms,
+                rootfs_dir: "/tmp".into(),
+                scratch_dir: "/tmp/fc-test-scratch".into(),
+                max_concurrent_vms: 4,
+                vm_slots: Arc::new(Semaphore::new(4)),
+                jailer: None,
+                persistent: None,
+                billing: None,
+            });
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/vm/fc-running/result")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::ACCEPTED);
+        let v = body_json(resp).await;
+        assert_eq!(v["vm_id"], "fc-running");
+        assert_eq!(v["message"], "VM has not completed yet");
+    }
+
+    /// The proxy refuses to forward to an endpoint that is not Healthy, and
+    /// each reason carries its own Retry-After so a client backs off by the
+    /// right amount. Stopping gets none -- it is not coming back.
+    #[tokio::test]
+    async fn proxy_refuses_endpoints_that_are_not_healthy() {
+        for (status, retry_after) in [
+            (EndpointStatus::Starting, Some("2")),
+            (EndpointStatus::Degraded, Some("5")),
+            (EndpointStatus::Stopping, None),
+        ] {
+            let mut ep = make_endpoint("gated", 1, EndpointVisibility::Staff, http_cfg());
+            ep.status = status;
+            let app = test_app_with_persistent(make_persistent_state(ep));
+            let resp = app
+                .oneshot(
+                    Request::builder()
+                        .uri("/proxy/gated/")
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(
+                resp.status(),
+                StatusCode::SERVICE_UNAVAILABLE,
+                "{status:?} should not be proxied to"
+            );
+            assert_eq!(
+                resp.headers()
+                    .get(header::RETRY_AFTER)
+                    .map(|v| v.to_str().unwrap()),
+                retry_after,
+                "{status:?} carried the wrong Retry-After"
+            );
+            let v = body_json(resp).await;
+            assert_eq!(
+                v["status"],
+                format!("{status:?}").to_lowercase(),
+                "{status:?} body did not name itself"
+            );
+        }
+    }
+
+    /// A CORS preflight is answered inline before the readiness gate, so a
+    /// browser gets its policy while the guest is still booting rather than a
+    /// CORS error it cannot retry past.
+    #[tokio::test]
+    async fn proxy_answers_preflight_even_while_starting() {
+        let mut cfg = http_cfg();
+        cfg.cors_allow_origins = vec!["https://kbve.com".into()];
+        let mut ep = make_endpoint("booting", 1, EndpointVisibility::Public, cfg);
+        ep.status = EndpointStatus::Starting;
+        let app = test_app_with_persistent(make_persistent_state(ep));
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method(Method::OPTIONS)
+                    .uri("/public-proxy/booting/")
+                    .header(header::ORIGIN, "https://kbve.com")
+                    .header("access-control-request-method", "GET")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_ne!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            resp.headers()
+                .get("access-control-allow-origin")
+                .map(|v| v.to_str().unwrap()),
+            Some("https://kbve.com")
+        );
+    }
+
+    /// The reaper evicts finished records past the TTL and keeps everything
+    /// else. Active records are deliberately immortal here -- see
+    /// `a_stranded_record_does_not_consume_capacity` for why that no longer
+    /// costs capacity.
+    ///
+    /// `VmRecord.created` is a `std::time::Instant`, which tokio's paused
+    /// clock does not move, so age is expressed through the TTL rather than by
+    /// advancing time: a zero TTL makes every finished record already stale.
+    #[tokio::test(start_paused = true)]
+    async fn reaper_evicts_finished_records_and_keeps_active_ones() {
+        fn seeded() -> Arc<DashMap<String, VmRecord>> {
+            let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+            for (id, status) in [
+                ("fc-done", VmStatus::Completed),
+                ("fc-failed", VmStatus::Failed),
+                ("fc-creating", VmStatus::Creating),
+                ("fc-running", VmStatus::Running),
+            ] {
+                vms.insert(id.into(), make_record(status));
+            }
+            vms
+        }
+
+        // Nothing has aged out yet: the first tick keeps all four.
+        let fresh = seeded();
+        let handle = tokio::spawn(reaper_task(fresh.clone(), Duration::from_secs(600)));
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        handle.abort();
+        assert_eq!(fresh.len(), 4, "nothing should be evicted before the TTL");
+
+        // Everything finished is stale at a zero TTL; the active two stay.
+        let stale = seeded();
+        let handle = tokio::spawn(reaper_task(stale.clone(), Duration::ZERO));
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        handle.abort();
+        assert!(!stale.contains_key("fc-done"));
+        assert!(!stale.contains_key("fc-failed"));
+        assert!(stale.contains_key("fc-creating"));
+        assert!(stale.contains_key("fc-running"));
+    }
+
+    /// A pipe that never closes must not hold the lifecycle task open: the
+    /// task owns the concurrency permit and the credit hold, so a wedged read
+    /// leaks both. Partial output is kept rather than discarded.
+    #[tokio::test(start_paused = true)]
+    async fn read_pipe_bounded_gives_up_on_a_pipe_that_never_closes() {
+        let (mut writer, reader) = tokio::io::duplex(64);
+        tokio::io::AsyncWriteExt::write_all(&mut writer, b"partial output")
+            .await
+            .unwrap();
+        // `writer` is deliberately never dropped, so the reader never sees EOF.
+
+        let started = tokio::time::Instant::now();
+        let out = read_pipe_bounded(Some(reader)).await;
+        assert_eq!(out, "partial output");
+        assert!(
+            started.elapsed() >= CHILD_PIPE_DRAIN_TIMEOUT,
+            "returned before the drain timeout"
+        );
+        drop(writer);
+    }
+
+    #[tokio::test]
+    async fn read_pipe_bounded_returns_everything_once_the_writer_closes() {
+        let (mut writer, reader) = tokio::io::duplex(64);
+        tokio::io::AsyncWriteExt::write_all(&mut writer, b"all of it")
+            .await
+            .unwrap();
+        drop(writer);
+        assert_eq!(read_pipe_bounded(Some(reader)).await, "all of it");
+        assert_eq!(
+            read_pipe_bounded(Option::<tokio::io::DuplexStream>::None).await,
+            ""
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // FC_SCRATCH_DIR + scratch cleanup on a failed spawn
+    // -----------------------------------------------------------------
+
+    fn spawn_req() -> CreateVmRequest {
+        serde_json::from_value(serde_json::json!({
+            "rootfs": "alpine-minimal",
+            "entrypoint": "/bin/echo",
+        }))
+        .unwrap()
+    }
+
+    /// Every spawn path used to hardcode /var/lib/firecracker/scratch while
+    /// main() read FC_SCRATCH_DIR and handed it only to the jailer. Pointing
+    /// the spawn at a directory that does not exist is the cheapest proof that
+    /// it is now the configured path being written to.
+    #[tokio::test]
+    async fn spawn_direct_writes_into_the_configured_scratch_dir() {
+        let err = spawn_direct(
+            "fc-scratch-probe",
+            "/dev/null",
+            "/tmp",
+            "/tmp/fc-scratch-does-not-exist-7b2e",
+            b"code",
+            "console=ttyS0",
+            &spawn_req(),
+            None,
+            None,
+            None,
+        )
+        .await
+        .err()
+        .expect("spawn should fail on a missing scratch dir");
+        assert!(
+            err.starts_with("Code write failed"),
+            "spawn did not use the configured scratch dir: {err}"
+        );
+    }
+
+    /// A spawn that fails partway has already written some of its scratch
+    /// files. They are per-VM and nothing ever revisits that id, so anything
+    /// left behind is dead weight on the volume until the pod restarts.
+    #[tokio::test]
+    async fn failed_spawn_leaves_no_scratch_behind() {
+        let scratch = tempfile::tempdir().unwrap();
+        let scratch_path = scratch.path().to_string_lossy().into_owned();
+
+        let mut req = spawn_req();
+        req.packages = vec!["kbve".into()];
+
+        // `firecracker` is not on PATH here, so the writes all succeed and the
+        // spawn itself is what fails -- the deepest of the four exits.
+        let err = spawn_direct(
+            "fc-cleanup-probe",
+            "/dev/null",
+            "/tmp",
+            &scratch_path,
+            b"code",
+            "console=ttyS0",
+            &req,
+            Some(b"kbve"),
+            None,
+            None,
+        )
+        .await
+        .err()
+        .expect("spawn should fail with no firecracker on PATH");
+        assert!(err.starts_with("Spawn failed"), "unexpected error: {err}");
+
+        let leftovers: Vec<_> = std::fs::read_dir(scratch.path())
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert!(
+            leftovers.is_empty(),
+            "failed spawn left scratch files behind: {leftovers:?}"
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // Credit holds released on failure -- see PR #17217
+    // -----------------------------------------------------------------
+
+    /// Both helpers must be inert when no wallet is configured, which is the
+    /// default deployment. They sit on failure paths, so a panic here would
+    /// turn a recoverable error into a lost VM record.
+    #[tokio::test]
+    async fn void_hold_is_inert_without_a_wallet() {
+        void_hold(None, "fc-1", Some(Uuid::new_v4())).await;
+        void_hold(None, "fc-1", None).await;
+    }
+
+    #[tokio::test]
+    async fn fail_and_void_hold_marks_the_record_failed() {
+        let vms: Arc<DashMap<String, VmRecord>> = Arc::new(DashMap::new());
+        vms.insert("fc-1".into(), make_record(VmStatus::Creating));
+
+        fail_and_void_hold(
+            &vms,
+            "fc-1",
+            Instant::now(),
+            "IP pool exhausted".into(),
+            None,
+            Some(Uuid::new_v4()),
+        )
+        .await;
+
+        let record = vms.get("fc-1").unwrap();
+        assert_eq!(record.info.status, VmStatus::Failed);
+        let result = record.result.as_ref().expect("result written");
+        assert_eq!(result.exit_code, -1);
+        assert_eq!(result.stderr, "IP pool exhausted");
+        assert!(result.stdout.is_empty());
+    }
+
+    // -----------------------------------------------------------------
+    // Health prober -- drives Starting/Healthy/Degraded
+    // -----------------------------------------------------------------
+
+    async fn await_status(
+        persistent: &Arc<PersistentState>,
+        name: &str,
+        want: EndpointStatus,
+    ) -> bool {
+        for _ in 0..200 {
+            if persistent
+                .endpoints
+                .get(name)
+                .is_some_and(|e| e.status == want)
+            {
+                return true;
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+        false
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn health_prober_flips_starting_to_healthy() {
+        let port = spawn_upstream().await;
+        let mut ep = make_endpoint("probe-up", port, EndpointVisibility::Staff, http_cfg());
+        ep.status = EndpointStatus::Starting;
+        ep.health_path = "/".into();
+        let persistent = make_persistent_state(ep);
+
+        let handle = tokio::spawn(health_prober_task(persistent.clone(), "probe-up".into()));
+        let ok = await_status(&persistent, "probe-up", EndpointStatus::Healthy).await;
+        handle.abort();
+        assert!(ok, "prober never flipped the endpoint to Healthy");
+    }
+
+    /// One failure is not enough -- a single dropped probe would otherwise
+    /// take a working endpoint out of the proxy. It takes three.
+    #[tokio::test(start_paused = true)]
+    async fn health_prober_degrades_only_after_three_consecutive_failures() {
+        // Bind and immediately drop, so the port is almost certainly dead.
+        let dead = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = dead.local_addr().unwrap().port();
+        drop(dead);
+
+        let ep = make_endpoint("probe-down", port, EndpointVisibility::Staff, http_cfg());
+        assert_eq!(ep.status, EndpointStatus::Healthy);
+        let persistent = make_persistent_state(ep);
+
+        let handle = tokio::spawn(health_prober_task(persistent.clone(), "probe-down".into()));
+        let degraded = await_status(&persistent, "probe-down", EndpointStatus::Degraded).await;
+        handle.abort();
+        assert!(degraded, "prober never flipped the endpoint to Degraded");
+    }
+
+    /// The prober owns no registry entry of its own, so removal and Stopping
+    /// are its only exits. Neither may leave a task polling a dead guest.
+    #[tokio::test(start_paused = true)]
+    async fn health_prober_exits_when_the_endpoint_is_gone_or_stopping() {
+        // Never registered at all.
+        let empty = make_persistent_state(make_endpoint(
+            "other",
+            1,
+            EndpointVisibility::Staff,
+            http_cfg(),
+        ));
+        health_prober_task(empty, "absent".into()).await;
+
+        // Registered, but already tearing down.
+        let mut stopping = make_endpoint("bye", 1, EndpointVisibility::Staff, http_cfg());
+        stopping.status = EndpointStatus::Stopping;
+        let persistent = make_persistent_state(stopping);
+        health_prober_task(persistent, "bye".into()).await;
+    }
+
+    // -----------------------------------------------------------------
+    // Idle sweeper -- tears down endpoints nobody is using
+    // -----------------------------------------------------------------
+
+    /// An endpoint with `idle_ttl_secs == 0` is pinned: the sweeper meters it
+    /// but never reclaims it. One past its TTL is removed and its TAP and pool
+    /// address handed back.
+    #[tokio::test(start_paused = true)]
+    async fn idle_sweeper_reclaims_only_endpoints_past_their_ttl() {
+        let mut pinned = make_endpoint("pinned", 1, EndpointVisibility::Staff, http_cfg());
+        pinned.idle_ttl_secs = 0;
+        let persistent = make_persistent_state(pinned);
+
+        let mut idle = make_endpoint("idle", 2, EndpointVisibility::Staff, http_cfg());
+        idle.idle_ttl_secs = 1;
+        idle.metrics
+            .last_request_micros
+            .store(now_micros() - 30 * 1_000_000, Ordering::Relaxed);
+        // make_endpoint allocates from a throwaway pool; take this one from the
+        // state's own pool so the release below is observable.
+        idle.allocation = persistent.pool.allocate().unwrap();
+        persistent.endpoints.insert("idle".into(), idle);
+
+        let mut busy = make_endpoint("busy", 3, EndpointVisibility::Staff, http_cfg());
+        busy.idle_ttl_secs = 3600;
+        busy.metrics
+            .last_request_micros
+            .store(now_micros(), Ordering::Relaxed);
+        persistent.endpoints.insert("busy".into(), busy);
+
+        let before = persistent.pool.in_use();
+        let handle = tokio::spawn(idle_sweeper_task(
+            persistent.clone(),
+            Duration::from_millis(10),
+            None,
+        ));
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        handle.abort();
+
+        assert!(
+            !persistent.endpoints.contains_key("idle"),
+            "idle endpoint survived its TTL"
+        );
+        assert!(
+            persistent.endpoints.contains_key("pinned"),
+            "ttl=0 must pin the endpoint"
+        );
+        assert!(
+            persistent.endpoints.contains_key("busy"),
+            "a recently-used endpoint was reclaimed"
+        );
+        assert_eq!(before, 1, "the idle endpoint should hold the only address");
+        assert_eq!(
+            persistent.pool.in_use(),
+            0,
+            "the reclaimed endpoint's address was not released"
+        );
+    }
+
+    /// An endpoint that has never served a request is aged from its creation
+    /// instead of from `last_request_micros`, which is still 0 -- otherwise a
+    /// guest that never came up would never be reclaimed.
+    #[tokio::test(start_paused = true)]
+    async fn idle_sweeper_ages_a_never_used_endpoint_from_creation() {
+        let mut never = make_endpoint("never", 1, EndpointVisibility::Staff, http_cfg());
+        never.idle_ttl_secs = 1;
+        never.created = Instant::now() - Duration::from_secs(30);
+        assert_eq!(never.metrics.last_request_micros.load(Ordering::Relaxed), 0);
+        let persistent = make_persistent_state(never);
+
+        let handle = tokio::spawn(idle_sweeper_task(
+            persistent.clone(),
+            Duration::from_millis(10),
+            None,
+        ));
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        handle.abort();
+
+        assert!(!persistent.endpoints.contains_key("never"));
+    }
+
+    // -----------------------------------------------------------------
+    // GET /metrics — Prometheus exposition, scraped by the ServiceMonitor
+    // -----------------------------------------------------------------
+
+    async fn metrics_body(state: AppState) -> String {
+        let resp = Router::new()
+            .route("/metrics", get(metrics_handler))
+            .with_state(state)
+            .oneshot(
+                Request::builder()
+                    .uri("/metrics")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/plain; version=0.0.4"
+        );
+        let bytes = http_body_util::BodyExt::collect(resp.into_body())
+            .await
+            .unwrap()
+            .to_bytes();
+        String::from_utf8(bytes.to_vec()).unwrap()
+    }
+
+    /// On the ephemeral deployment there is no PersistentState, so the handler
+    /// returns after the build gauges. Prometheus rejects a series that is
+    /// emitted without its TYPE line, so the early return has to carry its own.
+    #[tokio::test]
+    async fn metrics_on_ephemeral_deployment_stops_after_the_build_gauges() {
+        let body = metrics_body(AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
+            max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
+            jailer: None,
+            persistent: None,
+            billing: None,
+        })
+        .await;
+
+        assert!(body.contains(&format!(
+            "fc_build_info{{version=\"{}\"}} 1",
+            env!("CARGO_PKG_VERSION")
+        )));
+        assert!(body.contains("fc_jailer_enabled 0"));
+        assert!(body.contains("# TYPE fc_persistent_enabled gauge"));
+        assert!(body.contains("fc_persistent_enabled 0"));
+        assert!(!body.contains("fc_ip_pool_used"));
+
+        for metric in [
+            "fc_build_info",
+            "fc_jailer_enabled",
+            "fc_persistent_enabled",
+        ] {
+            assert!(
+                body.contains(&format!("# HELP {metric} ")),
+                "{metric} emitted without HELP"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn metrics_reports_jailer_when_configured() {
+        let body = metrics_body(AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
+            max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
+            jailer: Some(Arc::new(JailerConfig {
+                chroot_base: "/srv/jail".into(),
+                fc_bin_cache: "/srv/firecracker".into(),
+                kernel_cache: "/srv/vmlinux".into(),
+                uid: 10001,
+                gid: 10001,
+            })),
+            persistent: None,
+            billing: None,
+        })
+        .await;
+        assert!(body.contains("fc_jailer_enabled 1"));
+    }
+
+    /// Every endpoint contributes one `fc_endpoint_status` series per status
+    /// with exactly one set to 1, plus request/byte counters and two age
+    /// gauges. The status histogram at the end has to agree with them.
+    #[tokio::test]
+    async fn metrics_reports_per_endpoint_series_and_status_histogram() {
+        let healthy = make_endpoint("alpha", 1, EndpointVisibility::Staff, http_cfg());
+        healthy.metrics.requests_total.store(10, Ordering::Relaxed);
+        healthy.metrics.upstream_errors.store(3, Ordering::Relaxed);
+        healthy
+            .metrics
+            .requests_throttled
+            .store(2, Ordering::Relaxed);
+        healthy
+            .metrics
+            .requests_forbidden
+            .store(1, Ordering::Relaxed);
+        healthy.metrics.bytes_in.store(512, Ordering::Relaxed);
+        healthy.metrics.bytes_out.store(4096, Ordering::Relaxed);
+        healthy
+            .metrics
+            .last_request_micros
+            .store(now_micros(), Ordering::Relaxed);
+
+        let persistent = make_persistent_state(healthy);
+        let mut degraded = make_endpoint("beta", 2, EndpointVisibility::Public, http_cfg());
+        degraded.status = EndpointStatus::Degraded;
+        persistent.endpoints.insert("beta".into(), degraded);
+
+        let pool_used = persistent.pool.in_use();
+        let pool_capacity = persistent.pool.capacity();
+
+        let body = metrics_body(AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
+            max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
+            jailer: None,
+            persistent: Some(persistent),
+            billing: None,
+        })
+        .await;
+
+        assert!(body.contains("fc_persistent_enabled 1"));
+        assert!(body.contains(&format!("fc_ip_pool_used {pool_used}")));
+        assert!(body.contains(&format!("fc_ip_pool_capacity {pool_capacity}")));
+
+        // ok = total - upstream_errors, not a counter of its own.
+        let a = r#"name="alpha",visibility="staff""#;
+        assert!(body.contains(&format!(
+            "fc_endpoint_requests_total{{{a},outcome=\"ok\"}} 7"
+        )));
+        assert!(body.contains(&format!(
+            "fc_endpoint_requests_total{{{a},outcome=\"upstream_error\"}} 3"
+        )));
+        assert!(body.contains(&format!(
+            "fc_endpoint_requests_total{{{a},outcome=\"throttled\"}} 2"
+        )));
+        assert!(body.contains(&format!(
+            "fc_endpoint_requests_total{{{a},outcome=\"forbidden\"}} 1"
+        )));
+        assert!(body.contains(&format!(
+            "fc_endpoint_bytes_total{{{a},direction=\"in\"}} 512"
+        )));
+        assert!(body.contains(&format!(
+            "fc_endpoint_bytes_total{{{a},direction=\"out\"}} 4096"
+        )));
+
+        // Exactly one status series per endpoint is 1.
+        assert!(body.contains(&format!("fc_endpoint_status{{{a},status=\"healthy\"}} 1")));
+        assert!(body.contains(&format!("fc_endpoint_status{{{a},status=\"degraded\"}} 0")));
+        let b = r#"name="beta",visibility="public""#;
+        assert!(body.contains(&format!("fc_endpoint_status{{{b},status=\"degraded\"}} 1")));
+        assert!(body.contains(&format!("fc_endpoint_status{{{b},status=\"healthy\"}} 0")));
+
+        // beta never served a request, so its age gauge is NaN rather than 0 --
+        // 0 would read as "a request just now".
+        assert!(body.contains(&format!("fc_endpoint_last_request_age_seconds{{{b}}} NaN")));
+        assert!(body.contains(&format!("fc_endpoint_last_request_age_seconds{{{a}}} 0")));
+        assert!(body.contains(&format!("fc_endpoint_uptime_seconds{{{a}}} 0")));
+
+        assert!(body.contains("fc_endpoints_total{status=\"healthy\"} 1"));
+        assert!(body.contains("fc_endpoints_total{status=\"degraded\"} 1"));
+        assert!(body.contains("fc_endpoints_total{status=\"pending\"} 0"));
+    }
+
+    /// Pending, Starting and Stopping are unreachable through the handlers
+    /// today, but the histogram indexes an array by status and a mismatch
+    /// there silently attributes an endpoint to the wrong bucket.
+    #[tokio::test]
+    async fn metrics_histogram_covers_every_status_variant() {
+        let mut first = make_endpoint("s0", 1, EndpointVisibility::Staff, http_cfg());
+        first.status = EndpointStatus::Pending;
+        let persistent = make_persistent_state(first);
+        for (name, status) in [
+            ("s1", EndpointStatus::Starting),
+            ("s2", EndpointStatus::Healthy),
+            ("s3", EndpointStatus::Degraded),
+            ("s4", EndpointStatus::Stopping),
+        ] {
+            let mut ep = make_endpoint(name, 1, EndpointVisibility::Staff, http_cfg());
+            ep.status = status;
+            persistent.endpoints.insert(name.into(), ep);
+        }
+
+        let body = metrics_body(AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
+            max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
+            jailer: None,
+            persistent: Some(persistent),
+            billing: None,
+        })
+        .await;
+
+        for label in ["pending", "starting", "healthy", "degraded", "stopping"] {
+            assert!(
+                body.contains(&format!("fc_endpoints_total{{status=\"{label}\"}} 1")),
+                "{label} bucket did not get its endpoint"
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // LogRing — backs GET /fc/{name}/logs
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn log_ring_keeps_everything_under_capacity() {
+        let ring = LogRing::new();
+        ring.push(b"hello ");
+        ring.push(b"world");
+        assert_eq!(ring.snapshot(), b"hello world");
+    }
+
+    #[test]
+    fn log_ring_drops_oldest_bytes_when_full() {
+        let ring = LogRing::new();
+        // Fill to the brim, then push one more byte than there is room for.
+        ring.push(&vec![b'a'; LogRing::CAP_BYTES]);
+        ring.push(b"Z");
+        let snap = ring.snapshot();
+        assert_eq!(snap.len(), LogRing::CAP_BYTES);
+        assert_eq!(*snap.last().unwrap(), b'Z');
+        assert_eq!(snap[0], b'a');
+    }
+
+    /// A single write larger than the ring takes the tail, not the head: the
+    /// newest output is what an operator reading /fc/{name}/logs wants.
+    #[test]
+    fn log_ring_chunk_larger_than_capacity_keeps_the_tail() {
+        let ring = LogRing::new();
+        ring.push(b"old output that should be discarded");
+        let mut chunk = vec![b'x'; LogRing::CAP_BYTES];
+        chunk.extend_from_slice(b"TAIL");
+        ring.push(&chunk);
+        let snap = ring.snapshot();
+        assert_eq!(snap.len(), LogRing::CAP_BYTES);
+        assert!(snap.ends_with(b"TAIL"));
+    }
+
+    /// The drainer tees the VM's stdio into the ring. Both streams land in
+    /// the same ring; only the mirror target differs.
+    #[tokio::test]
+    async fn drain_vm_stream_tees_both_streams_into_the_ring() {
+        for is_stderr in [false, true] {
+            let logs = Arc::new(LogRing::new());
+            drain_vm_stream(
+                std::io::Cursor::new(b"boot line\n".to_vec()),
+                logs.clone(),
+                is_stderr,
+            )
+            .await;
+            assert_eq!(logs.snapshot(), b"boot line\n");
+        }
+    }
+
+    #[tokio::test]
+    async fn fc_logs_returns_the_ring_then_404_then_503() {
+        let endpoint = make_endpoint("logged", 1, EndpointVisibility::Staff, http_cfg());
+        endpoint.logs.push(b"stdout from the guest");
+        let persistent = make_persistent_state(endpoint);
+        let state = AppState {
+            vms: Arc::new(DashMap::new()),
+            rootfs_dir: "/tmp".into(),
+            scratch_dir: "/tmp/fc-test-scratch".into(),
+            max_concurrent_vms: 4,
+            vm_slots: Arc::new(Semaphore::new(4)),
+            jailer: None,
+            persistent: Some(persistent),
+            billing: None,
+        };
+        let app = Router::new()
+            .route("/fc/{name}/logs", get(fc_logs))
+            .with_state(state);
+
+        let resp = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/logged/logs")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/plain; charset=utf-8"
+        );
+        let body = http_body_util::BodyExt::collect(resp.into_body())
+            .await
+            .unwrap()
+            .to_bytes();
+        assert_eq!(&body[..], b"stdout from the guest");
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/nope/logs")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
+        // persistent: None -> the whole /fc surface is 503.
+        let disabled = Router::new()
+            .route("/fc/{name}/logs", get(fc_logs))
+            .with_state(AppState {
+                vms: Arc::new(DashMap::new()),
+                rootfs_dir: "/tmp".into(),
+                scratch_dir: "/tmp/fc-test-scratch".into(),
+                max_concurrent_vms: 4,
+                vm_slots: Arc::new(Semaphore::new(4)),
+                jailer: None,
+                persistent: None,
+                billing: None,
+            });
+        let resp = disabled
+            .oneshot(
+                Request::builder()
+                    .uri("/fc/logged/logs")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 
     #[tokio::test]
