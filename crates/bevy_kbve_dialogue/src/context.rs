@@ -20,12 +20,16 @@ use crate::proto::DialogueCondition;
 /// open just because the caller has not wired flags up yet.
 #[derive(Resource, Debug, Default, Clone)]
 pub struct DialogueContext {
+    /// Arbitrary named facts the game has set, matched by exact string.
     pub flags: HashSet<String>,
+    /// Character level, for conditions expressed as a minimum.
     pub level: i32,
     /// Quest states by ULID text, as `kbve_proto::ulid_text` renders it.
     pub quests: HashMap<String, QuestStatus>,
     /// Item ULIDs the player is carrying, in the same textual form.
     pub items: HashSet<String>,
+    /// The player's class, when the game has the concept. `None` never
+    /// satisfies a class condition.
     pub class: Option<String>,
     /// Reputation per faction ULID.
     pub reputation: HashMap<String, i32>,
@@ -76,11 +80,15 @@ impl DialogueContext {
         }
 
         if let Some(required) = &c.required_class
-            && self.class.as_deref() != Some(required.as_str()) {
-                return false;
-            }
+            && self.class.as_deref() != Some(required.as_str())
+        {
+            return false;
+        }
         if let Some(min) = c.min_reputation {
-            let faction = c.faction_ref.as_ref().and_then(|f| kbve_proto::ulid_text(Some(f)));
+            let faction = c
+                .faction_ref
+                .as_ref()
+                .and_then(|f| kbve_proto::ulid_text(Some(f)));
             // A reputation floor with no faction names no score to compare, so
             // it cannot be satisfied rather than being quietly ignored.
             match faction.and_then(|f| self.reputation.get(&f).copied()) {
@@ -89,16 +97,20 @@ impl DialogueContext {
             }
         }
         if let Some(min) = c.min_disposition {
-            let npc = c.faction_ref.as_ref().and_then(|f| kbve_proto::ulid_text(Some(f)));
+            let npc = c
+                .faction_ref
+                .as_ref()
+                .and_then(|f| kbve_proto::ulid_text(Some(f)));
             match npc.and_then(|n| self.disposition.get(&n).copied()) {
                 Some(score) if score >= min => {}
                 _ => return false,
             }
         }
         if let Some(check) = &c.skill_check
-            && !self.skill_ok(check) {
-                return false;
-            }
+            && !self.skill_ok(check)
+        {
+            return false;
+        }
 
         let visits = self.visits.get(graph_ref).copied().unwrap_or(0);
         if c.min_visits.is_some_and(|min| visits < min) {
@@ -121,10 +133,18 @@ impl DialogueContext {
     }
 
     fn quest_ok(&self, q: &crate::proto::QuestCondition) -> bool {
-        let Some(key) = q.quest_ref.as_ref().and_then(|r| kbve_proto::ulid_text(Some(r))) else {
+        let Some(key) = q
+            .quest_ref
+            .as_ref()
+            .and_then(|r| kbve_proto::ulid_text(Some(r)))
+        else {
             return false;
         };
-        let state = self.quests.get(&key).copied().unwrap_or(QuestStatus::Unspecified);
+        let state = self
+            .quests
+            .get(&key)
+            .copied()
+            .unwrap_or(QuestStatus::Unspecified);
         if q.states.is_empty() {
             // "Empty means any state but LOCKED" -- and a quest the player has
             // never encountered is not in any state at all.

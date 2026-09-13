@@ -26,6 +26,7 @@ fn dialogue_enum_resolver() -> impl Fn(&str) -> Option<i32> {
 /// player can see but not take is telling them something.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct OfferedChoice<'a> {
+    /// The choice as authored, borrowed from the graph.
     pub choice: &'a DialogueChoice,
     /// False when its condition fails and it is shown anyway.
     pub available: bool,
@@ -74,6 +75,10 @@ impl DialogueDb {
         Ok(db)
     }
 
+    /// Add one graph, replacing any already registered under the same ref.
+    ///
+    /// A graph with no ULID is still reachable by ref; only the ULID lookup
+    /// needs one, and hand-authored graphs frequently have none.
     pub fn insert(&mut self, graph: DialogueGraph) {
         if let Some(ulid) = kbve_proto::ulid_text(graph.id.as_ref()) {
             self.ref_by_ulid.insert(ulid, graph.r#ref.clone());
@@ -81,6 +86,7 @@ impl DialogueDb {
         self.by_ref.insert(graph.r#ref.clone(), graph);
     }
 
+    /// Look a graph up by its authored ref.
     pub fn get(&self, graph_ref: &str) -> Option<&DialogueGraph> {
         self.by_ref.get(graph_ref)
     }
@@ -90,14 +96,18 @@ impl DialogueDb {
         self.by_ref.get(self.ref_by_ulid.get(ulid)?)
     }
 
+    /// How many graphs are registered.
     pub fn len(&self) -> usize {
         self.by_ref.len()
     }
 
+    /// Whether no graph is registered, which is what an unloaded database
+    /// looks like rather than an error.
     pub fn is_empty(&self) -> bool {
         self.by_ref.is_empty()
     }
 
+    /// Every registered graph, in no particular order.
     pub fn iter(&self) -> impl Iterator<Item = &DialogueGraph> {
         self.by_ref.values()
     }
@@ -150,7 +160,10 @@ pub fn choices<'a>(
         .filter_map(|c| {
             let available = ctx.allows(c.condition.as_ref(), &graph.r#ref);
             if available || c.show_when_unavailable.unwrap_or(false) {
-                Some(OfferedChoice { choice: c, available })
+                Some(OfferedChoice {
+                    choice: c,
+                    available,
+                })
             } else {
                 None
             }
@@ -307,9 +320,21 @@ mod tests {
     fn choices_come_back_in_display_order() {
         let mut node = line("talk");
         node.choices = vec![
-            DialogueChoice { id: "c".into(), order: Some(2), ..Default::default() },
-            DialogueChoice { id: "a".into(), order: Some(0), ..Default::default() },
-            DialogueChoice { id: "b".into(), order: Some(1), ..Default::default() },
+            DialogueChoice {
+                id: "c".into(),
+                order: Some(2),
+                ..Default::default()
+            },
+            DialogueChoice {
+                id: "a".into(),
+                order: Some(0),
+                ..Default::default()
+            },
+            DialogueChoice {
+                id: "b".into(),
+                order: Some(1),
+                ..Default::default()
+            },
         ];
         let g = graph(vec![], vec![node.clone()]);
         let ids: Vec<_> = choices(&g, &node, &DialogueContext::default())

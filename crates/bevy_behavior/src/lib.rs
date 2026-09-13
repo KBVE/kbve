@@ -51,6 +51,7 @@
 //! - **`bevy`** — adds Bevy `Resource` / `Component` derives and a
 //!   future `BehaviorTreePlugin` for in-ECS evaluation. Without this
 //!   flag the crate is pure Rust with zero framework dependency.
+#![deny(missing_docs)]
 
 pub mod cooldown;
 pub mod observation;
