@@ -5,6 +5,9 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { fileURLToPath } from 'node:url';
 import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
+import { readBuildInfo } from './src/build-info.mjs';
+
+const buildInfo = readBuildInfo(new URL('.', import.meta.url));
 
 export default defineConfig({
 	site: 'https://chuckrpg.com',
@@ -98,5 +101,8 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
+		define: {
+			__CHUCK_BUILD_INFO__: JSON.stringify(buildInfo),
+		},
 	},
 });
