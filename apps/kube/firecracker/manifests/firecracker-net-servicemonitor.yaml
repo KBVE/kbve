@@ -5,7 +5,7 @@ metadata:
     namespace: firecracker
     labels:
         app: firecracker-ctl-net
-        release: prometheus
+        release: monitoring
 spec:
     selector:
         matchLabels:
