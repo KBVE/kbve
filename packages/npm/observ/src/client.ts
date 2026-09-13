@@ -4,7 +4,35 @@ import {
 	instrumentDom,
 	instrumentFetch,
 } from './breadcrumbs';
+import { collectVitals, siblingEndpoint, type Vital } from './vitals';
 import type { CaptureInput, ErrorEvent, ObservConfig } from './types';
+
+interface PerfEvent {
+	project: string;
+	platform: string;
+	release: string;
+	environment: string;
+	metric: string;
+	value: number;
+	rating: string;
+	navigation_type: string;
+	url: string;
+	user_id: string;
+	session_id: string;
+	extra?: Record<string, unknown>;
+}
+
+interface ProductEvent {
+	project: string;
+	platform: string;
+	release: string;
+	environment: string;
+	name: string;
+	url: string;
+	user_id: string;
+	session_id: string;
+	extra?: Record<string, unknown>;
+}
 
 const NOISE = [
 	'ResizeObserver loop limit exceeded',
@@ -39,6 +67,11 @@ export class Observer {
 	> &
 		ObservConfig;
 	private queue: ErrorEvent[] = [];
+	// One queue per lens, matching the ingest: the routes take different shapes
+	// and a mixed batch would be rejected wholesale by whichever it was posted to.
+	private perfQueue: PerfEvent[] = [];
+	private productQueue: ProductEvent[] = [];
+	private stopVitals: (() => void) | null = null;
 	private timer: ReturnType<typeof setInterval> | null = null;
 	private session: string;
 	private installed = false;
@@ -53,6 +86,39 @@ export class Observer {
 		};
 		this.session = config.sessionId ?? randomId();
 		this.trail = new BreadcrumbTrail(config.maxBreadcrumbs ?? 20);
+	}
+
+	/// The routing fields every lens shares.
+	private common() {
+		return {
+			project: this.cfg.project,
+			platform: this.cfg.platform ?? 'web',
+			release: this.cfg.release ?? '',
+			environment: this.cfg.environment ?? '',
+			url: typeof location !== 'undefined' ? location.href : '',
+			user_id: this.cfg.getUserId?.() ?? '',
+			session_id: this.session,
+		};
+	}
+
+	/// Record a named product event. Sampling applies, so a funnel measured this
+	/// way is measured on the same population the errors are.
+	trackEvent(name: string, extra?: Record<string, unknown>): void {
+		if (!name) return;
+		if (this.cfg.sampleRate < 1 && Math.random() > this.cfg.sampleRate)
+			return;
+		this.productQueue.push({ ...this.common(), name, extra });
+		if (this.productQueue.length >= this.cfg.maxBatch) this.flush(false);
+	}
+
+	private trackVital(v: Vital): void {
+		this.perfQueue.push({
+			...this.common(),
+			metric: v.metric,
+			value: v.value,
+			rating: v.rating,
+			navigation_type: v.navigation_type ?? '',
+		});
 	}
 
 	/// Record a manual breadcrumb; surfaces in `extra.breadcrumbs` on the next capture.
@@ -76,8 +142,11 @@ export class Observer {
 
 		const g = globalThis as {
 			ErrorUtils?: {
-				getGlobalHandler?: () => ((e: unknown, fatal?: boolean) => void) | undefined;
-				setGlobalHandler?: (h: (e: unknown, fatal?: boolean) => void) => void;
+				getGlobalHandler?: () =>
+					((e: unknown, fatal?: boolean) => void) | undefined;
+				setGlobalHandler?: (
+					h: (e: unknown, fatal?: boolean) => void,
+				) => void;
 			};
 		};
 		const eu = g.ErrorUtils;
@@ -141,6 +210,10 @@ export class Observer {
 			},
 		);
 
+		if (this.cfg.captureVitals) {
+			this.stopVitals = collectVitals((v) => this.trackVital(v));
+		}
+
 		const flushNow = () => this.flush(true);
 		window.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'hidden') flushNow();
@@ -156,6 +229,10 @@ export class Observer {
 			clearInterval(this.timer);
 			this.timer = null;
 		}
+		// Before the flush, not after: finalizing the vitals is what puts the
+		// last LCP/CLS/INP on the queue this flush is meant to drain.
+		this.stopVitals?.();
+		this.stopVitals = null;
 		this.flush(true);
 	}
 
@@ -207,8 +284,26 @@ export class Observer {
 	}
 
 	flush(useBeacon: boolean): void {
-		if (this.queue.length === 0) return;
-		const events = this.queue.splice(0, this.queue.length);
+		this.send(this.cfg.endpoint, this.queue.splice(0), useBeacon);
+		this.send(
+			this.cfg.perfEndpoint ?? siblingEndpoint(this.cfg.endpoint, 'perf'),
+			this.perfQueue.splice(0),
+			useBeacon,
+		);
+		this.send(
+			this.cfg.eventsEndpoint ??
+				siblingEndpoint(this.cfg.endpoint, 'events'),
+			this.productQueue.splice(0),
+			useBeacon,
+		);
+	}
+
+	private send(
+		endpoint: string,
+		events: unknown[],
+		useBeacon: boolean,
+	): void {
+		if (events.length === 0) return;
 		const body = JSON.stringify({ events });
 
 		if (
@@ -217,10 +312,10 @@ export class Observer {
 			navigator.sendBeacon
 		) {
 			const blob = new Blob([body], { type: 'application/json' });
-			if (navigator.sendBeacon(this.cfg.endpoint, blob)) return;
+			if (navigator.sendBeacon(endpoint, blob)) return;
 		}
 
-		void fetch(this.cfg.endpoint, {
+		void fetch(endpoint, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body,

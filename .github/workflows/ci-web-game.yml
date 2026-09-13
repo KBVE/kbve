@@ -225,6 +225,20 @@ jobs:
                   if-no-files-found: error
                   retention-days: 14
 
+            # After the upload on purpose: a bundle that fails here is exactly
+            # the one worth downloading. Opt-in per project, because a Vite game
+            # has nothing to smoke.
+            - name: Smoke the bundle
+              env:
+                  PROJECT: ${{ inputs.project }}
+              run: |
+                  set -euo pipefail
+                  if moon task "$PROJECT:smoke" >/dev/null 2>&1; then
+                    moon run "$PROJECT:smoke"
+                  else
+                    echo "::notice::$PROJECT has no smoke task; skipping"
+                  fi
+
             # Absent on a fork, where the build is still worth running and the
             # push is not possible. Saying so beats failing on a missing secret.
             - name: Check for the itch credential

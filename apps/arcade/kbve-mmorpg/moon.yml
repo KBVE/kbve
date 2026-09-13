@@ -138,6 +138,16 @@ tasks:
     # itch should behave like itch with SharedArrayBuffer support switched on --
     # otherwise the threaded build's first failure is a missing response header
     # discovered in production. `npx serve` sends neither.
+    # Loads the built bundle in a real browser and fails on a console error.
+    # build-web proves the wasm links; this proves it survives a frame. 0.1.0
+    # linked fine and panicked on std's clock the moment the pose set loaded.
+    smoke:
+        toolchain: 'system'
+        deps: ['~:build-web']
+        script: 'node ../../../tools/web/smoke.mjs dist 45'
+        options:
+            cache: false
+
     serve-web:
         script: 'node ../../../tools/web/serve-coi.mjs dist $MMORPG_WEB_PORT'
         deps: ['build-web']

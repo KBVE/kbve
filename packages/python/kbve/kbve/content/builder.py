@@ -75,6 +75,7 @@ def emit_page(
     page: str,
     mdx_text: str,
     json_text: str,
+    json_path: Path | None = None,
     extra_json: Sequence[Path] = (),
     note: str = "generated",
 ) -> BuildResult:
@@ -87,12 +88,16 @@ def emit_page(
     computes them itself is a route that can get them wrong, which is how the
     journal route came to name a path `git add` could not resolve.
 
-    The JSON is always ``<route>.json``; every route passed its own name here
-    and each one had to be kept in step with the fetch on the dashboard side.
+    The JSON is always ``<route>.json`` under the public data dir; every route
+    passed its own name here and each one had to be kept in step with the fetch
+    on the dashboard side. ``json_path`` overrides that for a route whose data
+    is owned by a package rather than served straight out of ``public`` — the
+    graph route writes ``packages/data/graph/monorepo/projects.json``, which the
+    site copies into ``public`` at build time.
     """
     content_root = Path(ctx.content_root)
     mdx_out = content_root / "dashboard" / page
-    json_out = Path(ctx.public_dir) / ("%s.json" % route)
+    json_out = Path(json_path) if json_path else Path(ctx.public_dir) / ("%s.json" % route)
     targets = [(mdx_out, mdx_text), *((p, json_text) for p in extra_json), (json_out, json_text)]
 
     if not ctx.dry_run:

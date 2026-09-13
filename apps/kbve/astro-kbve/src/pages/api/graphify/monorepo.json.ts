@@ -1,12 +1,13 @@
 import type { APIRoute } from 'astro';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+
+import { graphDataPath } from '@/lib/graph/dataPaths';
 
 /**
  * API endpoint for the monorepo semantic knowledge graph.
  *
  * Derives a flat ``{nodes, edges, communities}`` graph from the committed
- * tiered explorer data (``public/graphify/overview.json``) so the endpoint is
+ * tiered explorer data (``packages/data/graph/monorepo/overview.json``) so the endpoint is
  * always populated at build time without depending on the external ``graphify``
  * binary. The envelope matches the full Graphify export, so a richer
  * symbol-level graph can be swapped in later without changing consumers.
@@ -49,10 +50,8 @@ const topLevel = (label: string): string => {
 
 export const GET: APIRoute = async () => {
 	try {
-		const overviewPath = join(
-			process.cwd(),
-			'public/graphify/overview.json',
-		);
+		const overviewPath = graphDataPath('overview.json');
+		if (!overviewPath) throw new Error('graph data package not found');
 		const overview: Overview = JSON.parse(
 			await readFile(overviewPath, 'utf-8'),
 		);
@@ -135,7 +134,7 @@ export const GET: APIRoute = async () => {
 					scope: 'monorepo',
 					status: 'not-generated',
 					message:
-						'Graph source missing. Expected public/graphify/overview.json (run: moon run graphify-wrapper:build-monorepo).',
+						'Graph source missing. Expected packages/data/graph/monorepo/overview.json (run: moon run graphify-wrapper:build-tiered).',
 				},
 				graph: {
 					nodes: [],

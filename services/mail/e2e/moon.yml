@@ -1,0 +1,34 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vitest']
+
+# These specs only mean anything against the running container the `e2e` task
+# starts. The vitest preset's inherited `test` would run them with nothing
+# listening, so a refused connection reads as a broken suite rather than a task
+# that was never meant to run alone.
+workspace:
+    inheritedTasks:
+        exclude: ['test']
+
+tasks:
+    e2e:
+        deps: ['mail:containerx']
+        script: >-
+            docker rm -f mail-e2e 2>/dev/null || true;
+            docker run -d --name mail-e2e
+            -p 15600:5600
+            -e MAIL_ALLOWED_ORIGINS='https://herbmail.com,https://*.herbmail.com'
+            kbve/mail:latest &&
+            for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:15600/health >/dev/null 2>&1; then break; fi;
+            if [ $i -eq 30 ]; then echo 'mail did not become ready'; docker logs mail-e2e 2>&1 | tail -20; docker rm -f mail-e2e; exit 1; fi;
+            sleep 1;
+            done;
+            cd $projectSource && npx vitest run; EC=$?;
+            docker rm -f mail-e2e 2>/dev/null || true;
+            exit $EC
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

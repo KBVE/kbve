@@ -22,7 +22,7 @@ default = ["bevy"]
 bevy = ["dep:bevy"]
 
 [dependencies]
-kbve-proto = { path = "../kbve-proto" }
+kbve-proto = { path = "../kbve-proto", version = "0.1.0" }
 bevy = { workspace = true, features = ["bevy_state"], optional = true }
 prost = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }

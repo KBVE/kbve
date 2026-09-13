@@ -10,7 +10,7 @@
 //! ```
 //!
 //! Nothing is enabled by default. `features = ["full"]` turns on everything.
-
+#![deny(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "character")]

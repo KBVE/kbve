@@ -1,12 +1,17 @@
 layer: 'library'
 stack: 'systems'
 toolchains:
-  default: 'rust'
+    default: 'rust'
 
 # The generated tree this crate includes is an output of `protobuf:build`, so
 # the dependency is what stops the crate compiling against a stale schema.
 dependsOn:
-  - 'protobuf'
+    - 'protobuf'
 
 owners:
-  defaultOwner: '@h0lybyte'
+    defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: a `kbve-proto@<semver>` tag publishes this to
+# crates.io. Nine crates depend on it, so it has to reach the registry before
+# any of them can be published.
+tags: ['crates']

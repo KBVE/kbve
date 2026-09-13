@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: metrics-telemetry
+    namespace: kbve
+    labels:
+        app: metrics
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+        # kube-prometheus-stack selects ServiceMonitors by
+        # `release: <helm releaseName>` while serviceMonitorSelectorNilUsesHelmValues
+        # is left at its default. The release in apps/kube/monitoring/application.yaml
+        # is named `monitoring`, so that is the value that gets this object picked up.
+        release: monitoring
+spec:
+    namespaceSelector:
+        matchNames:
+            - kbve
+    selector:
+        matchLabels:
+            app: metrics
+    endpoints:
+        - port: metrics
+          path: /metrics
+          # 30s matches the other ServiceMonitors in the repo. The counters this
+          # scrapes are rates over minutes, so a finer interval buys nothing.
+          interval: 30s

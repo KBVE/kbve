@@ -4,7 +4,7 @@
 //! does not compile fails here rather than in a Bevy crate downstream.
 #![allow(clippy::all)]
 
-include!("../../../gen/rust/mod.rs");
+include!("../../../../../crates/kbve-proto/src/gen/mod.rs");
 
 /// Mirror of kbve-proto's helper.
 ///
@@ -45,7 +45,7 @@ pub mod grpc {
             pub mod $name {
                 mod generated {
                     pub use crate::kbve::$pkg::v1::*;
-                    include!(concat!("../../../gen/rust/", $file));
+                    include!(concat!("../../../../../crates/kbve-proto/src/gen/", $file));
                 }
                 pub use generated::*;
             }

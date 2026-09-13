@@ -26,6 +26,7 @@
 //!     }
 //! }
 //! ```
+#![deny(missing_docs)]
 
 mod context;
 mod proto;

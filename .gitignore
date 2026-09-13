@@ -219,3 +219,8 @@ crates/q/release/
 # the tiered layout is precomputed from it. Intermediate, tens of megabytes,
 # and rebuilt from scratch every run.
 graphify-out/
+
+# Served copies of the committed graph data (packages/data/graph/monorepo).
+# Written by astro-kbve:sync-graph; the source of truth is the package.
+apps/kbve/astro-kbve/public/graphify/
+apps/kbve/astro-kbve/public/data/dashboard/graph.json

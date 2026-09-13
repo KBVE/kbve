@@ -33,12 +33,12 @@ uvx --from graphifyy graphify --help
 
 ```bash
 # Using the shell script (doesn't require Python package)
-./packages/data/graphify/scripts/build-monorepo-graph.sh
+./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh
 
 # Or directly with Graphify CLI
 graphify . \
-  --output packages/data/graphify/output/monorepo \
-  --config packages/data/graphify/configs/.graphify.yml \
+  --output packages/data/graph/output/monorepo \
+  --config packages/python/graphify-wrapper/configs/.graphify.yml \
   --no-semantic  # AST-only mode (fast)
 ```
 
@@ -47,23 +47,23 @@ graphify . \
 ```bash
 # Example: herbmail
 graphify apps/herbmail \
-  --output packages/data/graphify/output/apps/herbmail \
-  --config packages/data/graphify/configs/.graphify.yml
+  --output packages/data/graph/output/apps/herbmail \
+  --config packages/python/graphify-wrapper/configs/.graphify.yml
 ```
 
 ###Query Graph
 
 ```bash
 # Once graph.json is built
-graphify query packages/data/graphify/output/monorepo/graph.json \
+graphify query packages/data/graph/output/monorepo/graph.json \
   "Where is user authentication handled?"
 ```
 
 ## Next Steps
 
 1. **Fix uv version**: Align workspace uv version
-2. **Run first build**: `./packages/data/graphify/scripts/build-monorepo-graph.sh`
-3. **View results**: Open `packages/data/graphify/output/monorepo/graph.html`
+2. **Run first build**: `./packages/python/graphify-wrapper/scripts/build-monorepo-graph.sh`
+3. **View results**: Open `packages/data/graph/output/monorepo/graph.html`
 4. **Test API**: Start dev server and visit `/api/graphify/monorepo.json`
 
 ## Files Created
@@ -78,7 +78,7 @@ graphify query packages/data/graphify/output/monorepo/graph.json \
 
 ### Data Storage
 
-- `packages/data/graphify/` - Graph data storage
+- `packages/data/graph/` - Graph data storage
     - `configs/.graphify.yml` - Graphify configuration
     - `scripts/build-monorepo-graph.sh` - Build script
     - `output/` - Generated graphs (git-ignored)
@@ -93,7 +93,7 @@ graphify query packages/data/graphify/output/monorepo/graph.json \
 ### Documentation
 
 - `docs/GRAPHIFY_SETUP.md` - Complete setup guide
-- `packages/data/graphify/README.md` - Data storage docs
+- `packages/data/graph/README.md` - Data storage docs
 - `packages/python/graphify-wrapper/README.md` - Package docs
 
 ## Troubleshooting

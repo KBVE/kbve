@@ -34,3 +34,4 @@ jedi = { path = "../../crates/jedi" }
 
 [dev-dependencies]
 http-body-util = { workspace = true }
+serial_test = { workspace = true }

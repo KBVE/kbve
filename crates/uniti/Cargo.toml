@@ -18,7 +18,7 @@ readme = "README.md"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
-kbve-proto = { path = "../kbve-proto" }
+kbve-proto = { path = "../kbve-proto", version = "0.1.0" }
 serde = { workspace = true, features = ["derive"] }
 # bundled = compile SQLite C source in — zero system-lib deps at runtime,
 # works cross-platform inside the Unity cdylib without needing the host to
