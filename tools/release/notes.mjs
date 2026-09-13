@@ -162,9 +162,75 @@ export function refExists(ref, cwd = process.cwd()) {
  * `--no-merges` because a merge commit's subject is exempt from the convention
  * and its content is already listed as the commits it brought in.
  */
+/**
+ * Every path a project's source has lived at within the range.
+ *
+ * `git log -- <path>` does not follow renames, so a project that has moved
+ * loses everything before the move: `met` was released with 5 commits in its
+ * notes and 37 in its history, the other 32 having happened while it was
+ * `apps/metrics`. The whole repo moved products into `apps/<product>/` and
+ * services into `services/`, so this is the normal case rather than a quirk.
+ *
+ * `--follow` is not the tool for it: it takes a single path and is documented
+ * as working on files, not directories. Rename records are, though — a commit
+ * that moves the tree reports `R old new` for every file in it, which is
+ * enough to recover the old root.
+ *
+ * The scan deliberately runs WITHOUT a pathspec. Git applies a pathspec before
+ * rename detection, so limiting it to the new path reports the files as added
+ * and finds no renames at all — which is what made the first attempt at this
+ * return nothing. Filtering by destination happens here instead.
+ *
+ * Looped rather than done once because a project can move twice; bounded
+ * because a cycle in rename records would otherwise not terminate.
+ */
+export function sourceHistory(range, source, cwd = process.cwd()) {
+  const roots = [source];
+  for (let depth = 0; depth < 5; depth += 1) {
+    const frontier = roots[roots.length - 1];
+    const out = git(
+      [
+        // Git skips rename detection entirely once a commit touches more files
+        // than diff.renameLimit, warning on stderr and reporting no renames --
+        // so a tree move landing in the same commit as a large change would be
+        // missed and the notes would truncate exactly as before. The cap is
+        // raised for this scan rather than removed, so the cost stays bounded.
+        '-c',
+        'diff.renameLimit=20000',
+        'log',
+        '--no-merges',
+        '--format=',
+        '--diff-filter=R',
+        '--find-renames',
+        '--name-status',
+        range,
+      ],
+      cwd,
+    );
+    const found = new Set();
+    for (const line of out.split('\n')) {
+      const [status, from, to] = line.split('\t');
+      if (!status?.startsWith('R') || !from || !to) continue;
+      // The rename is per file. The project root is what is left of the old
+      // path once the part it shares with the new one is removed, so a move
+      // that also renamed files inside the tree contributes nothing here
+      // rather than contributing a wrong prefix.
+      if (to !== frontier && !to.startsWith(`${frontier}/`)) continue;
+      const rel = to.slice(frontier.length);
+      if (rel && !from.endsWith(rel)) continue;
+      const root = rel ? from.slice(0, from.length - rel.length) : from;
+      if (root && !roots.includes(root)) found.add(root);
+    }
+    if (found.size === 0) break;
+    roots.push(...found);
+  }
+  return roots;
+}
+
 export function commitsFor(range, source, cwd = process.cwd()) {
+  const sources = Array.isArray(source) ? source : [source];
   const out = git(
-    ['log', '--no-merges', `--format=%H${FS}%s${RS}`, range, '--', source],
+    ['log', '--no-merges', `--format=%H${FS}%s${RS}`, range, '--', ...sources],
     cwd,
   );
   return out
@@ -215,7 +281,9 @@ export function notes(tag, cwd = process.cwd()) {
     );
   }
   const range = previous ? `${previous}..${head}` : head;
-  const commits = commitsFor(range, resolved.source, cwd);
+  // Follow the source through any moves inside the range, or the notes stop at
+  // the rename and silently omit everything older.
+  const commits = commitsFor(range, sourceHistory(range, resolved.source, cwd), cwd);
   return render({
     project,
     version,

@@ -9,7 +9,13 @@ import {
   bullet,
   render,
   refExists,
+  sourceHistory,
+  commitsFor,
 } from './notes.mjs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 test('orders versions numerically, not as strings', () => {
   // The string comparison that this replaces puts 0.1.10 before 0.1.9.
@@ -155,4 +161,71 @@ test('a first release has no comparison link to offer', () => {
     repo: 'KBVE/workspace',
   });
   assert.doesNotMatch(out, /Full changelog/);
+});
+
+/** A throwaway repo whose project tree is moved once, which is the shape the
+ *  whole monorepo took when products moved into apps/<product>/ and services
+ *  into services/. */
+function repoWithAMovedProject() {
+  const dir = mkdtempSync(join(tmpdir(), 'notes-renames-'));
+  const run = (...args) =>
+    execFileSync('git', args, { cwd: dir, encoding: 'utf8' });
+  run('init', '-q', '-b', 'main');
+  run('config', 'user.email', 'test@example.com');
+  run('config', 'user.name', 'test');
+
+  mkdirSync(join(dir, 'apps/thing'), { recursive: true });
+  writeFileSync(join(dir, 'apps/thing/main.rs'), 'fn main() {}\n');
+  run('add', '-A');
+  run('commit', '-qm', 'feat(thing): the original commit');
+
+  writeFileSync(join(dir, 'apps/thing/main.rs'), 'fn main() { work(); }\n');
+  run('add', '-A');
+  run('commit', '-qm', 'fix(thing): a change made before the move');
+
+  mkdirSync(join(dir, 'services'), { recursive: true });
+  run('mv', 'apps/thing', 'services/thing');
+  run('add', '-A');
+  run('commit', '-qm', 'refactor(thing): move it to services');
+
+  writeFileSync(join(dir, 'services/thing/main.rs'), 'fn main() { more(); }\n');
+  run('add', '-A');
+  run('commit', '-qm', 'feat(thing): a change made after the move');
+  return dir;
+}
+
+test('follows a project through a move when collecting its history', () => {
+  // Without this, `git log -- services/thing` stops at the move and the notes
+  // silently omit everything older: met shipped 0.2.0 with 5 commits listed
+  // and 37 in its history.
+  const dir = repoWithAMovedProject();
+  try {
+    const roots = sourceHistory('HEAD', 'services/thing', dir);
+    assert.deepEqual(roots.sort(), ['apps/thing', 'services/thing']);
+
+    const subjects = commitsFor('HEAD', roots, dir).map((c) => c.subject);
+    assert.equal(subjects.length, 4, subjects.join(' | '));
+    assert.ok(subjects.some((s) => s.includes('the original commit')));
+    assert.ok(subjects.some((s) => s.includes('before the move')));
+    assert.ok(subjects.some((s) => s.includes('after the move')));
+
+    // The single-path behaviour this replaces, kept as the contrast: three of
+    // the four commits are invisible from the new path alone.
+    const narrow = commitsFor('HEAD', 'services/thing', dir);
+    assert.equal(narrow.length, 2, narrow.map((c) => c.subject).join(' | '));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a project that never moved reports only its own path', () => {
+  // The scan runs on every release, so the common case must not invent roots.
+  const dir = repoWithAMovedProject();
+  try {
+    assert.deepEqual(sourceHistory('HEAD', 'apps/never-existed', dir), [
+      'apps/never-existed',
+    ]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
