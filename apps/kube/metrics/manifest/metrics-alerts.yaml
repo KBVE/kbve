@@ -1,0 +1,113 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: metrics-telemetry
+    namespace: kbve
+    labels:
+        app: metrics
+        prometheus: kube-prometheus
+        role: alert-rules
+        kbve.com/category: observability
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    groups:
+        # Availability, from kube-state-metrics rather than from the service's
+        # own counters: a service that is down exports nothing, so an alert
+        # written against its own metrics is an alert that cannot fire in the
+        # case it exists for.
+        - name: metrics-telemetry.availability
+          rules:
+              - alert: MetricsIngestDown
+                annotations:
+                    summary: 'Telemetry ingest has no ready replicas'
+                    description: |
+                        The metrics deployment in {{ $labels.namespace }} has zero ready
+                        replicas. Every client error, Web Vitals sample and product event
+                        posted while this lasts is lost -- the SDK retries nothing and the
+                        browser has nowhere to buffer it.
+                expr: |
+                    kube_deployment_status_replicas_available{namespace="kbve",deployment="metrics"} == 0
+                for: 5m
+                labels:
+                    severity: critical
+
+              - alert: MetricsIngestCrashLooping
+                annotations:
+                    summary: 'Telemetry ingest is restarting repeatedly'
+                    description: |
+                        The metrics pod has restarted {{ $value | printf "%.0f" }} times in
+                        15 minutes. Each restart drains the in-memory buffer on the way out,
+                        so a crash loop loses whatever had not been flushed.
+                expr: |
+                    increase(kube_pod_container_status_restarts_total{namespace="kbve",pod=~"metrics-.*"}[15m]) > 2
+                for: 5m
+                labels:
+                    severity: warning
+
+              - alert: MetricsIngestScrapeMissing
+                annotations:
+                    summary: 'Telemetry ingest is not being scraped'
+                    description: |
+                        Prometheus cannot scrape the metrics service. The pod may be up and
+                        serving ingest while this fires -- the effect is that every alert
+                        below goes blind, which is how this pipeline previously had no
+                        monitoring at all.
+                expr: |
+                    up{namespace="kbve",service="metrics-service"} == 0
+                for: 10m
+                labels:
+                    severity: warning
+
+        # Data loss. These are the cases where the service answers 202 and the
+        # row never reaches ClickHouse, which is invisible from the client side.
+        - name: metrics-telemetry.ingest
+          rules:
+              - alert: MetricsIngestQueueFull
+                annotations:
+                    summary: 'Telemetry ingest is dropping events because its queue is full'
+                    description: |
+                        {{ $value | printf "%.2f" }} events/s are being dropped with
+                        reason=queue_full. The flusher is not draining as fast as ingest is
+                        filling: ClickHouse is slow or erroring, or the batch settings are
+                        too small for current volume. These rows are gone -- the client was
+                        told 202.
+                expr: |
+                    sum(rate(metrics_ingest_dropped_total{service="metrics",reason="queue_full"}[10m])) > 0
+                for: 10m
+                labels:
+                    severity: critical
+
+              - alert: MetricsIngestProjectCapped
+                annotations:
+                    summary: 'A project is being rate-limited on telemetry ingest'
+                    description: |
+                        {{ $value | printf "%.2f" }} events/s are being dropped with
+                        reason=project_capped. Either one project is flooding -- an error
+                        loop is the usual cause -- or METRICS_PROJECT_RATE_LIMIT_PER_MIN is
+                        now too low for its real volume.
+                expr: |
+                    sum(rate(metrics_ingest_dropped_total{service="metrics",reason="project_capped"}[15m])) > 1
+                for: 15m
+                labels:
+                    severity: warning
+
+              - alert: MetricsIngestUnauthorizedSpike
+                annotations:
+                    summary: 'Telemetry ingest is rejecting callers as unauthorized'
+                    description: |
+                        {{ $value | printf "%.2f" }} requests/s are being rejected with
+                        reason=unauthorized. Usually METRICS_INGEST_TOKEN drifting between
+                        the service and a client that was just deployed, in which case that
+                        client's telemetry is silently absent rather than merely rejected.
+                expr: |
+                    sum(rate(metrics_ingest_rejected_total{service="metrics",reason="unauthorized"}[10m])) > 0.5
+                for: 10m
+                labels:
+                    severity: warning
+
+              # Deliberately not an alert on "no events received": traffic is
+              # genuinely near zero at night for a site this size, so the
+              # threshold that catches a dead pipeline also fires every night.
+              # MetricsIngestScrapeMissing and MetricsIngestDown cover the cases
+              # that can be stated without guessing at a traffic floor.
