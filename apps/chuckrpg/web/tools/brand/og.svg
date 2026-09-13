@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+	<defs>
+		<radialGradient id="glow" cx="50%" cy="42%" r="62%">
+			<stop offset="0%" stop-color="#2c2419" />
+			<stop offset="55%" stop-color="#1f1c1c" />
+			<stop offset="100%" stop-color="#141418" />
+		</radialGradient>
+		<linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+			<stop offset="0%" stop-color="#d4a44c" stop-opacity="0" />
+			<stop offset="50%" stop-color="#d4a44c" stop-opacity="0.85" />
+			<stop offset="100%" stop-color="#d4a44c" stop-opacity="0" />
+		</linearGradient>
+		<linearGradient id="blade" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0%" stop-color="#e8c06a" />
+			<stop offset="100%" stop-color="#b8893d" />
+		</linearGradient>
+	</defs>
+
+	<rect width="1200" height="630" fill="#1a1a1f" />
+	<rect width="1200" height="630" fill="url(#glow)" />
+
+	<rect x="28" y="28" width="1144" height="574" fill="none" stroke="#d4a44c" stroke-opacity="0.22" stroke-width="2" />
+	<rect x="40" y="40" width="1120" height="550" fill="none" stroke="#d4a44c" stroke-opacity="0.1" stroke-width="1" />
+
+	<g transform="translate(600 188)">
+		<g transform="rotate(-32)">
+			<path d="M0 -126 L11 -92 L11 8 L-11 8 L-11 -92 Z" fill="url(#blade)" />
+			<path d="M0 -126 L0 8" stroke="#f2dca6" stroke-opacity="0.45" stroke-width="2" />
+			<rect x="-40" y="8" width="80" height="13" rx="6" fill="#b8893d" />
+			<rect x="-7" y="21" width="14" height="42" rx="5" fill="#3d2e1e" />
+			<circle cx="0" cy="70" r="12" fill="#b8893d" />
+		</g>
+		<g transform="rotate(32)">
+			<path d="M0 -126 L11 -92 L11 8 L-11 8 L-11 -92 Z" fill="url(#blade)" />
+			<path d="M0 -126 L0 8" stroke="#f2dca6" stroke-opacity="0.45" stroke-width="2" />
+			<rect x="-40" y="8" width="80" height="13" rx="6" fill="#b8893d" />
+			<rect x="-7" y="21" width="14" height="42" rx="5" fill="#3d2e1e" />
+			<circle cx="0" cy="70" r="12" fill="#b8893d" />
+		</g>
+	</g>
+
+	<text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="104" font-weight="700" letter-spacing="10" fill="#e8dcc8">ChuckRPG</text>
+
+	<rect x="450" y="400" width="300" height="2" fill="url(#rule)" />
+
+	<text x="600" y="456" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" letter-spacing="3" fill="#d4a44c">Open World Multiplayer RPG</text>
+
+	<text x="600" y="516" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" letter-spacing="2" fill="#9e9480">Forge your legend in a world of swords and sorcery</text>
+
+	<text x="600" y="566" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="21" letter-spacing="7" fill="#6b6356">CHUCKRPG.COM</text>
+</svg>

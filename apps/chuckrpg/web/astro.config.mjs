@@ -55,6 +55,42 @@ export default defineConfig({
 					},
 				},
 				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image',
+						content: 'https://chuckrpg.com/og.png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:width',
+						content: '1200',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:height',
+						content: '630',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:alt',
+						content:
+							'ChuckRPG -- crossed swords over a dark stone field, an open world multiplayer RPG',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						name: 'twitter:image',
+						content: 'https://chuckrpg.com/og.png',
+					},
+				},
+				{
 					tag: 'link',
 					attrs: {
 						rel: 'preconnect',
